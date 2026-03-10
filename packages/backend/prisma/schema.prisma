@@ -19,10 +19,14 @@ enum MemberRole {
 }
 
 model User {
-  id        String @id @default(cuid())
-  email     String @unique
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  firstName String
+  lastName  String
+  dob       DateTime
   password  String
-  role      Role
+  role      Role     @default(COACH)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
