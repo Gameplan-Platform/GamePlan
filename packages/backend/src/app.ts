@@ -1,9 +1,16 @@
 import express from "express";
 import healthRoutes from "./routes/health.routes";
+import authRoutes from "./routes/auth.routes";
+import teamsRoutes from "./routes/teams.routes";
 
-const app = express(); // express app
+/* Express App */ 
+const app = express(); 
 
-app.use(express.json()); // middleware that converts incoming JSON HTTP request into a useable object 
-app.use("/api", healthRoutes); // mount api routes
+app.use(express.json()); 
+
+/* Mount Api Routes */ 
+app.use("/api", healthRoutes); 
+app.use("/auth", authRoutes);
+app.use("/teams", teamsRoutes);
 
 export default app;
