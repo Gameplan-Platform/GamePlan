@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.middleware";
-import { selectRole } from "../controllers/user.controller";
 
 const router = Router();
 
-router.patch("/role", requireAuth, selectRole);
+router.get("/", requireAuth, (req, res) => {
+  res.status(200).json({
+    message: "Protected teams route",
+    user: req.user,
+  });
+});
 
 export default router;

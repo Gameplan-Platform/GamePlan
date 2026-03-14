@@ -1,13 +1,17 @@
 import express from "express";
 import healthRoutes from "./routes/health.routes";
 import userRoutes from "./routes/users.routes";
+import authRoutes from "./routes/auth.routes";
+import teamsRoutes from "./routes/teams.routes";
 
+/* Express App */ 
+const app = express(); 
 
-const app = express(); // express app
+app.use(express.json()); 
 
-app.use(express.json()); // middleware that converts incoming JSON HTTP request into a useable object 
-app.use("/api", healthRoutes); // mount api routes
-app.use("/api/users", userRoutes); // mount user routes
-
+/* Mount Api Routes */ 
+app.use("/api", healthRoutes); 
+app.use("/auth", authRoutes);
+app.use("/teams", teamsRoutes);
 
 export default app;
