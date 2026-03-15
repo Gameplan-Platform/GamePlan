@@ -3,6 +3,7 @@ import TitleScreen from './pages/TitleScreen'
 import LandingScreen from './pages/LandingScreen'
 import SignupScreen from './pages/SignupScreen'
 import LoginScreen from './pages/LoginScreen'
+import RoleSelectScreen from './pages/RoleSelectScreen'
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/landing" element={<LandingScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
         <Route path="/login" element={<LoginScreen />} />
+        <Route path="/role-select" element={<RoleSelectScreen />} />
       </Routes>
     </BrowserRouter>
   )
