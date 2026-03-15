@@ -1,6 +1,8 @@
 import path from "path";
 import dotenv from "dotenv";
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });import app from "./app";
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+
+import app from "./app";
 import { config } from "./config/env";
 
 app.listen(config.port, () => {
