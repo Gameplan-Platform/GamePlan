@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { api } from '../utils/api'
+import { useAuth } from '../context/AuthContext'
 
 const spring = { type: 'spring' as const, stiffness: 100, damping: 14 }
 
@@ -66,6 +67,7 @@ const fieldStyle = (top: string) => ({
 
 export default function LoginScreen() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -88,7 +90,7 @@ export default function LoginScreen() {
         method: 'POST',
         body: { identifier: identifier.trim(), password },
       })
-      console.log('Login success', data)
+      login(data.token)
       navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
@@ -212,7 +214,12 @@ export default function LoginScreen() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ ...spring, delay: 0.35 }}
             style={{ position: 'absolute', left: '188px', top: '623px', width: '182px', fontFamily: 'Amiko', fontSize: '15px', lineHeight: '20px', color: '#BEBEBE', margin: 0 }}>
-            Don't Have an Account?
+            Don't Have an Account?{' '}
+            <span
+              onClick={() => navigate('/signup')}
+              style={{ color: '#6166DB', cursor: 'pointer', fontWeight: 600 }}>
+              Sign Up
+            </span>
           </motion.p>
 
           {/* Log In button */}

@@ -40,6 +40,10 @@ interface SignupResponse {
   user: { id: string; email: string }
 }
 
+interface ResendResponse {
+  message: string
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
 
@@ -92,6 +96,7 @@ export default function SignupScreen() {
   const [serverError, setServerError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }))
@@ -135,6 +140,19 @@ export default function SignupScreen() {
     }
   }
 
+  const handleResend = async () => {
+    setResendStatus('sending')
+    try {
+      await api<ResendResponse>('/auth/resend-verification', {
+        method: 'POST',
+        body: { email: form.email.trim() },
+      })
+      setResendStatus('sent')
+    } catch {
+      setResendStatus('error')
+    }
+  }
+
   if (success) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -145,9 +163,18 @@ export default function SignupScreen() {
             <p style={{ fontFamily: 'Amiko', fontSize: '16px', color: '#262626', marginTop: '16px' }}>
               We sent a verification link to <strong>{form.email}</strong>
             </p>
+            <button
+              onClick={handleResend}
+              disabled={resendStatus === 'sending' || resendStatus === 'sent'}
+              style={{ marginTop: '32px', width: '316px', height: '50px', background: resendStatus === 'sent' ? '#B8E466' : '#6166DB', borderRadius: '40px', border: 'none', fontFamily: 'Amiko', fontWeight: 700, fontSize: '18px', color: '#fff', cursor: resendStatus === 'sent' ? 'default' : 'pointer' }}>
+              {resendStatus === 'idle' && 'Resend Verification Email'}
+              {resendStatus === 'sending' && 'Sending...'}
+              {resendStatus === 'sent' && 'Email Sent'}
+              {resendStatus === 'error' && 'Failed — Try Again'}
+            </button>
             <button onClick={() => navigate('/login')}
-              style={{ marginTop: '40px', width: '316px', height: '50px', background: '#6166DB', borderRadius: '40px', border: 'none', fontFamily: 'Amiko', fontWeight: 700, fontSize: '20px', color: '#fff', cursor: 'pointer' }}>
-              Go to Login
+              style={{ marginTop: '16px', width: '316px', height: '50px', background: 'transparent', borderRadius: '40px', border: '2px solid #6166DB', fontFamily: 'Amiko', fontWeight: 700, fontSize: '18px', color: '#6166DB', cursor: 'pointer' }}>
+              Already verified? Log In
             </button>
           </motion.div>
         </div>
