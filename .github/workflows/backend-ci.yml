@@ -53,8 +53,6 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm --filter @gameplan/backend exec prisma generate
-        env:
-          DATABASE_URL: postgresql://gameplan:gameplan_test@localhost:5432/gameplan_test
 
       - name: Build shared types
         run: pnpm --filter @gameplan/shared build
