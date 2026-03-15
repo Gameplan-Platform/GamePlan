@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  transform: translateX(-17px);
+  cursor: pointer;
+  opacity: 0.5;
+}

@@ -37,7 +37,7 @@ export default function LandingScreen() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.25 }}
           onClick={() => navigate('/login')}
-          style={{ position: 'absolute', width: '316.68px', height: '41.23px', left: '62px', top: '580px', background: '#6166DB', boxShadow: '0px 8px 20px rgba(0,0,0,0.1)', borderRadius: '40px', border: 'none', fontFamily: 'Amiko', fontWeight: 650, fontSize: '24px', color: '#FFFFFF', cursor: 'pointer' }}
+          style={{ position: 'absolute', width: '316.68px', height: '41.23px', left: '62px', top: '590px', background: '#6166DB', boxShadow: '0px 8px 20px rgba(0,0,0,0.1)', borderRadius: '40px', border: 'none', fontFamily: 'Amiko', fontWeight: 650, fontSize: '24px', color: '#FFFFFF', cursor: 'pointer' }}
         >
           Login
         </motion.button>
