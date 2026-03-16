@@ -71,7 +71,7 @@ const roles = [
 
 export default function RoleSelectScreen() {
   const navigate = useNavigate()
-  const { token } = useAuth()
+  const { token, setRole } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -84,6 +84,7 @@ export default function RoleSelectScreen() {
         body: { role: role.toUpperCase() },
         token: token ?? undefined,
       })
+      setRole(role.toUpperCase())
       navigate('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to set role')
