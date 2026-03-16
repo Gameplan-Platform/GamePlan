@@ -71,3 +71,39 @@ export async function listMyModules(userId: string) {
     },
   });
 }
+
+//add module
+export async function joinModule(userId: string, joinCode: string, userRole: string)
+{
+  // find module by join code
+  const module = await prisma.module.findUnique({
+    where: { joinCode },
+  });
+
+  if (!module){
+    throw new Error("Invalid join code");
+  }
+  //check if already a member
+  const existingMem = await prisma.moduleMembership.findUnique({
+    where: {
+      userId_moduleId: { userId, moduleId: module.id},
+    },
+  });
+
+  if (existingMem){
+    throw new Error("Already a member");
+  }
+
+  //coaches get admin access??
+  const memberRole = userRole === "COACH" ? "MODULE_ADMIN" : "MEMBER";
+
+  const membership = await prisma.moduleMembership.create({
+    data: {
+      userId,
+      moduleId: module.id,
+      memberRole,
+    },
+  });
+
+  return { module, membership };
+}
