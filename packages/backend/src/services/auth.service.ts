@@ -2,6 +2,8 @@ import prisma from "../lib/prisma";
 import { ModuleMemberRole, Role } from "@prisma/client";
 import { hashPassword, comparePassword } from "../utils/password";
 import { generateAccessToken } from "../utils/jwt";
+import { generateVerificationToken } from "../utils/token";
+import { sendVerificationEmail } from "./email.service";
 import { SignupInput, LoginInput } from "../validators/auth.validator";
 
 async function enrollUserInDefaultModules(userId: string, role: Role) {
@@ -62,6 +64,7 @@ export async function signupUser(data: SignupInput) {
   }
 
   const hashedPassword = await hashPassword(password);
+  const verificationToken = generateVerificationToken();
 
   const user = await prisma.user.create({
     data: {
@@ -71,6 +74,7 @@ export async function signupUser(data: SignupInput) {
       lastName,
       dob: new Date(dob),
       password: hashedPassword,
+      verificationToken,
     },
     select: {
       id: true,
@@ -84,9 +88,60 @@ export async function signupUser(data: SignupInput) {
     },
   });
 
+  await sendVerificationEmail(email, verificationToken);
+
   await enrollUserInDefaultModules(user.id, user.role);
 
   return user;
+}
+
+export async function verifyEmail(token: string) {
+  const user = await prisma.user.findFirst({
+    where: { verificationToken: token },
+  });
+
+  if (!user) {
+    throw new Error("Invalid verification token");
+  }
+
+  if (user.emailVerified) {
+    throw new Error("Email already verified");
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      emailVerified: true,
+      verificationToken: null,
+    },
+  });
+
+  return { message: "Email verified successfully" };
+}
+
+export async function resendVerification(email: string) {
+  const user = await prisma.user.findFirst({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (user.emailVerified) {
+    throw new Error("Email already verified");
+  }
+
+  const verificationToken = generateVerificationToken();
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { verificationToken },
+  });
+
+  await sendVerificationEmail(email, verificationToken);
+
+  return { message: "Verification email sent" };
 }
 
 export async function loginUser(data: LoginInput) {
