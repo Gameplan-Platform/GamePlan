@@ -214,11 +214,10 @@ export default function LoginScreen() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ ...spring, delay: 0.35 }}
             style={{ position: 'absolute', left: '188px', top: '623px', width: '182px', fontFamily: 'Amiko', fontSize: '15px', lineHeight: '20px', color: '#BEBEBE', margin: 0 }}>
-            Don't Have an Account?{' '}
             <span
               onClick={() => navigate('/signup')}
-              style={{ color: '#6166DB', cursor: 'pointer', fontWeight: 600 }}>
-              Sign Up
+              style={{ cursor: 'pointer' }}>
+              Don't Have an Account?
             </span>
           </motion.p>
 

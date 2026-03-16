@@ -279,6 +279,16 @@ export default function SignupScreen() {
             </motion.div>
           ))}
 
+          {/* Already have an account */}
+          <motion.p
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            transition={{ ...spring, delay: 0.35 }}
+            style={{ position: 'absolute', left: 0, right: 0, top: '850px', textAlign: 'center', fontFamily: 'Amiko', fontSize: '15px', color: '#BEBEBE', margin: 0 }}>
+            <span onClick={() => navigate('/login')} style={{ cursor: 'pointer' }}>
+              Already Have an Account?
+            </span>
+          </motion.p>
+
           {/* Continue button */}
           <motion.button
             type="submit"
