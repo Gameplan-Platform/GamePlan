@@ -112,7 +112,7 @@ export default function ModuleHomepage() {
           transition={{ ...spring, delay: 0.4 }}
           onClick={handleLogout}
           style={{
-            position: 'absolute', left: '30px', top: '88px',
+            position: 'absolute', left: '30px', top: '60px',
             width: '85px', height: '32px',
             background: '#6166DB', boxShadow: '0px 8px 20px rgba(0,0,0,0.1)',
             borderRadius: '40px', border: 'none',
@@ -153,7 +153,7 @@ export default function ModuleHomepage() {
                 {/* 3 dots kebab menu */}
                 <div
                   onClick={(e) => { e.stopPropagation(); setOpenCodeId(openCodeId === mod.id ? null : mod.id) }}
-                  style={{ position: 'absolute', right: '10px', top: '18px', display: 'flex', flexDirection: 'column', gap: '7px', cursor: 'pointer', padding: '4px' }}>
+                  style={{ position: 'absolute', right: '18px', top: '18px', display: 'flex', flexDirection: 'column', gap: '7px', cursor: 'pointer', padding: '4px' }}>
                   {[0, 1, 2].map(d => (
                     <div key={d} style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#FFFFFF' }} />
                   ))}

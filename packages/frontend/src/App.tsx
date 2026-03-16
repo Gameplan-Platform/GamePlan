@@ -7,6 +7,7 @@ import RoleSelectScreen from './pages/RoleSelectScreen'
 import VerifyEmail from './pages/VerifyEmail'
 import ModuleHomepage from './pages/ModuleHomepage'
 import CreateModule from './pages/CreateModule'
+import JoinModule from './pages/JoinModule'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/module-homepage" element={<ModuleHomepage />} />
         <Route path="/modules/create" element={<CreateModule />} />
+        <Route path="/modules/join" element={<JoinModule />} />
       </Routes>
     </BrowserRouter>
   )

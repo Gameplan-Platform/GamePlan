@@ -6,57 +6,27 @@ import { useAuth } from '../context/AuthContext'
 
 const spring = { type: 'spring' as const, stiffness: 100, damping: 14 }
 
-const colorOptions = [
-  '#6166DB',
-  '#B8E466',
-  '#55337B',
-  '#FF6B6B',
-  '#4ECDC4',
-  '#FFB347',
-  '#F94144',
-  '#8B4513',
-  '#FFD700',
-  '#222222',
-  '#AAAAAA',
-  '#FFB3C6',
-  '#2D6A4F',
-  '#3A86FF',
-]
-
-const PersonIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginLeft: '14px' }}>
-    <circle cx="12" cy="7" r="4" fill="#B8E466" />
-    <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7" fill="#B8E466" />
-  </svg>
-)
-
-interface CreateModuleResponse {
-  message: string
-  module: { id: string; name: string; joinCode: string }
-}
-
-export default function CreateModule() {
+export default function JoinModule() {
   const navigate = useNavigate()
   const { token } = useAuth()
-  const [name, setName] = useState('')
-  const [selectedColor, setSelectedColor] = useState(colorOptions[0])
+  const [joinCode, setJoinCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setError('Module name is required'); return }
+    if (!joinCode.trim()) { setError('Module code is required'); return }
     setError('')
     setLoading(true)
     try {
-      await api<CreateModuleResponse>('/modules', {
+      await api('/modules/join', {
         method: 'POST',
-        body: { name: name.trim(), description: selectedColor },
+        body: { joinCode: joinCode.trim() },
         token: token ?? undefined,
       })
       navigate('/module-homepage')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create module')
+      setError(err instanceof Error ? err.message : 'Failed to join module')
     } finally {
       setLoading(false)
     }
@@ -72,7 +42,7 @@ export default function CreateModule() {
           transition={{ ...spring, delay: 0 }}
           onClick={() => navigate('/module-homepage')}
           style={{
-            position: 'absolute', left: '38px', top: '71px',
+            position: 'absolute', left: '48px', top: '70px',
             width: '38px', height: '42px',
             background: 'white', border: '1px solid #CED3DE',
             borderRadius: '10px', cursor: 'pointer',
@@ -88,8 +58,8 @@ export default function CreateModule() {
         <motion.p
           initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.05 }}
-          style={{ position: 'absolute', left: '72px', top: '119px', fontFamily: 'Amiko', fontWeight: 700, fontSize: '40px', lineHeight: '53px', color: '#000000', margin: 0 }}>
-          Create Module
+          style={{ position: 'absolute', left: '81px', top: '121px', fontFamily: 'Amiko', fontWeight: 700, fontSize: '40px', lineHeight: '53px', color: '#000000', margin: 0 }}>
+          Join a Module
         </motion.p>
 
         <form onSubmit={handleSubmit}>
@@ -99,7 +69,7 @@ export default function CreateModule() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ ...spring, delay: 0.1 }}
             style={{
-              position: 'absolute', left: '44px', top: '205px',
+              position: 'absolute', left: '48px', top: '204px',
               width: '349px', height: '41px',
               background: '#6166DB', boxShadow: '0px 8px 20px rgba(0,0,0,0.1)',
               borderRadius: '40px',
@@ -110,77 +80,52 @@ export default function CreateModule() {
             </span>
           </motion.div>
 
-          {/* Module Name field */}
+          {/* Join code input */}
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ ...spring, delay: 0.15 }}
             style={{
-              position: 'absolute', left: '32px', top: '284px',
-              width: '384px', height: '50px',
-              background: '#FFFFFF', boxShadow: '0px 8px 20px rgba(0,0,0,0.1)',
-              borderRadius: '40px', display: 'flex', alignItems: 'center', overflow: 'hidden',
+              position: 'absolute', left: '48px', top: '283px',
+              width: '350px', height: '48px',
+              background: '#FFFFFF', boxShadow: '0px 4px 4px rgba(0,0,0,0.25)',
+              borderRadius: '20px', display: 'flex', alignItems: 'center', overflow: 'hidden',
             }}>
-            <PersonIcon />
             <input
               type="text"
-              placeholder="Module Name"
-              value={name}
-              onChange={e => setName(e.target.value)}
+              placeholder="Enter Module Code"
+              value={joinCode}
+              onChange={e => setJoinCode(e.target.value)}
               disabled={loading}
               style={{
                 width: '100%', height: '100%', border: 'none', outline: 'none',
-                background: 'transparent', fontFamily: 'Amiko', fontSize: '15px',
-                color: '#333', paddingLeft: '10px',
+                background: 'transparent', fontFamily: 'Amiko', fontSize: '18px',
+                color: '#333', padding: '0 16px',
               }}
             />
           </motion.div>
 
-          {/* Color picker */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ ...spring, delay: 0.2 }}
-            style={{ position: 'absolute', left: '32px', top: '360px' }}>
-            <p style={{ fontFamily: 'Amiko', fontSize: '15px', color: '#BEBEBE', margin: '0 0 12px 12px' }}>
-              Choose a color
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 36px)', gap: '14px', paddingLeft: '12px' }}>
-              {colorOptions.map(color => (
-                <div
-                  key={color}
-                  onClick={() => setSelectedColor(color)}
-                  style={{
-                    width: '36px', height: '36px', borderRadius: '50%',
-                    background: color, cursor: 'pointer',
-                    border: selectedColor === color ? '3px solid #262626' : '3px solid transparent',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              ))}
-            </div>
-          </motion.div>
-
           {/* Error */}
           {error && (
-            <p style={{ position: 'absolute', top: '345px', left: '44px', color: 'red', fontFamily: 'Amiko', fontSize: '13px', margin: 0 }}>
+            <p style={{ position: 'absolute', top: '342px', left: '56px', color: 'red', fontFamily: 'Amiko', fontSize: '13px', margin: 0 }}>
               {error}
             </p>
           )}
 
-          {/* Create button */}
+          {/* Join button */}
           <motion.button
             type="submit"
             disabled={loading}
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ ...spring, delay: 0.2 }}
             style={{
-              position: 'absolute', left: '56px', top: '740px',
-              width: '317px', height: '41px',
+              position: 'absolute', left: '92px', top: '712px',
+              width: '255px', height: '41px',
               background: '#B8E466', boxShadow: '0px 8px 20px rgba(0,0,0,0.1)',
               borderRadius: '40px', border: 'none',
               fontFamily: 'Amiko', fontWeight: 600, fontSize: '24px',
               color: '#FFFFFF', cursor: 'pointer',
             }}>
-            {loading ? 'Creating...' : 'Create'}
+            {loading ? 'Joining...' : 'Join'}
           </motion.button>
 
           {/* Cancel button */}
@@ -190,8 +135,8 @@ export default function CreateModule() {
             transition={{ ...spring, delay: 0.25 }}
             onClick={() => navigate('/module-homepage')}
             style={{
-              position: 'absolute', left: '63px', top: '795px',
-              width: '304px', height: '41px',
+              position: 'absolute', left: '91px', top: '771px',
+              width: '255px', height: '41px',
               background: '#FFFFFF', boxShadow: '0px 8px 20px rgba(0,0,0,0.1)',
               borderRadius: '40px', border: 'none',
               fontFamily: 'Amiko', fontWeight: 600, fontSize: '24px',
