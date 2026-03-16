@@ -6,6 +6,7 @@ import LoginScreen from './pages/LoginScreen'
 import RoleSelectScreen from './pages/RoleSelectScreen'
 import VerifyEmail from './pages/VerifyEmail'
 import ModuleHomepage from './pages/ModuleHomepage'
+import CreateModule from './pages/CreateModule'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/role-select" element={<RoleSelectScreen />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/module-homepage" element={<ModuleHomepage />} />
+        <Route path="/modules/create" element={<CreateModule />} />
       </Routes>
     </BrowserRouter>
   )

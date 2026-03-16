@@ -36,6 +36,27 @@ export async function createModule(userId: string, name: string, description?: s
   return module;
 }
 
+export async function updateModule(moduleId: string, userId: string, name: string, description?: string) {
+  const module = await prisma.module.findUnique({ where: { id: moduleId } });
+
+  if (!module) throw new Error('Module not found');
+  if (module.createdById !== userId) throw new Error('Not authorized');
+
+  return prisma.module.update({
+    where: { id: moduleId },
+    data: { name, description },
+  });
+}
+
+export async function deleteModule(moduleId: string, userId: string) {
+  const module = await prisma.module.findUnique({ where: { id: moduleId } });
+
+  if (!module) throw new Error('Module not found');
+  if (module.createdById !== userId) throw new Error('Not authorized');
+
+  await prisma.module.delete({ where: { id: moduleId } });
+}
+
 export async function listMyModules(userId: string) {
   return prisma.module.findMany({
     where: {
