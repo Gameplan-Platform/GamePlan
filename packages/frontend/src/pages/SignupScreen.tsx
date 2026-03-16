@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { api } from '../utils/api'
+import { useAuth } from '../context/AuthContext'
 
 const spring = { type: 'spring' as const, stiffness: 100, damping: 14 }
 
@@ -89,6 +90,7 @@ const fieldStyle = (top: string) => ({
 
 export default function SignupScreen() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', dob: '', username: '', password: '', confirmPassword: '',
   })
@@ -97,6 +99,14 @@ export default function SignupScreen() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [continueEnabled, setContinueEnabled] = useState(false)
+
+  useEffect(() => {
+    if (resendStatus === 'sent') {
+      const timer = setTimeout(() => setContinueEnabled(true), 6000)
+      return () => clearTimeout(timer)
+    }
+  }, [resendStatus])
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }))
@@ -132,6 +142,11 @@ export default function SignupScreen() {
           dob: form.dob, password: form.password,
         },
       })
+      const { token } = await api<{ token: string }>('/auth/login', {
+        method: 'POST',
+        body: { identifier: form.email.trim(), password: form.password },
+      })
+      login(token)
       setSuccess(true)
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Signup failed')
@@ -157,25 +172,46 @@ export default function SignupScreen() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="relative overflow-hidden bg-white" style={{ width: '440px', height: '956px', borderRadius: '55px' }}>
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={spring}
-            style={{ position: 'absolute', top: '300px', left: '40px', right: '40px', textAlign: 'center' }}>
-            <p style={{ fontFamily: 'Amiko', fontSize: '28px', fontWeight: 700, color: '#000' }}>Check Your Email!</p>
-            <p style={{ fontFamily: 'Amiko', fontSize: '16px', color: '#262626', marginTop: '16px' }}>
+
+<motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={spring}
+            style={{ position: 'absolute', top: '250px', left: '40px', right: '40px', textAlign: 'center' }}>
+
+            {/* Title */}
+            <p style={{ fontFamily: 'Amiko', fontSize: '40px', fontWeight: 700, color: '#000', margin: 0 }}>Check Your Email!</p>
+
+            {/* Subtitle */}
+            <p style={{ fontFamily: 'Amiko', fontSize: '16px', color: '#262626', marginTop: '20px' }}>
               We sent a verification link to <strong>{form.email}</strong>
             </p>
+
+            {/* Didn't get an email */}
+            <p style={{ fontFamily: 'Amiko', fontSize: '15px', color: '#BEBEBE', marginTop: '40px', marginBottom: '8px', textAlign: 'left', paddingLeft: '12px' }}>
+              Didn't get an email?
+            </p>
+
+            {/* Resend button */}
             <button
               onClick={handleResend}
               disabled={resendStatus === 'sending' || resendStatus === 'sent'}
-              style={{ marginTop: '32px', width: '316px', height: '50px', background: resendStatus === 'sent' ? '#B8E466' : '#6166DB', borderRadius: '40px', border: 'none', fontFamily: 'Amiko', fontWeight: 700, fontSize: '18px', color: '#fff', cursor: resendStatus === 'sent' ? 'default' : 'pointer' }}>
+              style={{ width: '316px', height: '50px', background: resendStatus === 'sent' ? '#55337B' : '#6166DB', borderRadius: '40px', border: 'none', fontFamily: 'Amiko', fontWeight: 700, fontSize: '18px', color: '#fff', cursor: resendStatus === 'sent' ? 'default' : 'pointer' }}>
               {resendStatus === 'idle' && 'Resend Verification Email'}
               {resendStatus === 'sending' && 'Sending...'}
               {resendStatus === 'sent' && 'Email Sent'}
               {resendStatus === 'error' && 'Failed — Try Again'}
             </button>
-            <button onClick={() => navigate('/login')}
-              style={{ marginTop: '16px', width: '316px', height: '50px', background: 'transparent', borderRadius: '40px', border: '2px solid #6166DB', fontFamily: 'Amiko', fontWeight: 700, fontSize: '18px', color: '#6166DB', cursor: 'pointer' }}>
-              Already verified? Log In
+
+            {/* Continue to account setup */}
+            <p style={{ fontFamily: 'Amiko', fontSize: '15px', color: '#BEBEBE', marginTop: '40px', marginBottom: '8px', textAlign: 'left', paddingLeft: '12px' }}>
+              Continue to account setup
+            </p>
+
+            {/* Continue button */}
+            <button
+              onClick={() => continueEnabled && navigate('/role-select')}
+              style={{ marginTop: '0px', width: '316px', height: '50px', background: continueEnabled ? '#B8E466' : '#D0D0D0', borderRadius: '40px', border: 'none', fontFamily: 'Amiko', fontWeight: 700, fontSize: '18px', color: '#fff', cursor: continueEnabled ? 'pointer' : 'default' }}>
+              Continue
             </button>
+
           </motion.div>
         </div>
       </div>
@@ -183,13 +219,13 @@ export default function SignupScreen() {
   }
 
   const fields = [
-    { key: 'firstName',       label: 'First Name',       type: 'text',     top: '290px', icon: <PersonIcon /> },
-    { key: 'lastName',        label: 'Last Name',        type: 'text',     top: '358px', icon: <PersonIcon /> },
-    { key: 'email',           label: 'Email',            type: 'email',    top: '426px', icon: <EmailIcon /> },
-    { key: 'dob',             label: 'Date of Birth',    type: 'date',     top: '494px', icon: <CalendarIcon /> },
-    { key: 'username',        label: 'Username',         type: 'text',     top: '562px', icon: <PersonIcon /> },
-    { key: 'password',        label: 'Password',         type: 'password', top: '630px', icon: <LockIcon /> },
-    { key: 'confirmPassword', label: 'Confirm Password', type: 'password', top: '698px', icon: <LockIcon /> },
+    { key: 'firstName',       label: 'First Name',       type: 'text',     top: '275px', icon: <PersonIcon /> },
+    { key: 'lastName',        label: 'Last Name',        type: 'text',     top: '343px', icon: <PersonIcon /> },
+    { key: 'email',           label: 'Email',            type: 'email',    top: '411px', icon: <EmailIcon /> },
+    { key: 'dob',             label: 'Date of Birth',    type: 'date',     top: '479px', icon: <CalendarIcon /> },
+    { key: 'username',        label: 'Username',         type: 'text',     top: '547px', icon: <PersonIcon /> },
+    { key: 'password',        label: 'Password',         type: 'password', top: '615px', icon: <LockIcon /> },
+    { key: 'confirmPassword', label: 'Confirm Password', type: 'password', top: '683px', icon: <LockIcon /> },
   ]
 
   return (
@@ -250,13 +286,13 @@ export default function SignupScreen() {
           <motion.p
             initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ ...spring, delay: 0.1 }}
-            style={{ position: 'absolute', width: '209px', left: '114px', top: '220px', fontFamily: 'Amiko', fontSize: '18px', textAlign: 'center', color: '#262626' }}>
+            style={{ position: 'absolute', width: '209px', left: '114px', top: '210px', fontFamily: 'Amiko', fontSize: '18px', textAlign: 'center', color: '#262626' }}>
             Tell Us a Little Bit About You!
           </motion.p>
 
           {/* Server error */}
           {serverError && (
-            <p style={{ position: 'absolute', top: '268px', left: '30px', color: 'red', fontFamily: 'Lato', fontSize: '13px' }}>
+            <p style={{ position: 'absolute', top: '256px', left: '30px', color: 'red', fontFamily: 'Lato', fontSize: '13px' }}>
               {serverError}
             </p>
           )}
@@ -283,7 +319,7 @@ export default function SignupScreen() {
           <motion.p
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ ...spring, delay: 0.35 }}
-            style={{ position: 'absolute', left: 0, right: 0, top: '850px', textAlign: 'center', fontFamily: 'Amiko', fontSize: '15px', color: '#BEBEBE', margin: 0 }}>
+            style={{ position: 'absolute', left: 0, right: 0, top: '825px', textAlign: 'center', fontFamily: 'Amiko', fontSize: '15px', color: '#BEBEBE', margin: 0 }}>
             <span onClick={() => navigate('/login')} style={{ cursor: 'pointer' }}>
               Already Have an Account?
             </span>
@@ -295,7 +331,7 @@ export default function SignupScreen() {
             disabled={loading}
             initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
             transition={{ ...spring, delay: 0.75 }}
-            style={{ position: 'absolute', width: '316px', height: '50px', left: '62px', top: '790px', background: '#6166DB', borderRadius: '40px', border: 'none', fontFamily: 'Amiko', fontWeight: 700, fontSize: '22px', color: '#fff', cursor: 'pointer' }}>
+            style={{ position: 'absolute', width: '316px', height: '50px', left: '62px', top: '765px', background: '#6166DB', borderRadius: '40px', border: 'none', fontFamily: 'Amiko', fontWeight: 700, fontSize: '22px', color: '#fff', cursor: 'pointer' }}>
             {loading ? 'Creating account...' : 'Continue'}
           </motion.button>
 

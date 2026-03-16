@@ -19,6 +19,17 @@ export async function selectRole(req: Request, res: Response){
         data: { role: parsed.data.role },
       });
 
+      if (parsed.data.role === 'COACH') {
+        const staffModule = await prisma.module.findUnique({ where: { systemKey: 'staff' } });
+        if (staffModule) {
+          await prisma.moduleMembership.upsert({
+            where: { userId_moduleId: { userId: req.user!.userId, moduleId: staffModule.id } },
+            update: {},
+            create: { userId: req.user!.userId, moduleId: staffModule.id, memberRole: 'MEMBER' },
+          });
+        }
+      }
+
       return res.json({ sucess: true, data: updated });
     } catch (error) {
       console.error("Role update error:", error);

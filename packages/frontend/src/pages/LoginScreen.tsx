@@ -91,7 +91,12 @@ export default function LoginScreen() {
         body: { identifier: identifier.trim(), password },
       })
       login(data.token)
-      navigate('/role-select')
+      try {
+        const payload = JSON.parse(atob(data.token.split('.')[1]))
+        navigate(payload.role ? '/module-homepage' : '/role-select')
+      } catch {
+        navigate('/role-select')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
