@@ -1,9 +1,54 @@
 import prisma from "../lib/prisma";
+import { ModuleMemberRole, Role } from "@prisma/client";
 import { hashPassword, comparePassword } from "../utils/password";
 import { generateAccessToken } from "../utils/jwt";
 import { generateVerificationToken } from "../utils/token";
 import { sendVerificationEmail } from "./email.service";
 import { SignupInput, LoginInput } from "../validators/auth.validator";
+
+async function enrollUserInDefaultModules(userId: string, role: Role) {
+  const gymModule = await prisma.module.findUnique({
+    where: { systemKey: "gym" },
+  });
+
+  const staffModule = await prisma.module.findUnique({
+    where: { systemKey: "staff" },
+  });
+
+  if (gymModule) {
+    await prisma.moduleMembership.upsert({
+      where: {
+        userId_moduleId: {
+          userId,
+          moduleId: gymModule.id,
+        },
+      },
+      update: {},
+      create: {
+        userId,
+        moduleId: gymModule.id,
+        memberRole: ModuleMemberRole.MEMBER,
+      },
+    });
+  }
+
+  if (staffModule && role === Role.COACH) {
+    await prisma.moduleMembership.upsert({
+      where: {
+        userId_moduleId: {
+          userId,
+          moduleId: staffModule.id,
+        },
+      },
+      update: {},
+      create: {
+        userId,
+        moduleId: staffModule.id,
+        memberRole: ModuleMemberRole.MEMBER,
+      },
+    });
+  }
+}
 
 export async function signupUser(data: SignupInput) {
   const { email, username, firstName, lastName, dob, password } = data;
@@ -44,6 +89,8 @@ export async function signupUser(data: SignupInput) {
   });
 
   await sendVerificationEmail(email, verificationToken);
+
+  await enrollUserInDefaultModules(user.id, user.role);
 
   return user;
 }
@@ -101,11 +148,11 @@ export async function loginUser(data: LoginInput) {
   const { identifier, password } = data;
 
   const user = await prisma.user.findFirst({
-    where: { 
-        OR: [
-            { email: identifier },
-            { username: identifier },
-        ],
+    where: {
+      OR: [
+        { email: identifier },
+        { username: identifier },
+      ],
     },
   });
 
