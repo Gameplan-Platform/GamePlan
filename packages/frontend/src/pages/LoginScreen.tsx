@@ -91,7 +91,7 @@ export default function LoginScreen() {
         body: { identifier: identifier.trim(), password },
       })
       login(data.token)
-      navigate('/')
+      navigate('/role-select')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {

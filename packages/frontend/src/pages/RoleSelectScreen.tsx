@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import athleteLogo from '../assets/athlete_logo.png'
 import coachLogo from '../assets/coach_logo.png'
 import parentLogo from '../assets/parent_logo.png'
+import { api } from '../utils/api'
+import { useAuth } from '../context/AuthContext'
 
 const spring = { type: 'spring' as const, stiffness: 100, damping: 14 }
 
@@ -68,11 +71,25 @@ const roles = [
 
 export default function RoleSelectScreen() {
   const navigate = useNavigate()
+  const { token } = useAuth()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleRoleSelect = (role: string) => {
-    // TODO: call API to set role, then navigate to main app
-    console.log('Selected role:', role)
-    navigate('/')
+  const handleRoleSelect = async (role: string) => {
+    setLoading(true)
+    setError('')
+    try {
+      await api('/api/users/role', {
+        method: 'PATCH',
+        body: { role: role.toUpperCase() },
+        token: token ?? undefined,
+      })
+      navigate('/dashboard')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to set role')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -127,6 +144,12 @@ export default function RoleSelectScreen() {
           Choose Your Role
         </motion.p>
 
+        {error && (
+          <p style={{ position: 'absolute', top: '240px', left: '30px', right: '30px', textAlign: 'center', color: 'red', fontFamily: 'Amiko', fontSize: '13px' }}>
+            {error}
+          </p>
+        )}
+
         {/* Role cards */}
         {roles.map((role, i) => (
           <motion.button
@@ -134,8 +157,8 @@ export default function RoleSelectScreen() {
             onClick={() => handleRoleSelect(role.key)}
             initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
             transition={{ ...spring, delay: 0.15 + i * 0.1 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={loading ? {} : { scale: 1.02 }}
+            whileTap={loading ? {} : { scale: 0.98 }}
             style={{
               position: 'absolute',
               width: '379px', height: '148px',
