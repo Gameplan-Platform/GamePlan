@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { validateCreateModule } from "../validators/modules.validator";
-import { createModule, listMyModules } from "../services/modules.service";
+import { createModule, joinModule, listMyModules } from "../services/modules.service";
 
 export async function createModuleController(req: Request, res: Response) {
   try {
@@ -39,5 +39,40 @@ export async function listMyModulesController(req: Request, res: Response) {
   } catch (error) {
     console.error("List modules error:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function joinModuleController(req: Request, res: Response){
+  try{
+    if (!req.user){
+      return res.status(401).json({ error: "Unauthorized"});
+    }
+
+    const { joinCode } = req.body;
+
+    if (!joinCode || typeof joinCode !== "string") {
+      return res.status(400).json({ error: "Join code is required."});
+    }
+
+    const result = await joinModule(req.user.userId, joinCode, req.user.role);
+
+    return res.status(201).json({
+      message: "Successfully joined module",
+      module: result.module,
+      membership: result.membership,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Internal server error";
+
+    if (message == "Invalid join code") {
+      return res.status(404).json({ error: message });
+    }
+
+    if (message === "Already a member") {
+      return res.status(409).json({ error: message });
+    }
+
+    console.error("Join module error:", error);
+    return res.status(500).json({ error: "Internal server error"});
   }
 }
