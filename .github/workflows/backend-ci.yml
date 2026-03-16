@@ -51,6 +51,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: pnpm --filter @gameplan/backend exec prisma generate
+
       - name: Build shared types
         run: pnpm --filter @gameplan/shared build
 
