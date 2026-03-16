@@ -9,32 +9,33 @@ const spring = { type: 'spring' as const, stiffness: 100, damping: 14 }
 const starClip = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'
 const ribbonLeft = 'polygon(7% 0, 100% 0, 100% 100%, 7% 100%, 0 50%)'
 
-// Top-right corner 
+// Signup screen — top-right corner
 const topRibbons = [
-  { width: '340px', left: '170.09px', top: '-22px',   bg: '#55337B', delay: 0.05 },
-  { width: '350px', left: '150.13px', top: '31px',  bg: '#B8E466', delay: 0.1 },
-  { width: '315px', left: '250.07px', top: '48.27px', bg: '#6166DB', delay: 0.15 },
-  { width: '320px', left: '350px',    top: '55.67px', bg: '#B8E466', delay: 0.2 },
+  { width: '340px', left: '170.09px', top: '-82px',    bg: '#55337B', delay: 0.05 },
+  { width: '350px', left: '150.13px', top: '-29px',    bg: '#B8E466', delay: 0.1 },
+  { width: '315px', left: '250.07px', top: '-11.73px', bg: '#6166DB', delay: 0.15 },
+  { width: '320px', left: '350px',    top: '-4.33px',  bg: '#B8E466', delay: 0.2 },
 ]
-// Bottom-left corner 
+// Signup screen — bottom-left corner
 const botRibbons = [
-  { width: '340px', left: '-20.09px', top: '950.25px', bg: '#55337B', delay: 0.05 },
-  { width: '317px', left: '10.13px',  top: '897.34px', bg: '#B8E466', delay: 0.1 },
-  { width: '315px', left: '-73.07px',  top: '882.68px', bg: '#6166DB', delay: 0.15 },
-  { width: '320px', left: '-200px',    top: '882.28px', bg: '#B8E466', delay: 0.2 },
+  { width: '340px', left: '-20.09px', top: '1000.25px', bg: '#55337B', delay: 0.05 },
+  { width: '317px', left: '10.13px',  top: '947.34px',  bg: '#B8E466', delay: 0.1 },
+  { width: '315px', left: '-73.07px', top: '932.68px',  bg: '#6166DB', delay: 0.15 },
+  { width: '320px', left: '-200px',   top: '932.28px',  bg: '#B8E466', delay: 0.2 },
 ]
 const topStars = [
-  { left: '127.7px', top: '41px', bg: '#6166DB', delay: 0.1 },
-  { left: '112.7px', top: '99px',  bg: '#55337B', delay: 0 },
-  { left: '210.7px', top: '110px',  bg: '#B8E466', delay: 0.05 },
-  { left: '317.7px', top: '118px', bg: '#6166DB', delay: 0.1 },
+  { left: '127.7px', top: '-19px', bg: '#6166DB', delay: 0.1 },
+  { left: '112.7px', top: '39px',  bg: '#55337B', delay: 0 },
+  { left: '210.7px', top: '50px',  bg: '#B8E466', delay: 0.05 },
+  { left: '317.7px', top: '58px',  bg: '#6166DB', delay: 0.1 },
 ]
 const botStars = [
-  { left: '310px', top: '880.7px', bg: '#6166DB', delay: 0.1 },
-  { left: '320px', top: '824.7px', bg: '#55337B', delay: 0 },
-  { left: '238px', top: '806.7px', bg: '#B8E466', delay: 0.05 },
-  { left: '115px', top: '806.7px', bg: '#6166DB', delay: 0.1 },
+  { left: '310px', top: '930.7px', bg: '#6166DB', delay: 0.1 },
+  { left: '320px', top: '874.7px', bg: '#55337B', delay: 0 },
+  { left: '238px', top: '856.7px', bg: '#B8E466', delay: 0.05 },
+  { left: '115px', top: '856.7px', bg: '#6166DB', delay: 0.1 },
 ]
+
 
 interface SignupResponse {
   message: string
@@ -184,45 +185,6 @@ export default function SignupScreen() {
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="relative overflow-hidden bg-white" style={{ width: '440px', height: '956px', borderRadius: '55px' }}>
 
-          {/* Top-right stars */}
-          {topStars.map((s, i) => (
-            <motion.div key={`ts${i}`}
-              initial={{ x: 800, y: -300, opacity: 0 }} animate={{ x: 0, y: 0, opacity: 1 }}
-              transition={{ ...spring, delay: s.delay }}
-              style={{ position: 'absolute', left: s.left, top: s.top }}>
-              <div style={{ width: '47.3px', height: '47.3px', background: s.bg, transform: 'rotate(11deg)', clipPath: starClip }} />
-            </motion.div>
-          ))}
-
-          {/* Top-right ribbons */}
-          {topRibbons.map((r, i) => (
-            <motion.div key={`tr${i}`}
-              initial={{ x: 800, y: -300, opacity: 0 }} animate={{ x: 0, y: 0, opacity: 1 }}
-              transition={{ ...spring, delay: r.delay }}
-              style={{ position: 'absolute', left: r.left, top: r.top }}>
-              <div style={{ width: r.width, height: '31.05px', background: r.bg, transform: 'matrix(0.94, -0.34, 0.34, 0.94, 0, 0)', clipPath: ribbonLeft }} />
-            </motion.div>
-          ))}
-
-          {/* Bottom-left stars */}
-          {botStars.map((s, i) => (
-            <motion.div key={`bs${i}`}
-              initial={{ x: -800, y: 300, opacity: 0 }} animate={{ x: 0, y: 0, opacity: 1 }}
-              transition={{ ...spring, delay: s.delay }}
-              style={{ position: 'absolute', left: s.left, top: s.top }}>
-              <div style={{ width: '47.3px', height: '47.3px', background: s.bg, transform: 'rotate(-11deg)', clipPath: starClip }} />
-            </motion.div>
-          ))}
-
-          {/* Bottom-left ribbons */}
-          {botRibbons.map((r, i) => (
-            <motion.div key={`br${i}`}
-              initial={{ x: -800, y: 300, opacity: 0 }} animate={{ x: 0, y: 0, opacity: 1 }}
-              transition={{ ...spring, delay: r.delay }}
-              style={{ position: 'absolute', left: r.left, top: r.top }}>
-              <div style={{ width: r.width, height: '31.05px', background: r.bg, transform: 'matrix(-0.94, 0.34, -0.34, -0.94, 0, 0)', clipPath: ribbonLeft }} />
-            </motion.div>
-          ))}
 
 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={spring}
             style={{ position: 'absolute', top: '250px', left: '40px', right: '40px', textAlign: 'center' }}>
