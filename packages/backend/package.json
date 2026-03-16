@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "tsx watch --env-file=../../.env src/server.ts",
     "build": "prisma generate && tsc",
     "prisma:generate": "prisma generate",
     "start": "node dist/server.js",

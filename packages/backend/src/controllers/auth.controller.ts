@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { validateSignup, validateLogin } from "../validators/auth.validator";
 import { signupUser, loginUser, verifyEmail, resendVerification } from "../services/auth.service";
+import prisma from "../lib/prisma";
 
 export async function login(req: Request, res: Response) {
   let identifier: string, password: string;
@@ -132,6 +133,24 @@ export async function resend(req: Request, res: Response) {
     }
 
     console.error("Resend verification error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function me(req: Request, res: Response) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+      select: { id: true, email: true, username: true, emailVerified: true, role: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error("Me error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

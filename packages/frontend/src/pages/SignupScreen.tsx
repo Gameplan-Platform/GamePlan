@@ -99,14 +99,24 @@ export default function SignupScreen() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
-  const [continueEnabled, setContinueEnabled] = useState(false)
-
+  // Poll the backend to check if user has verified their email, then auto-navigate
   useEffect(() => {
-    if (resendStatus === 'sent') {
-      const timer = setTimeout(() => setContinueEnabled(true), 6000)
-      return () => clearTimeout(timer)
-    }
-  }, [resendStatus])
+    if (!success) return
+    const interval = setInterval(async () => {
+      try {
+        const data = await api<{ emailVerified: boolean }>('/auth/me', {
+          token: localStorage.getItem('token') || undefined,
+        })
+        if (data.emailVerified) {
+          clearInterval(interval)
+          navigate('/role-select')
+        }
+      } catch {
+        // ignore — keep polling
+      }
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [success])
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }))
@@ -225,8 +235,13 @@ export default function SignupScreen() {
               We sent a verification link to <strong>{form.email}</strong>
             </p>
 
+            {/* Waiting message */}
+            <p style={{ fontFamily: 'Amiko', fontSize: '15px', color: '#BEBEBE', marginTop: '40px' }}>
+              This page will automatically continue once you verify.
+            </p>
+
             {/* Didn't get an email */}
-            <p style={{ fontFamily: 'Amiko', fontSize: '15px', color: '#BEBEBE', marginTop: '40px', marginBottom: '8px', textAlign: 'left', paddingLeft: '12px' }}>
+            <p style={{ fontFamily: 'Amiko', fontSize: '15px', color: '#BEBEBE', marginTop: '30px', marginBottom: '8px', textAlign: 'left', paddingLeft: '12px' }}>
               Didn't get an email?
             </p>
 
@@ -239,18 +254,6 @@ export default function SignupScreen() {
               {resendStatus === 'sending' && 'Sending...'}
               {resendStatus === 'sent' && 'Email Sent'}
               {resendStatus === 'error' && 'Failed — Try Again'}
-            </button>
-
-            {/* Continue to account setup */}
-            <p style={{ fontFamily: 'Amiko', fontSize: '15px', color: '#BEBEBE', marginTop: '40px', marginBottom: '8px', textAlign: 'left', paddingLeft: '12px' }}>
-              Continue to account setup
-            </p>
-
-            {/* Continue button */}
-            <button
-              onClick={() => continueEnabled && navigate('/role-select')}
-              style={{ marginTop: '0px', width: '316px', height: '50px', background: continueEnabled ? '#B8E466' : '#D0D0D0', borderRadius: '40px', border: 'none', fontFamily: 'Amiko', fontWeight: 700, fontSize: '18px', color: '#fff', cursor: continueEnabled ? 'pointer' : 'default' }}>
-              Continue
             </button>
 
           </motion.div>

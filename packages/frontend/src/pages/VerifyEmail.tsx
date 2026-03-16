@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 import "./Auth.css";
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const token = searchParams.get("token");
+  const calledRef = useRef(false);
 
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     token ? "loading" : "error"
@@ -15,7 +17,8 @@ export default function VerifyEmail() {
   );
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || calledRef.current) return;
+    calledRef.current = true;
 
     api<{ message: string }>(`/auth/verify?token=${token}`)
       .then((data) => {
@@ -27,6 +30,13 @@ export default function VerifyEmail() {
         setMessage(err instanceof Error ? err.message : "Verification failed");
       });
   }, [token]);
+
+  // Auto-redirect after successful verification
+  useEffect(() => {
+    if (status !== "success") return;
+    const timer = setTimeout(() => navigate("/role-select"), 3000);
+    return () => clearTimeout(timer);
+  }, [status, navigate]);
 
   return (
     <div className="auth-container">
@@ -40,15 +50,9 @@ export default function VerifyEmail() {
 
         {status === "success" && (
           <>
-            <h1>Email Verified</h1>
+            <h1>Email Verified!</h1>
             <p className="auth-subtitle">{message}</p>
-            <Link
-              to="/login"
-              className="auth-button"
-              style={{ textAlign: "center", display: "block", textDecoration: "none" }}
-            >
-              Go to Login
-            </Link>
+            <p className="auth-subtitle">Redirecting you now...</p>
           </>
         )}
 
@@ -56,13 +60,13 @@ export default function VerifyEmail() {
           <>
             <h1>Verification Failed</h1>
             <div className="auth-error">{message}</div>
-            <Link
-              to="/login"
+            <button
+              onClick={() => navigate("/signup")}
               className="auth-button"
-              style={{ textAlign: "center", display: "block", textDecoration: "none" }}
+              style={{ textAlign: "center", display: "block", cursor: "pointer" }}
             >
-              Go to Login
-            </Link>
+              Try Again
+            </button>
           </>
         )}
       </div>
