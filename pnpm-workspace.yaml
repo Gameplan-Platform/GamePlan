@@ -1,9 +1,4 @@
 packages:
   - packages/*
 
-onlyBuiltDependencies:
-  - '@prisma/engines'
-  - '@swc/core'
-  - bcrypt
-  - esbuild
-  - prisma
+onlyBuiltDependencies: bcrypt,@prisma/engines

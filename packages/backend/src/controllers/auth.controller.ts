@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { validateSignup, validateLogin } from "../validators/auth.validator";
-import { signupUser, loginUser } from "../services/auth.service";
+import { signupUser, loginUser, verifyEmail, resendVerification } from "../services/auth.service";
 
 export async function login(req: Request, res: Response) {
   let identifier: string, password: string;
@@ -83,5 +83,55 @@ export async function signup(req: Request, res: Response): Promise<void> {
     res.status(500).json({
       error: "Internal server error",
     });
+  }
+}
+
+export async function verify(req: Request, res: Response) {
+  const { token } = req.query;
+
+  if (!token || typeof token !== "string") {
+    return res.status(400).json({ error: "Verification token is required" });
+  }
+
+  try {
+    const result = await verifyEmail(token);
+    return res.status(200).json(result);
+  } catch (error) {
+    const message = (error as Error).message;
+
+    if (message === "Invalid verification token") {
+      return res.status(400).json({ error: message });
+    }
+    if (message === "Email already verified") {
+      return res.status(400).json({ error: message });
+    }
+
+    console.error("Verification error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function resend(req: Request, res: Response) {
+  const { email } = req.body;
+
+  if (!email || typeof email !== "string") {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  try {
+    const result = await resendVerification(email.trim());
+    return res.status(200).json(result);
+  } catch (error) {
+    const message = (error as Error).message;
+
+    if (message === "User not found") {
+      return res.status(404).json({ error: message });
+    }
+    if (message === "Email already verified") {
+      return res.status(400).json({ error: message });
+    }
+
+    console.error("Resend verification error:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }

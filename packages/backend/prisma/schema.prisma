@@ -18,23 +18,37 @@ enum MemberRole {
   PARENT
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  username  String   @unique
-  firstName String
-  lastName  String
-  dob       DateTime
-  password  String
-  role      Role     @default(ATHLETE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum ModuleMemberRole {
+  MODULE_ADMIN
+  MEMBER
+}
 
-  memberships Membership[]
+enum ModuleType {
+  CUSTOM
+  SYSTEM
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  username          String   @unique
+  firstName         String
+  lastName          String
+  dob               DateTime
+  password          String
+  role              Role     @default(ATHLETE)
+  emailVerified     Boolean  @default(false)
+  verificationToken String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  memberships        Membership[]
+  createdModules     Module[]            @relation("CreatedModules")
+  moduleMemberships  ModuleMembership[]
 }
 
 model Gym {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
 
   teams     Team[]
@@ -69,4 +83,35 @@ model Membership {
   updatedAt  DateTime @updatedAt
 
   @@unique([userId, teamId])
+}
+
+model Module {
+  id           String             @id @default(cuid())
+  name         String
+  description  String?
+  joinCode     String             @unique
+  type         ModuleType         @default(CUSTOM)
+  systemKey    String?            @unique
+  createdById  String?
+  createdBy    User?              @relation("CreatedModules", fields: [createdById], references: [id], onDelete: SetNull)
+
+  memberships  ModuleMembership[]
+
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}
+
+model ModuleMembership {
+  id          String             @id @default(cuid())
+  userId      String
+  moduleId    String
+  memberRole  ModuleMemberRole
+
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module      Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@unique([userId, moduleId])
 }
