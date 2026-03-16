@@ -64,7 +64,8 @@ export async function signupUser(data: SignupInput) {
   }
 
   const hashedPassword = await hashPassword(password);
-  const verificationToken = generateVerificationToken();
+  const isDev = process.env.NODE_ENV !== "production";
+  const verificationToken = isDev ? null : generateVerificationToken();
 
   const user = await prisma.user.create({
     data: {
@@ -75,6 +76,7 @@ export async function signupUser(data: SignupInput) {
       dob: new Date(dob),
       password: hashedPassword,
       verificationToken,
+      emailVerified: isDev,
     },
     select: {
       id: true,
@@ -88,7 +90,9 @@ export async function signupUser(data: SignupInput) {
     },
   });
 
-  await sendVerificationEmail(email, verificationToken);
+  if (!isDev) {
+    await sendVerificationEmail(email, verificationToken!);
+  }
 
   await enrollUserInDefaultModules(user.id, user.role);
 
