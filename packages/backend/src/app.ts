@@ -3,7 +3,7 @@ import healthRoutes from "./routes/health.routes";
 import userRoutes from "./routes/users.routes";
 import authRoutes from "./routes/auth.routes";
 import teamsRoutes from "./routes/teams.routes";
-
+import modulesRoutes from "./routes/modules.routes";
 /* Express App */ 
 const app = express(); 
 
@@ -14,5 +14,6 @@ app.use("/api", healthRoutes);
 app.use("/auth", authRoutes);
 app.use("/teams", teamsRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/modules", modulesRoutes);
 
 export default app;
