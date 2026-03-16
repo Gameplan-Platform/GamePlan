@@ -79,13 +79,13 @@ export default function RoleSelectScreen() {
     setLoading(true)
     setError('')
     try {
-      await api('/api/users/role', {
+      await api('/users/role', {
         method: 'PATCH',
         body: { role: role.toUpperCase() },
         token: token ?? undefined,
       })
       setRole(role.toUpperCase())
-      navigate('/dashboard')
+      navigate('/module-homepage')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to set role')
     } finally {

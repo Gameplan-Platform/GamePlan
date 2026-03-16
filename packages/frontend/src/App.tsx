@@ -5,7 +5,7 @@ import SignupScreen from './pages/SignupScreen'
 import LoginScreen from './pages/LoginScreen'
 import RoleSelectScreen from './pages/RoleSelectScreen'
 import VerifyEmail from './pages/VerifyEmail'
-import Dashboard from './pages/Dashboard'
+import ModuleHomepage from './pages/ModuleHomepage'
 
 export default function App() {
   return (
@@ -17,7 +17,7 @@ export default function App() {
         <Route path="/login" element={<LoginScreen />} />
         <Route path="/role-select" element={<RoleSelectScreen />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/module-homepage" element={<ModuleHomepage />} />
       </Routes>
     </BrowserRouter>
   )
