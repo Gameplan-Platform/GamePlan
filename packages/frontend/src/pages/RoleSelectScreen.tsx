@@ -71,7 +71,7 @@ const roles = [
 
 export default function RoleSelectScreen() {
   const navigate = useNavigate()
-  const { token, setRole } = useAuth()
+  const { token, login } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -79,12 +79,12 @@ export default function RoleSelectScreen() {
     setLoading(true)
     setError('')
     try {
-      await api('/users/role', {
+      const { token: newToken } = await api<{ token: string }>('/users/role', {
         method: 'PATCH',
         body: { role: role.toUpperCase() },
         token: token ?? undefined,
       })
-      setRole(role.toUpperCase())
+      login(newToken)
       navigate('/module-homepage')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to set role')

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { z } from "zod";
-import prisma from "../lib/prisma"
+import prisma from "../lib/prisma";
+import { generateAccessToken } from "../utils/jwt";
 
 const RoleSchema = z.object({
     role: z.enum(["ATHLETE", "PARENT", "COACH"]),
@@ -30,7 +31,8 @@ export async function selectRole(req: Request, res: Response){
         }
       }
 
-      return res.json({ sucess: true, data: updated });
+      const token = generateAccessToken({ userId: req.user!.userId, role: parsed.data.role });
+      return res.json({ success: true, data: updated, token });
     } catch (error) {
       console.error("Role update error:", error);
       return res.status(500).json({ error: "Internal server error."});

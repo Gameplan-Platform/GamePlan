@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { api } from '../utils/api'
@@ -100,24 +100,21 @@ export default function SignupScreen() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
-  // Poll the backend to check if user has verified their email, then auto-navigate
-  useEffect(() => {
-    if (!success) return
-    const interval = setInterval(async () => {
-      try {
-        const data = await api<{ emailVerified: boolean }>('/auth/me', {
-          token: localStorage.getItem('token') || undefined,
-        })
-        if (data.emailVerified) {
-          clearInterval(interval)
-          navigate('/role-select')
-        }
-      } catch {
-        // ignore — keep polling
-      }
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [success])
+  const [bypassing, setBypassing] = useState(false)
+
+  const handleBypass = async () => {
+    setBypassing(true)
+    try {
+      const { token } = await api<{ token: string }>('/auth/bypass-verify', {
+        method: 'POST',
+        body: { email: form.email.trim() },
+      })
+      login(token)
+      navigate('/role-select')
+    } catch {
+      setBypassing(false)
+    }
+  }
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }))
@@ -154,11 +151,6 @@ export default function SignupScreen() {
           dob: form.dob, password: form.password,
         },
       })
-      const { token } = await api<{ token: string }>('/auth/login', {
-        method: 'POST',
-        body: { identifier: form.email.trim(), password: form.password },
-      })
-      login(token)
       setSuccess(true)
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Signup failed')
@@ -216,6 +208,14 @@ export default function SignupScreen() {
               {resendStatus === 'sending' && 'Sending...'}
               {resendStatus === 'sent' && 'Email Sent'}
               {resendStatus === 'error' && 'Failed — Try Again'}
+            </button>
+
+            {/* Bypass button */}
+            <button
+              onClick={handleBypass}
+              disabled={bypassing}
+              style={{ marginTop: '16px', background: 'none', border: 'none', fontFamily: 'Amiko', fontSize: '13px', color: '#BEBEBE', cursor: 'pointer', textDecoration: 'underline' }}>
+              {bypassing ? 'Bypassing...' : 'Bypass verification (test account)'}
             </button>
 
           </motion.div>

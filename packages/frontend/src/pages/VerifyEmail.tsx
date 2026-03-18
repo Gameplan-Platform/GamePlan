@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
+import { useAuth } from "../context/AuthContext";
 import "./Auth.css";
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { login } = useAuth();
   const token = searchParams.get("token");
   const calledRef = useRef(false);
 
@@ -20,8 +22,9 @@ export default function VerifyEmail() {
     if (!token || calledRef.current) return;
     calledRef.current = true;
 
-    api<{ message: string }>(`/auth/verify?token=${token}`)
+    api<{ message: string; token: string }>(`/auth/verify?token=${token}`)
       .then((data) => {
+        login(data.token);
         setStatus("success");
         setMessage(data.message);
       })

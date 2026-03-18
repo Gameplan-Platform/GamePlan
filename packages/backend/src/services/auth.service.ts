@@ -64,8 +64,7 @@ export async function signupUser(data: SignupInput) {
   }
 
   const hashedPassword = await hashPassword(password);
-  const isDev = process.env.NODE_ENV !== "production";
-  const verificationToken = isDev ? null : generateVerificationToken();
+  const verificationToken = generateVerificationToken();
 
   const user = await prisma.user.create({
     data: {
@@ -76,7 +75,7 @@ export async function signupUser(data: SignupInput) {
       dob: new Date(dob),
       password: hashedPassword,
       verificationToken,
-      emailVerified: isDev,
+      emailVerified: false,
     },
     select: {
       id: true,
@@ -90,9 +89,7 @@ export async function signupUser(data: SignupInput) {
     },
   });
 
-  if (!isDev) {
-    await sendVerificationEmail(email, verificationToken!);
-  }
+  await sendVerificationEmail(email, verificationToken);
 
   await enrollUserInDefaultModules(user.id, user.role);
 
@@ -112,7 +109,7 @@ export async function verifyEmail(token: string) {
     throw new Error("Email already verified");
   }
 
-  await prisma.user.update({
+  const updated = await prisma.user.update({
     where: { id: user.id },
     data: {
       emailVerified: true,
@@ -120,7 +117,8 @@ export async function verifyEmail(token: string) {
     },
   });
 
-  return { message: "Email verified successfully" };
+  const accessToken = generateAccessToken({ userId: updated.id, role: updated.role });
+  return { message: "Email verified successfully", token: accessToken };
 }
 
 export async function resendVerification(email: string) {
