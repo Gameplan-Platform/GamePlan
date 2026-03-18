@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { validateCreateModule } from "../validators/modules.validator";
-import { createModule, joinModule, listMyModules, deleteModule, updateModule } from "../services/modules.service";
+import { createModule, joinModule, listMyModules, deleteModule, updateModule, getModuleInfo } from "../services/modules.service";
+import { resourceLimits } from "node:worker_threads";
 
 export async function createModuleController(req: Request, res: Response) {
   try {
@@ -102,5 +103,26 @@ export async function joinModuleController(req: Request, res: Response){
 
     console.error("Join module error:", error);
     return res.status(500).json({ error: "Internal server error"});
+  }
+}
+
+export async function getModuleInfoController(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      return res.status(401).json({error: "Unauthorized"});
+    }
+
+    const moduleId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const module = await getModuleInfo(moduleId, req.user.userId);
+
+    return res.status(200).json({ module });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Internal server error";
+
+    if(message === "Module not found") {
+      return res.status(404).json({error: message});
+    }
+
+    return res.status(500).json({error: "Internal server error"});
   }
 }
