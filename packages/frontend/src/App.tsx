@@ -1,35 +1,28 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import TitleScreen from './pages/TitleScreen'
+import LandingScreen from './pages/LandingScreen'
+import SignupScreen from './pages/SignupScreen'
+import LoginScreen from './pages/LoginScreen'
+import RoleSelectScreen from './pages/RoleSelectScreen'
+import VerifyEmail from './pages/VerifyEmail'
+import ModuleHomepage from './pages/ModuleHomepage'
+import CreateModule from './pages/CreateModule'
+import JoinModule from './pages/JoinModule'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<TitleScreen />} />
+        <Route path="/landing" element={<LandingScreen />} />
+        <Route path="/signup" element={<SignupScreen />} />
+        <Route path="/login" element={<LoginScreen />} />
+        <Route path="/role-select" element={<RoleSelectScreen />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/module-homepage" element={<ModuleHomepage />} />
+        <Route path="/modules/create" element={<CreateModule />} />
+        <Route path="/modules/join" element={<JoinModule />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
-
-export default App

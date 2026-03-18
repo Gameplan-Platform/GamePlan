@@ -4,6 +4,8 @@ import { requireRole } from "../middleware/role.middleware";
 import {
   createModuleController,
   listMyModulesController,
+  deleteModuleController,
+  updateModuleController,
   joinModuleController,
 } from "../controllers/modules.controller";
 
@@ -12,5 +14,7 @@ const router = Router();
 router.get("/", requireAuth, listMyModulesController);
 router.post("/", requireAuth, requireRole("COACH"), createModuleController);
 router.post("/join", requireAuth, requireRole("COACH", "ATHLETE", "PARENT"), joinModuleController);
+router.patch("/:id", requireAuth, updateModuleController);
+router.delete("/:id", requireAuth, deleteModuleController);
 
 export default router;
