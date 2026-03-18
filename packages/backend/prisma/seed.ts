@@ -35,7 +35,7 @@ async function main() {
     where: { joinCode: "TEAM01" },
     update: {},
     create: {
-      name: "Team Alpha",
+      name: "Team",
       description: null,
       joinCode: "TEAM01",
       type: "CUSTOM",
@@ -114,7 +114,7 @@ async function main() {
     await prisma.moduleMembership.upsert({
       where: { userId_moduleId: { userId: user.id, moduleId: customModule.id } },
       update: {},
-      create: { userId: user.id, moduleId: customModule.id, memberRole: user.id === coach.id ? "MODULE_ADMIN" : "MEMBER" },
+      create: { userId: user.id, moduleId: customModule.id, memberRole: "MODULE_ADMIN" },
     });
   }
 
