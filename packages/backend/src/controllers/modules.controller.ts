@@ -109,20 +109,20 @@ export async function joinModuleController(req: Request, res: Response){
 export async function getModuleInfoController(req: Request, res: Response) {
   try {
     if (!req.user) {
-      return res.status(401).json({error: "Unauthorized"});
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const moduleId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const moduleId = req.params.id as string;
     const module = await getModuleInfo(moduleId, req.user.userId);
 
     return res.status(200).json({ module });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
 
-    if(message === "Module not found") {
-      return res.status(404).json({error: message});
+    if (message === "Module not found") {
+      return res.status(404).json({ error: message });
     }
 
-    return res.status(500).json({error: "Internal server error"});
+    return res.status(500).json({ error: "Internal server error" });
   }
 }
