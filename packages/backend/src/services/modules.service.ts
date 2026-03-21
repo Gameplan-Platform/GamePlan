@@ -86,3 +86,42 @@ export async function joinModule(userId: string, joinCode: string, userRole: str
 
   return { module, membership };
 }
+
+export async function getModulefNavication(moduleId: string, userId: string) {
+  const module = await prisma.module.findUnique({
+    where: { id: moduleId },
+    include: {
+      memberships: true,
+    },
+  });
+
+  if (!module) {
+    throw new Error("Module not found");
+  }
+
+  const isMember = module.memberships.some(
+    (member: { userId: string }) => member.userId === userId
+  );
+
+  if (!isMember) {
+    throw new Error("Not authorized");
+  }
+
+  let tabs: string[] = [];
+
+  if (module.systemKey === "staff") {
+    tabs = ["dashboard", "calendar", "roster", "messaging"];
+  } else if (module.systemKey == "gym") {
+    tabs = ["dashboard", "calendar"];
+  } else {
+    tabs = ["home", "calendar", "progress", "roster", "messaging"];
+  }
+
+  return {
+    moduleId: module.id,
+    moduleName: module.name,
+    moduleType: module.type,
+    systemKey: module.systemKey,
+    tabs,
+  };
+}
