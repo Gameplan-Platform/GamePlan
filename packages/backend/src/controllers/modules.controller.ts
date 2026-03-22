@@ -1,6 +1,13 @@
 import { Request, Response } from "express";
 import { validateCreateModule } from "../validators/modules.validator";
-import { createModule, getModuleNavigation, joinModule, listMyModules } from "../services/modules.service";
+import {
+  createModule,
+  getModuleNavigation,
+  joinModule,
+  listMyModules,
+  deleteModule,
+  updateModule,
+} from "../services/modules.service";
 
 export async function createModuleController(req: Request, res: Response) {
   try {
@@ -24,6 +31,34 @@ export async function createModuleController(req: Request, res: Response) {
 
     console.error("Create module error:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function updateModuleController(req: Request, res: Response) {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    const { name, description } = req.body;
+    if (!name) return res.status(400).json({ error: 'Module name is required' });
+    const updated = await updateModule(req.params.id as string, req.user.userId, name, description);
+    return res.json({ module: updated });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    if (message === 'Module not found') return res.status(404).json({ error: message });
+    if (message === 'Not authorized') return res.status(403).json({ error: message });
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+export async function deleteModuleController(req: Request, res: Response) {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    await deleteModule(req.params.id as string, req.user.userId);
+    return res.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    if (message === 'Module not found') return res.status(404).json({ error: message });
+    if (message === 'Not authorized') return res.status(403).json({ error: message });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }
 

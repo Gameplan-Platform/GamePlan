@@ -1,8 +1,8 @@
 # GamePlan
 
-GamePlan is a full-stack platform designed to manage and streamline operations for competitive cheer programs. It consolidates scheduling, communication, progress tracking, roster management, and video feedback into a single, intuitive application.
+GamePlan is a full-stack platform designed to manage and streamline operations for competitive cheer programs. It consolidates scheduling, communication, progress tracking, roster management, and video feedback into one, intuitive application.
 
-## Project Structure
+## -Project Structure-
 
 ```
 GamePlan/
