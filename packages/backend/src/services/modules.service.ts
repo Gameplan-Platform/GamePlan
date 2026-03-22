@@ -87,7 +87,7 @@ export async function joinModule(userId: string, joinCode: string, userRole: str
   return { module, membership };
 }
 
-export async function getModulefNavication(moduleId: string, userId: string) {
+export async function getModuleNavigation(moduleId: string, userId: string) {
   const module = await prisma.module.findUnique({
     where: { id: moduleId },
     include: {
