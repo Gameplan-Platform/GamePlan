@@ -1,7 +1,14 @@
 import { Request, Response } from "express";
 import { validateCreateModule } from "../validators/modules.validator";
-import { createModule, joinModule, listMyModules, deleteModule, updateModule, getModuleInfo } from "../services/modules.service";
-import { resourceLimits } from "node:worker_threads";
+import {
+  createModule,
+  joinModule,
+  listMyModules,
+  deleteModule,
+  updateModule,
+  getModuleInfo,
+  getModuleNavigation,
+} from "../services/modules.service";
 
 export async function createModuleController(req: Request, res: Response) {
   try {
@@ -121,6 +128,31 @@ export async function getModuleInfoController(req: Request, res: Response) {
 
     if (message === "Module not found") {
       return res.status(404).json({ error: message });
+    }
+
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function getModuleNavigationController(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const moduleId = req.params.id as string;
+    const navigation = await getModuleNavigation(moduleId, req.user.userId);
+
+    return res.status(200).json({ navigation });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Internal server error";
+
+    if (message === "Module not found") {
+      return res.status(404).json({ error: message });
+    }
+
+    if (message === "Not authorized") {
+      return res.status(403).json({ error: message });
     }
 
     return res.status(500).json({ error: "Internal server error" });
