@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { validateSignup, validateLogin } from "../validators/auth.validator";
 import { signupUser, loginUser, verifyEmail, resendVerification } from "../services/auth.service";
+import { generateAccessToken } from "../utils/jwt";
+import prisma from "../lib/prisma";
 
 export async function login(req: Request, res: Response) {
   let identifier: string, password: string;
@@ -94,8 +96,8 @@ export async function verify(req: Request, res: Response) {
   }
 
   try {
-    const result = await verifyEmail(token);
-    return res.status(200).json(result);
+    const { message, token: accessToken } = await verifyEmail(token);
+    return res.status(200).json({ message, token: accessToken });
   } catch (error) {
     const message = (error as Error).message;
 
@@ -132,6 +134,47 @@ export async function resend(req: Request, res: Response) {
     }
 
     console.error("Resend verification error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function bypassVerify(req: Request, res: Response) {
+  const { email } = req.body;
+  if (!email || typeof email !== "string") {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  try {
+    const user = await prisma.user.findFirst({ where: { email: email.trim() } });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true, verificationToken: null },
+    });
+
+    const token = generateAccessToken({ userId: user.id, role: user.role });
+    return res.status(200).json({ message: "Verification bypassed", token });
+  } catch (error) {
+    console.error("Bypass verify error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function me(req: Request, res: Response) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.userId },
+      select: { id: true, email: true, username: true, emailVerified: true, role: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error("Me error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

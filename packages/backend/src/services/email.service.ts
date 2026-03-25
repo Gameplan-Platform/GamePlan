@@ -8,7 +8,7 @@ const FROM_EMAIL = process.env.FROM_EMAIL || "onboarding@resend.dev";
 const APP_URL = process.env.APP_URL || "http://localhost:5173";
 
 export async function sendVerificationEmail(email: string, token: string) {
-  const verifyUrl = `${APP_URL}/verify?token=${token}`;
+  const verifyUrl = `${APP_URL}/verify-email?token=${token}`;
 
   if (!resend) {
     console.log("──────────────────────────────────────");
