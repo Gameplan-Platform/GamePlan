@@ -35,11 +35,11 @@ export default function CreateAnnouncementForm({ moduleId, token, onCreated }: C
 
     setSubmitting(true)
     try {
-      const data = await api<{ announcement: Announcement }>(
+      const data = await api<{ announcement: Omit<Announcement, 'likeCount' | 'likedByMe'> }>(
         `/modules/${moduleId}/announcements`,
         { method: 'POST', body: { title: title.trim(), body: body.trim() }, token }
       )
-      onCreated(data.announcement)
+      onCreated({ ...data.announcement, likeCount: 0, likedByMe: false })
       setTitle('')
       setBody('')
     } catch (err) {

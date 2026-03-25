@@ -125,7 +125,7 @@ export default function ModulePage() {
                   onCreated={handleAnnouncementCreated}
                 />
               )}
-              <AnnouncementFeed announcements={announcements} />
+              <AnnouncementFeed announcements={announcements} moduleId={moduleId!} token={token} />
             </>
           )}
         </motion.div>
