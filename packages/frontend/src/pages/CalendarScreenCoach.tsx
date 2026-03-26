@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const MONTH_NAMES = [
   "January","February","March","April","May","June",
@@ -8,12 +9,6 @@ const MONTH_NAMES = [
 
 const DAYS_OF_WEEK = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
-const MOCK_EVENTS: Record<string, { title: string; start: string; end: string }[]> = {
-  "2026-09-02": [
-    { title: "Blackout Practice", start: "10:00", end: "13:00" },
-    { title: "Nfinity Practice", start: "14:00", end: "15:00" },
-  ],
-};
 
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
@@ -29,6 +24,25 @@ export default function CalendarScreenCoach() {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [events, setEvents] = useState<Record<string, { title: string; start: string; end: string }[]>>({});
+
+   useEffect(() => {
+    fetch(`/api/events?year=${year}&month=${month}`)
+      .then(res => res.json())
+      .then(data => {
+        const mapped = data.reduce((acc: any, ev: any) => {
+          const key = ev.start.split("T")[0];
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(ev);
+          return acc;
+        }, {});
+        setEvents(mapped);
+      })
+      .catch(() => {
+        // API not ready yet
+      });
+  }, [year, month]);
+
 
   const prevMonth = () => {
     if (month === 0) { setMonth(11); setYear(y => y - 1); }
@@ -48,15 +62,15 @@ export default function CalendarScreenCoach() {
     const daysInPrev = getDaysInMonth(year, month - 1);
     const cells: { day: number; current: boolean }[] = [];
 
-    // Leading days from previous month
+
     for (let i = 0; i < firstDay; i++)
       cells.push({ day: daysInPrev - firstDay + 1 + i, current: false });
 
-    // Current month days
+
     for (let d = 1; d <= daysInMonth; d++)
       cells.push({ day: d, current: true });
 
-    // Trailing days — only enough to complete the last row
+
     const remainder = cells.length % 7;
     const trailingCount = remainder === 0 ? 0 : 7 - remainder;
     for (let i = 1; i <= trailingCount; i++)
@@ -75,10 +89,10 @@ export default function CalendarScreenCoach() {
 
   const hasEvents = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    return !!MOCK_EVENTS[dateStr]?.length;
+    return !!events[dateStr]?.length;
   };
 
-  const selectedEvents = selectedDate ? (MOCK_EVENTS[selectedDate] || []) : [];
+  const selectedEvents = selectedDate ? (events[selectedDate] || []) : [];
 
   const navigate = useNavigate();
 
@@ -176,7 +190,7 @@ export default function CalendarScreenCoach() {
           ))
         )}
       </div>
-      {/* Add Event FAB */}
+      {/* Add Event */}
       <div className="w-full max-w-[440px] mx-auto relative">
         <button
           onClick={() => navigate('/calendar/add-event')}
