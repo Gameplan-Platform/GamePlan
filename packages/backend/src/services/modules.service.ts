@@ -204,7 +204,7 @@ const isMember = module.memberships.some(
 
  return module.memberships.map((membership) => ({
   userId: membership.user.id,
-  name: `&{membership.user.firstName} ${membership.user.lastName}`,
+  name: `${membership.user.firstName} ${membership.user.lastName}`,
   role: membership.memberRole,
  }));
 }

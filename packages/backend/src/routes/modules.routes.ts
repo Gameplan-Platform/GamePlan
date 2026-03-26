@@ -8,6 +8,7 @@ import {
   updateModuleController,
   joinModuleController,
   getModuleNavigationController,
+  getModuleRosterController,
   getModuleInfoController,
 } from "../controllers/modules.controller";
 
@@ -17,6 +18,7 @@ router.get("/", requireAuth, listMyModulesController);
 
 // IMPORTANT: specific routes first
 router.get("/:id/navigation", requireAuth, getModuleNavigationController);
+router.get("/:id/roster", requireAuth, getModuleRosterController);
 router.get("/:id", requireAuth, getModuleInfoController);
 
 router.post("/", requireAuth, requireRole("COACH"), createModuleController);
