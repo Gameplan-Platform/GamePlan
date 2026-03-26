@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
 import TitleScreen from './pages/TitleScreen'
 import LandingScreen from './pages/LandingScreen'
 import SignupScreen from './pages/SignupScreen'
@@ -9,7 +10,14 @@ import ModuleHomepage from './pages/ModuleHomepage'
 import CreateModule from './pages/CreateModule'
 import JoinModule from './pages/JoinModule'
 import CalendarScreenCoach from './pages/CalendarScreenCoach'
+import CalendarScreenUser from './pages/CalendarScreenUser'
 import AddEvent from './pages/AddEvent'
+
+function CalendarRoute() {
+  const { role } = useAuth();
+  if (role === 'COACH') return <CalendarScreenCoach />;
+  return <CalendarScreenUser />;
+}
 
 export default function App() {
   return (
@@ -24,7 +32,7 @@ export default function App() {
         <Route path="/module-homepage" element={<ModuleHomepage />} />
         <Route path="/modules/create" element={<CreateModule />} />
         <Route path="/modules/join" element={<JoinModule />} />
-        <Route path="/calendar" element={<CalendarScreenCoach />} />
+        <Route path="/calendar" element={<CalendarRoute />} />
         <Route path="/calendar/add-event" element={<AddEvent />} />
       </Routes>
     </BrowserRouter>
