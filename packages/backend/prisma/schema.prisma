@@ -47,6 +47,7 @@ model User {
   moduleMemberships  ModuleMembership[]
   announcements      Announcement[]
   announcementLikes  AnnouncementLike[]
+  agendas            Agenda[]
 }
 
 model Gym {
@@ -99,6 +100,7 @@ model Module {
 
   memberships    ModuleMembership[]
   announcements  Announcement[]
+  agendas        Agenda[]
 
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
@@ -145,4 +147,19 @@ model AnnouncementLike {
   createdAt      DateTime     @default(now())
 
   @@unique([userId, announcementId])
+}
+
+model Agenda {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  moduleId    String
+  authorId    String
+
+  module      Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
