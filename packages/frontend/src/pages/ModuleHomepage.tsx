@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { api } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import BottomNav from '../components/BottomNav'
 
 const spring = { type: 'spring' as const, stiffness: 100, damping: 14 }
 
@@ -209,36 +210,84 @@ export default function ModuleHomepage() {
 
         {/* + circle (all roles — join) */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-          transition={{ ...spring, delay: 0.35 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.08, y: -2, boxShadow: '0px 8px 18px rgba(0,0,0,0.18)' }}
+          transition={{
+                opacity: { ...spring, delay: 0.35 },
+                scale: { type: 'tween', duration: 0.12 },
+                y: { type: 'tween', duration: 0.12 },
+                boxShadow: { type: 'tween', duration: 0.12 },}}
           onClick={() => navigate('/modules/join')}
           style={{
-            position: 'absolute', left: '330px', top: '850px',
-            width: '54px', height: '54px',
-            background: '#B8E466', borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', boxShadow: '0px 4px 4px rgba(0,0,0,0.25)',
-          }}>
+            position: 'absolute',
+            left: '330px',
+            top: '770px',
+            width: '54px',
+            height: '54px',
+            background: '#B8E466',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0px 4px 4px rgba(0,0,0,0.25)',
+            zIndex: 20,
+          }}
+        >
           <div style={{ position: 'relative', width: '23px', height: '23px' }}>
-            <div style={{ position: 'absolute', left: '10px', top: 0, width: '3px', height: '23px', background: '#FFFFFF' }} />
-            <div style={{ position: 'absolute', top: '10px', left: 0, width: '23px', height: '3px', background: '#FFFFFF' }} />
+            <div
+              style={{
+                position: 'absolute',
+                left: '10px',
+                top: 0,
+                width: '3px',
+                height: '23px',
+                background: '#FFFFFF',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                top: '10px',
+                left: 0,
+                width: '23px',
+                height: '3px',
+                background: '#FFFFFF',
+              }}
+            />
           </div>
         </motion.div>
 
         {/* Create button (coach only) */}
         {isCoach && (
           <motion.button
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ ...spring, delay: 0.4 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+                opacity: { ...spring, delay: 0.35 },
+                scale: { type: 'tween', duration: 0.12 },
+                y: { type: 'tween', duration: 0.12 },
+                boxShadow: { type: 'tween', duration: 0.12 },}}
             onClick={() => navigate('/modules/create')}
             style={{
-              position: 'absolute', left: '200px', top: '857px',
-              width: '109px', height: '41px',
-              background: '#B8E466', boxShadow: '0px 8px 20px rgba(0,0,0,0.1)',
-              borderRadius: '40px', border: 'none',
-              fontFamily: 'Amiko', fontWeight: 600, fontSize: '24px',
-              color: '#FFFFFF', cursor: 'pointer',
-            }}>
+              position: 'absolute',
+              left: '200px',
+              top: '777px',
+              width: '109px',
+              height: '41px',
+              background: '#B8E466',
+              boxShadow: '0px 8px 20px rgba(0,0,0,0.1)',
+              borderRadius: '40px',
+              border: 'none',
+              fontFamily: 'Amiko',
+              fontWeight: 600,
+              fontSize: '24px',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+              zIndex: 20,
+            }}
+          >
             Create
           </motion.button>
         )}
@@ -341,6 +390,7 @@ export default function ModuleHomepage() {
             </div>
           </div>
         )}
+        <BottomNav activeTab="dashboard" />
 
       </div>
     </div>
