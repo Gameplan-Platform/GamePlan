@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 const MONTH_NAMES = [
   "January","February","March","April","May","June",
@@ -24,7 +23,7 @@ function getFirstDay(year: number, month: number) {
   return day === 0 ? 6 : day - 1;
 }
 
-export default function CalendarScreen() {
+export default function CalendarScreenUser() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -80,7 +79,6 @@ export default function CalendarScreen() {
 
   const selectedEvents = selectedDate ? (MOCK_EVENTS[selectedDate] || []) : [];
 
-  const navigate = useNavigate();
 
   return (
     <div style={{ fontFamily: "'Amiko', sans-serif" }} className="bg-white min-h-screen w-full max-w-[440px] mx-auto flex flex-col">
@@ -175,15 +173,6 @@ export default function CalendarScreen() {
             </div>
           ))
         )}
-      </div>
-      {/* Add Event FAB */}
-      <div className="w-full max-w-[440px] mx-auto relative">
-        <button
-          onClick={() => navigate('/calendar/add-event')}
-          className="absolute bottom-28 right-6 w-14 h-14 bg-[#b8e366] rounded-full text-white text-3xl shadow-lg flex items-center justify-center"
-        >
-          +
-        </button>
       </div>
 
       {/* Bottom spacer for nav bar */}
