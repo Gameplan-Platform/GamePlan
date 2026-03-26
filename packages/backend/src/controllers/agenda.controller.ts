@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 type ModuleParams = { moduleId: string };
+type AgendaParams = { moduleId: string; agendaId: string };
 import { validateCreateAgenda } from "../validators/agenda.validator";
-import { createAgenda, listAgendas } from "../services/agenda.service";
+import { createAgenda, listAgendas, likeAgenda, unlikeAgenda } from "../services/agenda.service";
 
 export async function createAgendaController(req: Request<ModuleParams>, res: Response) {
   try {
@@ -44,6 +45,49 @@ export async function listAgendasController(req: Request<ModuleParams>, res: Res
     }
 
     console.error("List agendas error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function likeAgendaController(req: Request<AgendaParams>, res: Response) {
+  try {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
+    const { moduleId, agendaId } = req.params;
+    await likeAgenda(req.user.userId, moduleId, agendaId);
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Internal server error";
+
+    if (message === "Not a member of this module") {
+      return res.status(403).json({ error: message });
+    }
+    if (message === "Agenda not found") {
+      return res.status(404).json({ error: message });
+    }
+
+    console.error("Like agenda error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function unlikeAgendaController(req: Request<AgendaParams>, res: Response) {
+  try {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
+    const { moduleId, agendaId } = req.params;
+    await unlikeAgenda(req.user.userId, moduleId, agendaId);
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Internal server error";
+
+    if (message === "Not a member of this module") {
+      return res.status(403).json({ error: message });
+    }
+
+    console.error("Unlike agenda error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

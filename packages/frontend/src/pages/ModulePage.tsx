@@ -166,7 +166,7 @@ export default function ModulePage() {
                   onCreated={handleAgendaCreated}
                 />
               )}
-              <AgendaFeed agendas={agendas} />
+              <AgendaFeed agendas={agendas} moduleId={moduleId!} token={token} />
             </>
           )}
         </motion.div>
