@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+
 
 const MONTH_NAMES = [
   "January","February","March","April","May","June",
@@ -25,6 +25,8 @@ export default function CalendarScreenCoach() {
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [events, setEvents] = useState<Record<string, { title: string; start: string; end: string }[]>>({});
+  const navigate = useNavigate();
+
 
    useEffect(() => {
     fetch(`/api/events?year=${year}&month=${month}`)
@@ -94,7 +96,6 @@ export default function CalendarScreenCoach() {
 
   const selectedEvents = selectedDate ? (events[selectedDate] || []) : [];
 
-  const navigate = useNavigate();
 
   return (
     <div style={{ fontFamily: "'Amiko', sans-serif" }} className="bg-white min-h-screen w-full max-w-[440px] mx-auto flex flex-col">
