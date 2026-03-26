@@ -415,9 +415,25 @@ export default function AddEvent() {
           </button>
           <button
             onClick={() => {
-                if (!validateDate(date)) return;
-                if (!allDay && !validateTime(startHours, startMinutes, startAmpm, endHours, endMinutes, endAmpm)) return;
-                navigate('/calendar');
+              if (!validateDate(date)) return;
+              if (!allDay && !validateTime(startHours, startMinutes, startAmpm, endHours, endMinutes, endAmpm)) return;
+              
+              fetch('/api/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  title,
+                  date,
+                  startTime: allDay ? null : `${startHours}:${startMinutes} ${startAmpm}`,
+                  endTime: allDay ? null : `${endHours}:${endMinutes} ${endAmpm}`,
+                  allDay,
+                  details
+                })
+              })
+              .then(() => navigate('/calendar'))
+              .catch(() => {
+                // handle error
+              });
             }}
             className="w-[116px] h-[45px] bg-[#b8e366] rounded-[20px] flex items-center justify-center text-white text-xl"
             >
