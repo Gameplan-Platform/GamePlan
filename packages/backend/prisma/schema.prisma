@@ -6,6 +6,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+}
+
 enum Role {
   COACH
   ATHLETE
@@ -20,12 +25,32 @@ enum MemberRole {
 
 enum ModuleMemberRole {
   MODULE_ADMIN
+  COACH
   MEMBER
 }
 
 enum ModuleType {
   CUSTOM
   SYSTEM
+}
+
+model Attendance {
+  id          String            @id @default(cuid())
+  moduleId    String
+  memberId    String
+  markedById  String
+  date        DateTime
+  status      AttendanceStatus
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  module      Module            @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  member      User              @relation("AttendanceMember", fields: [memberId], references: [id], onDelete: Cascade)
+  markedBy    User              @relation("AttendanceMarkedBy", fields: [markedById], references: [id], onDelete: Restrict) 
+
+  @@unique([moduleId, memberId, date])
+  @@index([moduleId, date])
+  @@index([memberId])
 }
 
 model User {
@@ -45,6 +70,8 @@ model User {
   memberships        Membership[]
   createdModules     Module[]            @relation("CreatedModules")
   moduleMemberships  ModuleMembership[]
+  attendanceRecords  Attendance[]        @relation("AttendanceMember")
+  markedAttendances  Attendance[]        @relation("AttendanceMarkedBy")
 }
 
 model Gym {
@@ -86,19 +113,22 @@ model Membership {
 }
 
 model Module {
-  id           String             @id @default(cuid())
-  name         String
-  description  String?
-  joinCode     String             @unique
-  type         ModuleType         @default(CUSTOM)
-  systemKey    String?            @unique
-  createdById  String?
-  createdBy    User?              @relation("CreatedModules", fields: [createdById], references: [id], onDelete: SetNull)
+  id              String             @id @default(cuid())
+  name            String
+  description     String?
+  joinCode        String             @unique
+  type            ModuleType         @default(CUSTOM)
+  systemKey       String?            @unique
+  createdById     String?
+  createdBy       User?              @relation("CreatedModules", fields: [createdById], references: [id], onDelete: SetNull)
+  enrollmentStart DateTime?
+  enrollmentEnd   DateTime?
 
-  memberships  ModuleMembership[]
+  attendances     Attendance[]
+  memberships     ModuleMembership[]
 
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
 }
 
 model ModuleMembership {
