@@ -45,6 +45,7 @@ model User {
   memberships        Membership[]
   createdModules     Module[]            @relation("CreatedModules")
   moduleMemberships  ModuleMembership[]
+  createdEvents      Event[]             @relation("CreatedEvents")
 }
 
 model Gym {
@@ -96,6 +97,7 @@ model Module {
   createdBy    User?              @relation("CreatedModules", fields: [createdById], references: [id], onDelete: SetNull)
 
   memberships  ModuleMembership[]
+  events       Event[]
 
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
@@ -114,4 +116,23 @@ model ModuleMembership {
   updatedAt   DateTime           @updatedAt
 
   @@unique([userId, moduleId])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  date        DateTime
+  startTime   String?
+  endTime     String?
+  allDay      Boolean   @default(false)
+  description String?
+
+  moduleId    String
+  module      Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User      @relation("CreatedEvents", fields: [createdById], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
