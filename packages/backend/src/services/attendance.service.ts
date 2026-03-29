@@ -33,7 +33,7 @@ export async function getModuleAttendanceForDate( moduleId: string, userId: stri
   const users = await prisma.user.findMany({
     where: {
       id: {
-        in: module.memberships.map((m) => m.userId),
+        in: module.memberships.filter((m) => m.memberRole === "MEMBER").map((m) => m.userId),
       },
     },
   });
@@ -62,4 +62,85 @@ export async function getModuleAttendanceForDate( moduleId: string, userId: stri
     date: normalizedDate,
     members: result,
   };
+}
+
+export async function saveModuleAttendanceForDate( moduleId: string, userId: string, date: string,
+  records: { memberId: string; status: "PRESENT" | "ABSENT" }[]) {
+    
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0,);
+    
+    if (Number.isNaN(normalizedDate.getTime())) {
+        throw new Error("Invalid date");
+    }
+
+    const module = await prisma.module.findUnique({
+        where: { id: moduleId }, 
+        include: {
+            memberships: true,
+        },
+    });
+
+    if (!module) {
+        throw new Error("Module now found");
+    }
+
+    const userMembership = module.memberships.find (
+        (membership) => membership.userId === userId
+    );
+
+    if (!userMembership) {
+        throw new Error("Not authorized");
+    }
+
+    if (userMembership.memberRole !== "COACH" && userMembership.memberRole !== "MODULE_ADMIN") {
+        throw new Error("Not authorized");
+    }
+
+    const allowedMemberIds = new Set(
+        module.memberships.filter((membership) => membership.memberRole === "MEMBER").map((membership) => membership.userId)
+    );
+
+    const processedMemberIds = new Set<string>();
+
+    for (const record of records) {
+        if (processedMemberIds.has(record.memberId)) {
+            throw new Error("Duplicate memberId in request");
+        }
+        if (!allowedMemberIds.has(record.memberId)) {
+            throw new Error("Member is not eligible for attendance");
+        }
+        processedMemberIds.add(record.memberId);
+    }
+
+    const savedAttendance = await prisma.$transaction(
+        records.map((record) =>
+            prisma.attendance.upsert({
+                where: {
+                    moduleId_memberId_date: {
+                        moduleId,
+                        memberId: record.memberId,
+                        date: normalizedDate,
+                    },
+                },
+                update: {
+                    status: record.status,
+                    markedById: userId,
+                },
+                create: {
+                    moduleId,
+                    memberId: record.memberId,
+                    date: normalizedDate,
+                    status: record.status,
+                    markedById: userId,
+                }
+            })   
+        )
+    );
+    
+    return {
+        moduleId,
+        date: normalizedDate,
+        records: savedAttendance,
+    };
 }
