@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getModuleAttendanceForDate, saveModuleAttendanceForDate } from "../services/attendance.service";
+import { getModuleAttendanceForDate, getMemberAttendanceRecord, saveModuleAttendanceForDate } from "../services/attendance.service";
 
 export async function getModuleAttendance(req: Request, res: Response) {
   try {
@@ -20,7 +20,7 @@ export async function getModuleAttendance(req: Request, res: Response) {
     return res.status(200).json(result);
   } catch (error) {
     console.error(error);
-    
+
     if (error instanceof Error) {
       if (error.message === "Module not found") {
         return res.status(404).json({ message: error.message });
@@ -76,5 +76,36 @@ export async function saveModuleAttendance(req: Request, res: Response) {
             } 
         }
         return res.status(500).json({ message: "Failed to save attendance" });
+    }
+}
+
+export async function getMemberAttendance(req: Request, res: Response) {
+    try {
+        const moduleId = req.params.moduleId as string;
+        const memberId = req.params.memberId as string;
+        const userId = (req as any).user?.userId ?? (req as any).user?.id;
+
+        if(!userId) {
+            return res.status(401).json({ message: "Unauthorized"});
+        }
+
+        const result = await getMemberAttendanceRecord(moduleId, memberId, userId);
+
+        return res.status(200).json({ attendance: result });
+    } catch (error) {
+        if (error instanceof Error) {
+            if(error.message === "Module not found") {
+                return res.status(404).json({ message: error.message });
+            }
+
+            if(error.message === "Member not found") {
+                return res.status(404).json({ message: error.message });
+            }
+
+            if(error.message === "Not authorized") {
+                return res.status(403).json({ message: error.message });
+            }
+        }
+        return res.status(400).json({ message: "Failed to fetch memeber attendance" });
     }
 }

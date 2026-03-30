@@ -4,6 +4,7 @@ import userRoutes from "./routes/users.routes";
 import authRoutes from "./routes/auth.routes";
 import teamsRoutes from "./routes/teams.routes";
 import modulesRoutes from "./routes/modules.routes";
+import attendanceRoutes from "./routes/attendance.routes";
 /* Express App */ 
 const app = express(); 
 
@@ -15,5 +16,6 @@ app.use("/auth", authRoutes);
 app.use("/teams", teamsRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/modules", modulesRoutes);
+app.use("/api/modules", attendanceRoutes);
 
 export default app;

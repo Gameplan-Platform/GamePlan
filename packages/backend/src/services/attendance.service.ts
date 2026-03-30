@@ -144,3 +144,50 @@ export async function saveModuleAttendanceForDate( moduleId: string, userId: str
         records: savedAttendance,
     };
 }
+
+export async function getMemberAttendanceRecord(moduleId: string, memberId: string, userId: string) {
+    const module = await prisma.module.findUnique ({
+        where: {
+            id: moduleId
+        },
+        include: {
+            memberships: true,
+        },
+    });
+
+    if (!module) {
+        throw new Error("Module not found");
+    }
+
+    const userMembership = module.memberships.find((membership) => membership.userId === userId);
+
+    if (!userMembership) {
+        throw new Error("Not Authorized");
+    }
+
+    const targetMembership = module.memberships.find((membership) => membership.userId === memberId);
+
+    if(!targetMembership || targetMembership.memberRole !== "MEMBER") {
+        throw new Error("Member not found");
+    }
+
+    const isCoach = userMembership.memberRole === "COACH" || userMembership.memberRole === "MODULE_ADMIN";
+
+    const isSelf = userId === memberId;
+    
+    if(!isCoach && !isSelf) {
+        throw new Error("Not authorized");
+    }
+
+    const attendanceRecords = await prisma.attendance.findMany({
+        where: {
+            moduleId,
+            memberId,
+        },
+        orderBy: {
+            date: "desc",
+        },
+    });
+
+    return attendanceRecords;
+}
