@@ -179,32 +179,34 @@ export async function getModuleNavigation(moduleId: string, userId: string) {
 }
 
 export async function getModuleRoster(moduleId: string, userId: string) {
- const module = await prisma.module.findUnique({
-  where: { id: moduleId },
+  const module = await prisma.module.findUnique({
+    where: { id: moduleId },
     include: {
       memberships: {
         include: {
-          user: true, 
+          user: true,
         },
       },
     },
- });
+  });
 
- if (!module) {
-  throw new Error("Module not found");
- }
+  if (!module) {
+    throw new Error("Module not found");
+  }
 
-const isMember = module.memberships.some(
+  const isMember = module.memberships.some(
     (member: { userId: string }) => member.userId === userId
-);
+  );
 
- if (!isMember) {
-  throw new Error("Not authorized");
- }
+  if (!isMember) {
+    throw new Error("Not authorized");
+  }
 
- return module.memberships.map((membership) => ({
-  userId: membership.user.id,
-  name: `${membership.user.firstName} ${membership.user.lastName}`,
-  role: membership.memberRole,
- }));
+  return module.memberships.map((membership) => ({
+    userId: membership.user.id,
+    name: `${membership.user.firstName} ${membership.user.lastName}`,
+    role: membership.memberRole,
+    email: membership.user.email,
+    profilePicture: membership.user.profilePicture,
+  }));
 }
