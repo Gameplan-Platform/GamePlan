@@ -6,13 +6,16 @@ export async function createAnnouncement(
   title: string,
   body: string
 ) {
-  // Verify the author is a member of this module
   const membership = await prisma.moduleMembership.findUnique({
     where: { userId_moduleId: { userId: authorId, moduleId } },
   });
 
   if (!membership) {
     throw new Error("Not a member of this module");
+  }
+
+  if (membership.memberRole !== "MODULE_ADMIN") {
+    throw new Error("Only module admins can create announcements");
   }
 
   return prisma.announcement.create({
@@ -92,4 +95,24 @@ export async function unlikeAnnouncement(
   await prisma.announcementLike.deleteMany({
     where: { userId, announcementId },
   });
+}
+
+export async function deleteAnnouncement(
+  userId: string,
+  moduleId: string,
+  announcementId: string
+) {
+  const membership = await prisma.moduleMembership.findUnique({
+    where: { userId_moduleId: { userId, moduleId } },
+  });
+
+  if (!membership) throw new Error("Not a member of this module");
+  if (membership.memberRole !== "MODULE_ADMIN") throw new Error("Only module admins can delete announcements");
+
+  const announcement = await prisma.announcement.findFirst({
+    where: { id: announcementId, moduleId },
+  });
+  if (!announcement) throw new Error("Announcement not found");
+
+  await prisma.announcement.delete({ where: { id: announcementId } });
 }

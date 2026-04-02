@@ -7,6 +7,7 @@ import {
   listAnnouncements,
   likeAnnouncement,
   unlikeAnnouncement,
+  deleteAnnouncement,
 } from "../services/announcements.service";
 
 export async function createAnnouncementController(req: Request<ModuleParams>, res: Response) {
@@ -93,6 +94,32 @@ export async function unlikeAnnouncementController(req: Request<AnnouncementPara
     }
 
     console.error("Unlike announcement error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function deleteAnnouncementController(req: Request<AnnouncementParams>, res: Response) {
+  try {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+
+    const { moduleId, announcementId } = req.params;
+    await deleteAnnouncement(req.user.userId, moduleId, announcementId);
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Internal server error";
+
+    if (message === "Not a member of this module") {
+      return res.status(403).json({ error: message });
+    }
+    if (message === "Only module admins can delete announcements") {
+      return res.status(403).json({ error: message });
+    }
+    if (message === "Announcement not found") {
+      return res.status(404).json({ error: message });
+    }
+
+    console.error("Delete announcement error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

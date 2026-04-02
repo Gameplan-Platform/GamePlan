@@ -15,6 +15,10 @@ export async function createAgenda(
     throw new Error("Not a member of this module");
   }
 
+  if (membership.memberRole !== "MODULE_ADMIN") {
+    throw new Error("Only module admins can create agenda items");
+  }
+
   return prisma.agenda.create({
     data: { title, description, date: new Date(date), moduleId, authorId },
     include: {
@@ -91,4 +95,24 @@ export async function unlikeAgenda(
   await prisma.agendaLike.deleteMany({
     where: { userId, agendaId },
   });
+}
+
+export async function deleteAgenda(
+  userId: string,
+  moduleId: string,
+  agendaId: string
+) {
+  const membership = await prisma.moduleMembership.findUnique({
+    where: { userId_moduleId: { userId, moduleId } },
+  });
+
+  if (!membership) throw new Error("Not a member of this module");
+  if (membership.memberRole !== "MODULE_ADMIN") throw new Error("Only module admins can delete agenda items");
+
+  const agenda = await prisma.agenda.findFirst({
+    where: { id: agendaId, moduleId },
+  });
+  if (!agenda) throw new Error("Agenda not found");
+
+  await prisma.agenda.delete({ where: { id: agendaId } });
 }
