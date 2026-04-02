@@ -23,10 +23,19 @@ export async function api<T>(endpoint: string, options: ApiOptions = {}): Promis
     body: body ? JSON.stringify(body) : undefined,
   })
 
-  const data = await res.json()
+  const text = await res.text()
+  console.log(`[api] ${method} ${endpoint} → ${res.status}`, text)
+  let data: Record<string, unknown> = {}
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      if (!res.ok) throw new Error('Something went wrong')
+    }
+  }
 
   if (!res.ok) {
-    throw new Error(data.error || 'Something went wrong')
+    throw new Error((data as { error?: string }).error || 'Something went wrong')
   }
 
   return data as T

@@ -89,7 +89,11 @@ export async function signupUser(data: SignupInput) {
     },
   });
 
-  await sendVerificationEmail(email, verificationToken);
+  try {
+    await sendVerificationEmail(email, verificationToken);
+  } catch (err) {
+    console.error("Failed to send verification email:", err);
+  }
 
   await enrollUserInDefaultModules(user.id, user.role);
 

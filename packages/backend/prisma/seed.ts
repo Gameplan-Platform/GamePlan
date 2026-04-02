@@ -109,14 +109,18 @@ async function main() {
     create: { userId: coach.id, moduleId: staffModule.id, memberRole: "MEMBER" },
   });
 
-  // Enroll coach and athlete in custom module
-  for (const user of [coach, athlete]) {
-    await prisma.moduleMembership.upsert({
-      where: { userId_moduleId: { userId: user.id, moduleId: customModule.id } },
-      update: {},
-      create: { userId: user.id, moduleId: customModule.id, memberRole: "MODULE_ADMIN" },
-    });
-  }
+  // Enroll coach as admin and athlete as member in custom module
+  await prisma.moduleMembership.upsert({
+    where: { userId_moduleId: { userId: coach.id, moduleId: customModule.id } },
+    update: {},
+    create: { userId: coach.id, moduleId: customModule.id, memberRole: "MODULE_ADMIN" },
+  });
+
+  await prisma.moduleMembership.upsert({
+    where: { userId_moduleId: { userId: athlete.id, moduleId: customModule.id } },
+    update: {},
+    create: { userId: athlete.id, moduleId: customModule.id, memberRole: "MEMBER" },
+  });
 
   console.log("Seed complete!");
   console.log("Demo accounts (password: devpassword):");
