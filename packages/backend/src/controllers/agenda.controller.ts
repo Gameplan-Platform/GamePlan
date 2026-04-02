@@ -20,7 +20,7 @@ export async function createAgendaController(req: Request<ModuleParams>, res: Re
     if (message === "Title is required" || message === "Date is required") {
       return res.status(400).json({ error: message });
     }
-    if (message === "Not a member of this module") {
+    if (message === "Not a member of this module" || message === "Only module admins can create agenda items") {
       return res.status(403).json({ error: message });
     }
 

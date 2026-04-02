@@ -26,7 +26,7 @@ export async function createAnnouncementController(req: Request<ModuleParams>, r
     if (message === "Title is required" || message === "Body is required") {
       return res.status(400).json({ error: message });
     }
-    if (message === "Not a member of this module") {
+    if (message === "Not a member of this module" || message === "Only module admins can create announcements") {
       return res.status(403).json({ error: message });
     }
 
