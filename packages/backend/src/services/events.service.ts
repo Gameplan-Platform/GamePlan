@@ -62,7 +62,13 @@ export async function deleteEvent(userId: string, eventId: string) {
   const event = await prisma.event.findUnique({ where: { id: eventId } });
 
   if (!event) throw new Error("Event not found");
-  if (event.createdById !== userId) throw new Error("Not authorized");
+
+  const membership = await prisma.moduleMembership.findUnique({
+    where: { userId_moduleId: { userId, moduleId: event.moduleId } },
+  });
+
+  if (!membership) throw new Error("Not a member of this module");
+  if (membership.memberRole !== "MODULE_ADMIN") throw new Error("Only module admins can delete events");
 
   await prisma.event.delete({ where: { id: eventId } });
 }
