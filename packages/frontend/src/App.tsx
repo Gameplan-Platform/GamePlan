@@ -13,6 +13,8 @@ import CreateAnnouncement from './pages/CreateAnnouncement'
 import CreateAgenda from './pages/CreateAgenda'
 import AnnouncementDetail from './pages/AnnouncementDetail'
 import AgendaDetail from './pages/AgendaDetail'
+import EditAnnouncement from './pages/EditAnnouncement'
+import EditAgenda from './pages/EditAgenda'
 
 export default function App() {
   return (
