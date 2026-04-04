@@ -46,7 +46,7 @@ export default function AnnouncementDetail() {
       likeCount: wasLiked ? prev.likeCount - 1 : prev.likeCount + 1,
     } : prev)
     try {
-      await api(`/modules/${moduleId}/announcements/${announcementId}/${wasLiked ? 'like' : 'like'}`, {
+      await api(`/modules/${moduleId}/announcements/${announcementId}/like`, {
         method: wasLiked ? 'DELETE' : 'POST',
         token: token ?? undefined,
       })
