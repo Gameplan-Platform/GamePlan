@@ -119,10 +119,10 @@ export async function getModuleInfo(moduleId: string, userId: string) {
   if(!module)
     throw new Error("Module not found");
   
-  const isMember = module.memberships.some(
+  const membership = module.memberships.find(
     (member: { userId: string }) => member.userId === userId);
-  
-  if(!isMember)
+
+  if(!membership)
     throw new Error("Not authorized");
 
   return {
@@ -133,5 +133,6 @@ export async function getModuleInfo(moduleId: string, userId: string) {
     systemKey: module.systemKey,
     createdAt: module.createdAt,
     updatedAt: module.updatedAt,
+    memberRole: membership.memberRole,
   };
 }
