@@ -6,115 +6,9 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id                                     String             @id @default(cuid())
-  email                                  String             @unique
-  username                               String             @unique
-  firstName                              String
-  lastName                               String
-  dob                                    DateTime
-  password                               String
-  role                                   Role               @default(ATHLETE)
-  createdAt                              DateTime           @default(now())
-  updatedAt                              DateTime           @updatedAt
-  emailVerified                          Boolean            @default(false)
-  verificationToken                      String?
-  profilePicture                         String?
-  Attendance_Attendance_markedByIdToUser Attendance[]       @relation("Attendance_markedByIdToUser")
-  Attendance_Attendance_memberIdToUser   Attendance[]       @relation("Attendance_memberIdToUser")
-  memberships                            Membership[]
-  createdModules                         Module[]           @relation("CreatedModules")
-  moduleMemberships                      ModuleMembership[]
-
-  createdEvents      Event[]             @relation("CreatedEvents")
-  announcements      Announcement[]
-  announcementLikes  AnnouncementLike[]
-  agendas            Agenda[]
-  agendaLikes        AgendaLike[]
-}
-
-model Gym {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  teams     Team[]
-}
-
-model Team {
-  id        String       @id @default(cuid())
-  name      String
-  gymId     String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  members   Membership[]
-  gym       Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
-}
-
-model Membership {
-  id         String     @id @default(cuid())
-  userId     String
-  teamId     String
-  memberRole MemberRole
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  team       Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, teamId])
-}
-
-model Module {
-  id              String             @id @default(cuid())
-  name            String
-  description     String?
-  joinCode        String             @unique
-  type            ModuleType         @default(CUSTOM)
-  systemKey       String?            @unique
-  createdById     String?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  enrollmentEnd   DateTime?
-  enrollmentStart DateTime?
-  Attendance      Attendance[]
-  createdBy       User?              @relation("CreatedModules", fields: [createdById], references: [id])
-  memberships     ModuleMembership[]
-
-  events       Event[]
-  announcements  Announcement[]
-  agendas        Agenda[]
-
-}
-
-model ModuleMembership {
-  id         String           @id @default(cuid())
-  userId     String
-  moduleId   String
-  memberRole ModuleMemberRole
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  module     Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, moduleId])
-}
-
-model Attendance {
-  id                               String           @id
-  moduleId                         String
-  memberId                         String
-  markedById                       String
-  date                             DateTime
-  status                           AttendanceStatus
-  createdAt                        DateTime         @default(now())
-  updatedAt                        DateTime
-  User_Attendance_markedByIdToUser User             @relation("Attendance_markedByIdToUser", fields: [markedById], references: [id])
-  User_Attendance_memberIdToUser   User             @relation("Attendance_memberIdToUser", fields: [memberId], references: [id], onDelete: Cascade)
-  Module                           Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-
-  @@unique([moduleId, memberId, date])
-  @@index([memberId])
-  @@index([moduleId, date])
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
 }
 
 enum Role {
@@ -140,9 +34,119 @@ enum ModuleType {
   SYSTEM
 }
 
-enum AttendanceStatus {
-  PRESENT
-  ABSENT
+model User {
+  id                String               @id @default(cuid())
+  email             String               @unique
+  username          String               @unique
+  firstName         String
+  lastName          String
+  dob               DateTime
+  password          String
+  role              Role                 @default(ATHLETE)
+  emailVerified     Boolean              @default(false)
+  verificationToken String?
+  profilePicture    String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  memberships       Membership[]
+  createdModules    Module[]             @relation("CreatedModules")
+  moduleMemberships ModuleMembership[]
+  attendanceRecords Attendance[]         @relation("AttendanceMember")
+  markedAttendances Attendance[]         @relation("AttendanceMarkedBy")
+  createdEvents     Event[]              @relation("CreatedEvents")
+  announcements     Announcement[]
+  announcementLikes AnnouncementLike[]
+  agendas           Agenda[]
+  agendaLikes       AgendaLike[]
+}
+
+model Gym {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teams     Team[]
+}
+
+model Team {
+  id        String       @id @default(cuid())
+  name      String
+  gymId     String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  gym       Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  members   Membership[]
+}
+
+model Membership {
+  id         String     @id @default(cuid())
+  userId     String
+  teamId     String
+  memberRole MemberRole
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team       Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+}
+
+model Module {
+  id              String             @id @default(cuid())
+  name            String
+  description     String?
+  joinCode        String             @unique
+  type            ModuleType         @default(CUSTOM)
+  systemKey       String?            @unique
+  createdById     String?
+  enrollmentStart DateTime?
+  enrollmentEnd   DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  createdBy       User?              @relation("CreatedModules", fields: [createdById], references: [id], onDelete: SetNull)
+  attendances     Attendance[]
+  memberships     ModuleMembership[]
+  events          Event[]
+  announcements   Announcement[]
+  agendas         Agenda[]
+}
+
+model ModuleMembership {
+  id         String           @id @default(cuid())
+  userId     String
+  moduleId   String
+  memberRole ModuleMemberRole
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module     Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId])
+}
+
+model Attendance {
+  id          String            @id @default(cuid())
+  moduleId    String
+  memberId    String
+  markedById  String
+  date        DateTime
+  status      AttendanceStatus
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  module      Module            @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  member      User              @relation("AttendanceMember", fields: [memberId], references: [id], onDelete: Cascade)
+  markedBy    User              @relation("AttendanceMarkedBy", fields: [markedById], references: [id], onDelete: Restrict)
+
+  @@unique([moduleId, memberId, date])
+  @@index([moduleId, date])
+  @@index([memberId])
 }
 
 model Event {
@@ -153,15 +157,13 @@ model Event {
   endTime     String?
   allDay      Boolean   @default(false)
   description String?
-
   moduleId    String
-  module      Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-
   createdById String
-  createdBy   User      @relation("CreatedEvents", fields: [createdById], references: [id], onDelete: Cascade)
-
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  module      Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  createdBy   User      @relation("CreatedEvents", fields: [createdById], references: [id], onDelete: Cascade)
 }
 
 model Announcement {
@@ -170,24 +172,22 @@ model Announcement {
   body      String
   moduleId  String
   authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   module    Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   author    User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes     AnnouncementLike[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model AnnouncementLike {
   id             String       @id @default(cuid())
   userId         String
   announcementId String
+  createdAt      DateTime     @default(now())
 
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-
-  createdAt      DateTime     @default(now())
 
   @@unique([userId, announcementId])
 }
@@ -199,24 +199,22 @@ model Agenda {
   date        DateTime
   moduleId    String
   authorId    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   module      Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes       AgendaLike[]
-
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
 }
 
 model AgendaLike {
-  id       String   @id @default(cuid())
-  userId   String
-  agendaId String
-
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  agenda   Agenda   @relation(fields: [agendaId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(cuid())
+  userId    String
+  agendaId  String
   createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agenda    Agenda   @relation(fields: [agendaId], references: [id], onDelete: Cascade)
 
   @@unique([userId, agendaId])
 }
