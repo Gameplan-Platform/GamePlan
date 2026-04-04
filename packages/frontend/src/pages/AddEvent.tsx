@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { api } from '../utils/api';
+
 
 const MONTH_NAMES = [
   "January","February","March","April","May","June",
@@ -119,6 +122,8 @@ function DatePickerDropdown({
 
 export default function AddEvent() {
   const navigate = useNavigate();
+  const { moduleId } = useParams();
+  const { token } = useAuth();
   const [date, setDate] = useState(formatDate(today));
   const [showPicker, setShowPicker] = useState(false);
   const [allDay, setAllDay] = useState(false);
@@ -201,7 +206,7 @@ export default function AddEvent() {
       <div className="relative flex items-center justify-center px-6 pt-8 pb-4">
         <button
           className="absolute left-6 w-9 h-9 bg-white rounded-xl shadow flex items-center justify-center text-lg text-[#222b45]"
-          onClick={() => navigate('/calendar')}
+          onClick={() => navigate(`/modules/${moduleId}/calendar`)}
         >‹</button>
         <h1 className="text-4xl font-normal text-black">Add Event</h1>
       </div>
@@ -252,14 +257,10 @@ export default function AddEvent() {
             <div className="flex items-center gap-2">
             <span className="text-[#8f9bb3] text-xs">All Day</span>
             <button
-                onClick={() => setAllDay(p => !p)}
-                className={`w-11 h-6 rounded-full transition-colors relative
-                ${allDay ? "bg-[#6166db]" : "bg-gray-200"}
-                `}
+              onClick={() => setAllDay(p => !p)}
+              className={`w-12 h-6 rounded-full transition-colors relative ${allDay ? "bg-[#6166db]" : "bg-gray-200"}`}
             >
-                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform
-                ${allDay ? "translate-x-5" : "translate-x-0.5"}
-                `} />
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${allDay ? "translate-x-6" : "translate-x-0"}`} />
             </button>
             </div>
         </div>
@@ -408,32 +409,33 @@ export default function AddEvent() {
         {/* Buttons */}
         <div className="flex justify-center gap-4 pt-2 pb-8">
           <button
-            onClick={() => navigate('/calendar')}
+            onClick={() => navigate('/modules/${moduleId}/calendar')}
             className="w-[116px] h-[45px] bg-white rounded-[20px] shadow flex items-center justify-center text-[#222b45] text-xl"
           >
             Cancel
           </button>
           <button
             onClick={() => {
-              if (!validateDate(date)) return;
-              if (!allDay && !validateTime(startHours, startMinutes, startAmpm, endHours, endMinutes, endAmpm)) return;
+              console.log("Post clicked");
+              if (!validateDate(date)) { console.log("date failed"); return; }
+              if (!allDay && !validateTime(startHours, startMinutes, startAmpm, endHours, endMinutes, endAmpm)) { console.log("time failed"); return; }
+              console.log("sending request...");
               
-              fetch('/api/events', {
+              api('/events', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+                token: token ?? undefined,
+                body: {
+                  moduleId,
                   title,
-                  date,
+                  date: new Date(date).toISOString(),
                   startTime: allDay ? null : `${startHours}:${startMinutes} ${startAmpm}`,
                   endTime: allDay ? null : `${endHours}:${endMinutes} ${endAmpm}`,
                   allDay,
-                  details
-                })
+                  description: details
+                }
               })
-              .then(() => navigate('/calendar'))
-              .catch(() => {
-                // handle error
-              });
+              .then(() => { console.log("success"); navigate(`/modules/${moduleId}/calendar`); })
+              .catch((err) => { console.log("error", err); });
             }}
             className="w-[116px] h-[45px] bg-[#b8e366] rounded-[20px] flex items-center justify-center text-white text-xl"
             >

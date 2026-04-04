@@ -12,6 +12,8 @@ import JoinModule from './pages/JoinModule'
 import CalendarScreenCoach from './pages/CalendarScreenCoach'
 import CalendarScreenUser from './pages/CalendarScreenUser'
 import AddEvent from './pages/AddEvent'
+import ViewEvent from './pages/ViewEvent'
+import EditEvent from './pages/EditEvent'
 
 function CalendarRoute() {
   const { role } = useAuth();
@@ -32,8 +34,10 @@ export default function App() {
         <Route path="/module-homepage" element={<ModuleHomepage />} />
         <Route path="/modules/create" element={<CreateModule />} />
         <Route path="/modules/join" element={<JoinModule />} />
-        <Route path="/calendar" element={<CalendarRoute />} />
-        <Route path="/calendar/add-event" element={<AddEvent />} />
+        <Route path="/modules/:moduleId/calendar" element={<CalendarRoute />} />
+        <Route path="/modules/:moduleId/calendar/add-event" element={<AddEvent />} />
+        <Route path="/modules/:moduleId/calendar/:eventId" element={<ViewEvent />} />
+        <Route path="/modules/:moduleId/calendar/:eventId/edit" element={<EditEvent />} />
       </Routes>
     </BrowserRouter>
   )

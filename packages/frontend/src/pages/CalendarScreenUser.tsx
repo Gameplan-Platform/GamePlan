@@ -1,4 +1,8 @@
 import { useState, useEffect } from "react";
+import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../utils/api';
+
 
 
 const MONTH_NAMES = [
@@ -23,24 +27,26 @@ export default function CalendarScreenUser() {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [events, setEvents] = useState<Record<string, { title: string; start: string; end: string }[]>>({});
+  const [events, setEvents] = useState<Record<string, { id: string; title: string; date: string; startTime?: string; endTime?: string; allDay: boolean }[]>>({});
+  const { moduleId } = useParams();
+  const navigate = useNavigate();
+  const { token } = useAuth();
 
-   useEffect(() => {
-    fetch(`/api/events?year=${year}&month=${month}`)
-      .then(res => res.json())
+
+  useEffect(() => {
+    if (!moduleId) return;
+    api<any[]>(`/events/module/${moduleId}`, { token: token ?? undefined })
       .then(data => {
         const mapped = data.reduce((acc: any, ev: any) => {
-          const key = ev.start.split("T")[0];
+          const key = ev.date.split("T")[0];
           if (!acc[key]) acc[key] = [];
           acc[key].push(ev);
           return acc;
         }, {});
         setEvents(mapped);
       })
-      .catch(() => {
-        // API not ready yet
-      });
-  }, [year, month]);
+      .catch(() => {});
+  }, [moduleId, token]);
 
 
   const prevMonth = () => {
@@ -177,11 +183,13 @@ export default function CalendarScreenUser() {
               <div className="flex gap-3 items-start">
                 <span className="text-[#735bf2] text-[10px] mt-1">●</span>
                 <div>
-                  <div className="text-xs text-[#8f9bb3] mb-0.5 tracking-wide">{ev.start}-{ev.end}</div>
+                  <div className="text-xs text-[#8f9bb3] mb-0.5 tracking-wide">{ev.startTime}-{ev.endTime}</div>
                   <div className="text-[#222b45] font-semibold text-base tracking-wide">{ev.title}</div>
                 </div>
               </div>
-              <button className="flex gap-0.5">
+              <button 
+                onClick={() => navigate(`/modules/${moduleId}/calendar/${ev.id}`)}
+                className="flex gap-0.5">
                 {[0,1,2].map(d => <div key={d} className="w-1 h-1 bg-[#8f9bb3] rounded-full" />)}
               </button>
             </div>
