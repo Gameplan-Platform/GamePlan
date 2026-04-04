@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createEvent, listEvents, getEvent, deleteEvent } from "../services/events.service";
+import { createEvent, listEvents, getEvent, deleteEvent, editEvent } from "../services/events.service";
 
 export async function createEventController(req: Request, res: Response) {
   try {
@@ -96,5 +96,20 @@ export async function deleteEventController(req: Request, res: Response) {
 
     console.error("Delete event error:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function editEventController(req: Request, res: Response) {
+  try {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+    const event = await editEvent(req.user.userId, req.params.id as string, req.body);
+    return res.status(200).json({ message: " Event updated successfully", event });
+
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Interal server error";
+    if (message === "Event not found") return res.status(404).json({ error: message });
+    if (message == "Not authorized") return res.status(403).json({ error: message });
+    return res.status(500).json({ error: "Internal server error" });
+
   }
 }
