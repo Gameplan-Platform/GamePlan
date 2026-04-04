@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 type ModuleParams = { moduleId: string };
 type AgendaParams = { moduleId: string; agendaId: string };
 import { validateCreateAgenda } from "../validators/agenda.validator";
-import { createAgenda, getAgenda, listAgendas, likeAgenda, unlikeAgenda, deleteAgenda } from "../services/agenda.service";
+import { createAgenda, getAgenda, updateAgenda, listAgendas, likeAgenda, unlikeAgenda, deleteAgenda } from "../services/agenda.service";
 
 export async function createAgendaController(req: Request<ModuleParams>, res: Response) {
   try {
