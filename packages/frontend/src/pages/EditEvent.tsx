@@ -110,6 +110,15 @@ function formatDateForInput(isoStr: string) {
   const d = new Date(isoStr);
   return `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}/${d.getFullYear()}`;
 }
+
+interface EventData {
+  title: string;
+  description?: string;
+  allDay: boolean;
+  date: string;
+  startTime?: string;
+  endTime?: string;
+}
  
 export default function EditEvent() {
   const navigate = useNavigate();
@@ -135,7 +144,7 @@ export default function EditEvent() {
   // Load existing event data
   useEffect(() => {
     if (!eventId) return;
-    api<any>(`/events/${eventId}`, { token: token ?? undefined })
+    api<EventData>(`/events/${eventId}`, { token: token ?? undefined })
       .then(data => {
         setTitle(data.title || "");
         setDetails(data.description || "");
