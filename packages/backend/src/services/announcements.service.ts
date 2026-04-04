@@ -28,6 +28,26 @@ export async function createAnnouncement(
   });
 }
 
+export async function getAnnouncement(userId: string, moduleId: string, announcementId: string) {
+  const membership = await prisma.moduleMembership.findUnique({
+    where: { userId_moduleId: { userId, moduleId } },
+  });
+  if (!membership) throw new Error("Not a member of this module");
+
+  const announcement = await prisma.announcement.findFirst({
+    where: { id: announcementId, moduleId },
+    include: {
+      author: { select: { firstName: true, lastName: true } },
+      _count: { select: { likes: true } },
+      likes: { where: { userId }, select: { id: true } },
+    },
+  });
+  if (!announcement) throw new Error("Announcement not found");
+
+  const { _count, likes, ...rest } = announcement;
+  return { ...rest, likeCount: _count.likes, likedByMe: likes.length > 0, memberRole: membership.memberRole };
+}
+
 export async function listAnnouncements(userId: string, moduleId: string) {
   // Verify user is a member of this module
   const membership = await prisma.moduleMembership.findUnique({
