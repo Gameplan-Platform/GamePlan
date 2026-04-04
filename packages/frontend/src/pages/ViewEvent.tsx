@@ -111,16 +111,16 @@ export default function ViewEvent() {
           {role === "COACH" && (
             <div className="flex justify-center gap-4 pt-2 pb-8">
               <button
-                onClick={() => navigate(`/modules/${moduleId}/calendar/${eventId}/edit`)}
-                className="w-[116px] h-[45px] bg-white rounded-[20px] shadow flex items-center justify-center text-[#222b45] text-xl"
-              >
-                Edit
-              </button>
-              <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="w-[116px] h-[45px] bg-red-400 rounded-[20px] flex items-center justify-center text-white text-xl"
               >
                 Delete
+              </button>
+              <button
+                onClick={() => navigate(`/modules/${moduleId}/calendar/${eventId}/edit`)}
+                className="w-[116px] h-[45px] bg-white rounded-[20px] shadow flex items-center justify-center text-[#222b45] text-xl"
+              >
+                Edit
               </button>
             </div>
           )}

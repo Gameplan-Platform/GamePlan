@@ -179,19 +179,22 @@ export default function CalendarScreenUser() {
           <p className="text-center text-[#8f9bb3] text-sm mt-4">No events for this date</p>
         ) : (
           selectedEvents.map((ev, i) => (
-            <div key={i} className="flex justify-between items-center px-4 py-4 rounded-2xl border border-gray-100 shadow-sm">
+            <div key={i} 
+              onClick={() => navigate(`/modules/${moduleId}/calendar/${ev.id}`)}
+              className="flex justify-between items-center px-4 py-4 rounded-2xl border border-gray-100 shadow-sm cursor-pointer"
+            >
               <div className="flex gap-3 items-start">
                 <span className="text-[#735bf2] text-[10px] mt-1">●</span>
                 <div>
-                  <div className="text-xs text-[#8f9bb3] mb-0.5 tracking-wide">{ev.startTime}-{ev.endTime}</div>
+                  <div className="text-xs text-[#8f9bb3] mb-0.5 tracking-wide">
+                    {ev.allDay ? "All Day" : `${ev.startTime ?? ""} - ${ev.endTime ?? ""}`}
+                  </div>
                   <div className="text-[#222b45] font-semibold text-base tracking-wide">{ev.title}</div>
                 </div>
               </div>
-              <button 
-                onClick={() => navigate(`/modules/${moduleId}/calendar/${ev.id}`)}
-                className="flex gap-0.5">
+              <div className="flex gap-0.5">
                 {[0,1,2].map(d => <div key={d} className="w-1 h-1 bg-[#8f9bb3] rounded-full" />)}
-              </button>
+              </div>
             </div>
           ))
         )}

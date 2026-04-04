@@ -409,17 +409,15 @@ export default function AddEvent() {
         {/* Buttons */}
         <div className="flex justify-center gap-4 pt-2 pb-8">
           <button
-            onClick={() => navigate('/modules/${moduleId}/calendar')}
+            onClick={() => navigate(`/modules/${moduleId}/calendar`)}
             className="w-[116px] h-[45px] bg-white rounded-[20px] shadow flex items-center justify-center text-[#222b45] text-xl"
           >
             Cancel
           </button>
           <button
             onClick={() => {
-              console.log("Post clicked");
-              if (!validateDate(date)) { console.log("date failed"); return; }
-              if (!allDay && !validateTime(startHours, startMinutes, startAmpm, endHours, endMinutes, endAmpm)) { console.log("time failed"); return; }
-              console.log("sending request...");
+              if (!validateDate(date)) return;
+              if (!allDay && !validateTime(startHours, startMinutes, startAmpm, endHours, endMinutes, endAmpm)) return;
               
               api('/events', {
                 method: 'POST',
@@ -434,13 +432,13 @@ export default function AddEvent() {
                   description: details
                 }
               })
-              .then(() => { console.log("success"); navigate(`/modules/${moduleId}/calendar`); })
-              .catch((err) => { console.log("error", err); });
+              .then(() => navigate(`/modules/${moduleId}/calendar`))
+              .catch(() => {});
             }}
             className="w-[116px] h-[45px] bg-[#b8e366] rounded-[20px] flex items-center justify-center text-white text-xl"
-            >
+          >
             Post
-            </button>
+          </button>
         </div>
       </div>
 
