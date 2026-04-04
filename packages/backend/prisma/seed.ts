@@ -109,12 +109,59 @@ async function main() {
     create: { userId: coach.id, moduleId: staffModule.id, memberRole: "MEMBER" },
   });
 
-  // Enroll coach and athlete in custom module
-  for (const user of [coach, athlete]) {
-    await prisma.moduleMembership.upsert({
-      where: { userId_moduleId: { userId: user.id, moduleId: customModule.id } },
-      update: {},
-      create: { userId: user.id, moduleId: customModule.id, memberRole: "MODULE_ADMIN" },
+  // Enroll coach as admin and athlete as member in custom module
+  await prisma.moduleMembership.upsert({
+    where: { userId_moduleId: { userId: coach.id, moduleId: customModule.id } },
+    update: {},
+    create: { userId: coach.id, moduleId: customModule.id, memberRole: "MODULE_ADMIN" },
+  });
+
+  await prisma.moduleMembership.upsert({
+    where: { userId_moduleId: { userId: athlete.id, moduleId: customModule.id } },
+    update: {},
+    create: { userId: athlete.id, moduleId: customModule.id, memberRole: "MEMBER" },
+  });
+
+  // Seed some demo events on the gym module
+  const now = new Date();
+  const eventData = [
+    {
+      title: "Blackout Practice",
+      date: new Date(now.getFullYear(), now.getMonth(), 2),
+      startTime: "10:00 am",
+      endTime: "1:00 pm",
+      description: "Full team blackout practice. Wear all black.",
+    },
+    {
+      title: "Nfinity Practice",
+      date: new Date(now.getFullYear(), now.getMonth(), 2),
+      startTime: "2:00 pm",
+      endTime: "3:00 pm",
+      description: "Nfinity routine run-through.",
+    },
+    {
+      title: "Team Meeting",
+      date: new Date(now.getFullYear(), now.getMonth(), 15),
+      startTime: "9:00 am",
+      endTime: "10:00 am",
+      allDay: false,
+      description: "Monthly team sync to discuss progress and upcoming competitions.",
+    },
+    {
+      title: "Competition Day",
+      date: new Date(now.getFullYear(), now.getMonth(), 20),
+      allDay: true,
+      description: "Spirit Sports regional competition. Be there early!",
+    },
+  ];
+
+  for (const ev of eventData) {
+    await prisma.event.create({
+      data: {
+        ...ev,
+        moduleId: gymModule.id,
+        createdById: coach.id,
+      },
     });
   }
 
@@ -124,6 +171,7 @@ async function main() {
   console.log("  Athlete: athlete@gameplan.dev / athlete");
   console.log("  Parent:  parent@gameplan.dev / parent");
   console.log("Modules: Gym, Staff, Team Alpha");
+  console.log("Events: 4 demo events seeded on Gym module");
 }
 
 main()

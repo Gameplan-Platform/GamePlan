@@ -140,6 +140,7 @@ export default function ModuleHomepage() {
                 key={mod.id}
                 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ ...spring, delay: 0.1 + i * 0.08 }}
+                onClick={() => navigate(`/modules/${mod.id}`)}
                 style={{
                   position: 'absolute', left, top,
                   width: '165px', height: '166px',

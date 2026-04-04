@@ -22,6 +22,7 @@ export default function App() {
         <Route path="/module-homepage" element={<ModuleHomepage />} />
         <Route path="/modules/create" element={<CreateModule />} />
         <Route path="/modules/join" element={<JoinModule />} />
+
       </Routes>
     </BrowserRouter>
   )

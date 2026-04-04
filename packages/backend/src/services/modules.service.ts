@@ -113,17 +113,20 @@ export async function getModuleInfo(moduleId: string, userId: string) {
     where: { id: moduleId },
     include: {
       memberships: true,
-    }
+    },
   });
 
-  if(!module)
+  if (!module) {
     throw new Error("Module not found");
-  
+  }
+
   const isMember = module.memberships.some(
-    (member: { userId: string }) => member.userId === userId);
-  
-  if(!isMember)
+    (member: { userId: string }) => member.userId === userId
+  );
+
+  if (!isMember) {
     throw new Error("Not authorized");
+  }
 
   return {
     id: module.id,
@@ -136,3 +139,74 @@ export async function getModuleInfo(moduleId: string, userId: string) {
   };
 }
 
+export async function getModuleNavigation(moduleId: string, userId: string) {
+  const module = await prisma.module.findUnique({
+    where: { id: moduleId },
+    include: {
+      memberships: true,
+    },
+  });
+
+  if (!module) {
+    throw new Error("Module not found");
+  }
+
+  const isMember = module.memberships.some(
+    (member: { userId: string }) => member.userId === userId
+  );
+
+  if (!isMember) {
+    throw new Error("Not authorized");
+  }
+
+  let tabs: string[] = [];
+
+  if (module.systemKey === "staff") {
+    tabs = ["dashboard", "calendar", "roster", "messaging"];
+  } else if (module.systemKey === "gym") {
+    tabs = ["dashboard", "calendar"];
+  } else {
+    tabs = ["home", "calendar", "progress", "roster", "messaging"];
+  }
+
+  return {
+    moduleId: module.id,
+    moduleName: module.name,
+    moduleType: module.type,
+    systemKey: module.systemKey,
+    tabs,
+  };
+}
+
+export async function getModuleRoster(moduleId: string, userId: string) {
+  const module = await prisma.module.findUnique({
+    where: { id: moduleId },
+    include: {
+      memberships: {
+        include: {
+          user: true,
+        },
+      },
+    },
+  });
+
+  if (!module) {
+    throw new Error("Module not found");
+  }
+
+  const isMember = module.memberships.some(
+    (member: { userId: string }) => member.userId === userId
+  );
+
+  if (!isMember) {
+    throw new Error("Not authorized");
+  }
+
+  return module.memberships.map((membership) => ({
+    userId: membership.user.id,
+    name: `${membership.user.firstName} ${membership.user.lastName}`,
+    role: membership.memberRole,
+    email: membership.user.email,
+    profilePicture: membership.user.profilePicture,
+  }));
+}
