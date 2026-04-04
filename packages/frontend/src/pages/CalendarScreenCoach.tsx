@@ -22,12 +22,21 @@ function getFirstDay(year: number, month: number) {
   return day === 0 ? 6 : day - 1;
 }
 
+interface CalendarEvent {
+  id: string;
+  title: string;
+  date: string;
+  startTime?: string;
+  endTime?: string;
+  allDay: boolean;
+}
+
 export default function CalendarScreenCoach() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [events, setEvents] = useState<Record<string, { id: string; title: string; date: string; startTime?: string; endTime?: string; allDay: boolean }[]>>({});
+  const [events, setEvents] = useState<Record<string, CalendarEvent[]>>({});
   const navigate = useNavigate();
   const { moduleId } = useParams();
   const { token } = useAuth();
@@ -36,9 +45,9 @@ export default function CalendarScreenCoach() {
 
   useEffect(() => {
     if (!moduleId) return;
-    api<any[]>(`/events/module/${moduleId}`, { token: token ?? undefined })
+    api<CalendarEvent[]>(`/events/module/${moduleId}`, { token: token ?? undefined })
       .then(data => {
-        const mapped = data.reduce((acc: any, ev: any) => {
+        const mapped = data.reduce((acc: Record<string, CalendarEvent[]>, ev: CalendarEvent) => {
           const key = ev.date.split("T")[0];
           if (!acc[key]) acc[key] = [];
           acc[key].push(ev);
