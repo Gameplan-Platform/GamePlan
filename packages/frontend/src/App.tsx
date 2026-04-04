@@ -10,6 +10,7 @@ import ModuleDashboard from './pages/ModuleDashboard'
 import CreateModule from './pages/CreateModule'
 import JoinModule from './pages/JoinModule'
 import CreateAnnouncement from './pages/CreateAnnouncement'
+import CreateAgenda from './pages/CreateAgenda'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/modules/join" element={<JoinModule />} />
         <Route path="/modules/:id" element={<ModuleDashboard />} />
         <Route path="/modules/:id/announcements/create" element={<CreateAnnouncement />} />
+        <Route path="/modules/:id/agendas/create" element={<CreateAgenda />} />
       </Routes>
     </BrowserRouter>
   )

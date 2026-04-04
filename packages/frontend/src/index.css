@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+textarea::placeholder {
+  color: #C8C8C8;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  color: #C8C8C8;
+}
+input[type="date"].has-value::-webkit-datetime-edit {
+  color: #000000;
+}
+
 .section-scroll::-webkit-scrollbar {
   width: 6px;
 }
