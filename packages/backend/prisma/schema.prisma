@@ -45,6 +45,11 @@ model User {
   memberships        Membership[]
   createdModules     Module[]            @relation("CreatedModules")
   moduleMemberships  ModuleMembership[]
+  createdEvents      Event[]             @relation("CreatedEvents")
+  announcements      Announcement[]
+  announcementLikes  AnnouncementLike[]
+  agendas            Agenda[]
+  agendaLikes        AgendaLike[]
 }
 
 model Gym {
@@ -95,7 +100,10 @@ model Module {
   createdById  String?
   createdBy    User?              @relation("CreatedModules", fields: [createdById], references: [id], onDelete: SetNull)
 
-  memberships  ModuleMembership[]
+  memberships    ModuleMembership[]
+  events       Event[]
+  announcements  Announcement[]
+  agendas        Agenda[]
 
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
@@ -114,4 +122,80 @@ model ModuleMembership {
   updatedAt   DateTime           @updatedAt
 
   @@unique([userId, moduleId])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  date        DateTime
+  startTime   String?
+  endTime     String?
+  allDay      Boolean   @default(false)
+  description String?
+
+  moduleId    String
+  module      Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User      @relation("CreatedEvents", fields: [createdById], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  moduleId  String
+  authorId  String
+
+  module    Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  author    User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes     AnnouncementLike[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AnnouncementLike {
+  id             String       @id @default(cuid())
+  userId         String
+  announcementId String
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, announcementId])
+}
+
+model Agenda {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  moduleId    String
+  authorId    String
+
+  module      Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes       AgendaLike[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model AgendaLike {
+  id       String   @id @default(cuid())
+  userId   String
+  agendaId String
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agenda   Agenda   @relation(fields: [agendaId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, agendaId])
 }
