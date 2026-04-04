@@ -117,6 +117,30 @@ export async function unlikeAgenda(
   });
 }
 
+export async function updateAgenda(
+  userId: string,
+  moduleId: string,
+  agendaId: string,
+  title: string,
+  description: string | undefined,
+  date: string
+) {
+  const membership = await prisma.moduleMembership.findUnique({
+    where: { userId_moduleId: { userId, moduleId } },
+  });
+  if (!membership) throw new Error("Not a member of this module");
+  if (membership.memberRole !== "MODULE_ADMIN") throw new Error("Only module admins can edit agenda items");
+
+  const agenda = await prisma.agenda.findFirst({ where: { id: agendaId, moduleId } });
+  if (!agenda) throw new Error("Agenda not found");
+
+  return prisma.agenda.update({
+    where: { id: agendaId },
+    data: { title, description, date: new Date(date) },
+    include: { author: { select: { firstName: true, lastName: true } } },
+  });
+}
+
 export async function deleteAgenda(
   userId: string,
   moduleId: string,

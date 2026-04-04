@@ -117,6 +117,29 @@ export async function unlikeAnnouncement(
   });
 }
 
+export async function updateAnnouncement(
+  userId: string,
+  moduleId: string,
+  announcementId: string,
+  title: string,
+  body: string
+) {
+  const membership = await prisma.moduleMembership.findUnique({
+    where: { userId_moduleId: { userId, moduleId } },
+  });
+  if (!membership) throw new Error("Not a member of this module");
+  if (membership.memberRole !== "MODULE_ADMIN") throw new Error("Only module admins can edit announcements");
+
+  const announcement = await prisma.announcement.findFirst({ where: { id: announcementId, moduleId } });
+  if (!announcement) throw new Error("Announcement not found");
+
+  return prisma.announcement.update({
+    where: { id: announcementId },
+    data: { title, body },
+    include: { author: { select: { firstName: true, lastName: true } } },
+  });
+}
+
 export async function deleteAnnouncement(
   userId: string,
   moduleId: string,
