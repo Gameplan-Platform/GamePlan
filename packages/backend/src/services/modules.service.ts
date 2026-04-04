@@ -131,6 +131,7 @@ export async function getModuleInfo(moduleId: string, userId: string) {
     description: module.description,
     type: module.type,
     systemKey: module.systemKey,
+    joinCode: module.joinCode,
     createdAt: module.createdAt,
     updatedAt: module.updatedAt,
     memberRole: membership.memberRole,
