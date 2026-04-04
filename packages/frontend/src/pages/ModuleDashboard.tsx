@@ -98,7 +98,7 @@ export default function ModuleDashboard() {
         <motion.button
           initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
           transition={{ ...spring, delay: 0 }}
-          onClick={(e) => { e.stopPropagation(); console.log('back clicked'); navigate('/module-homepage') }}
+          onClick={(e) => { e.stopPropagation(); navigate('/module-homepage') }}
           style={{
             position: 'absolute', left: '28px', top: '74px',
             width: '38px', height: '42px',
@@ -169,7 +169,7 @@ export default function ModuleDashboard() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.1 }}
           style={{
-            position: 'absolute', top: '180px', left: '20px', right: '20px',
+            position: 'absolute', top: '155px', left: '20px', right: '20px',
             bottom: '20px', overflowY: 'auto', padding: '0 10px 20px',
           }}
         >
@@ -232,15 +232,18 @@ function Section({ title, isAdmin, onAdd, children }: {
         height: '47px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 20px',
-        marginBottom: '12px',
+        marginBottom: '18px',
       }}>
         <span style={{ fontFamily: 'Amiko', fontWeight: 400, fontSize: '20px', color: '#FFFFFF' }}>
           {title}
         </span>
       </div>
 
-      {/* Cards */}
-      <div style={{ paddingLeft: '4px', paddingRight: '4px' }}>
+      {/* Cards — scrollable window ~3 tall */}
+      <div className="section-scroll" style={{
+        maxHeight: '220px', overflowY: 'scroll',
+        paddingLeft: '4px', paddingRight: '20px',
+      }}>
         {children}
       </div>
 
@@ -274,7 +277,7 @@ function AnnouncementCard({ announcement: a, onClick }: { announcement: Announce
     <div
       onClick={onClick}
       style={{
-        display: 'flex', alignItems: 'flex-start', gap: '12px',
+        display: 'flex', alignItems: 'center', gap: '10px',
         marginBottom: '10px', cursor: 'pointer',
       }}
     >
@@ -284,33 +287,46 @@ function AnnouncementCard({ announcement: a, onClick }: { announcement: Announce
         background: 'rgba(97,102,219,0.2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#6166DB' }} />
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <circle cx="13" cy="10" r="4.5" stroke="#6166DB" strokeWidth="1.8"/>
+          <path d="M4.5 22c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5" stroke="#6166DB" strokeWidth="1.8" strokeLinecap="round"/>
+        </svg>
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Purple bubble — capped width so it doesn't stretch full row */}
         <div style={{
           background: '#55337B', borderRadius: '20px',
           padding: '4px 14px', marginBottom: '4px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          display: 'block', overflow: 'hidden', marginRight: '8px',
         }}>
-          <span style={{ fontFamily: 'Amiko', fontWeight: 700, fontSize: '12px', color: '#FFFFFF' }}>
+          <span style={{
+            fontFamily: 'Amiko', fontWeight: 700, fontSize: '12px', color: '#FFFFFF',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            display: 'block',
+          }}>
             {a.title}
           </span>
-          <span style={{ fontSize: '16px', color: '#FFFFFF', marginLeft: '8px' }}>›</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: '4px' }}>
-          <p style={{
-            fontFamily: 'Amiko', fontSize: '11px', color: '#000000',
-            margin: 0, lineHeight: '15px',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            maxWidth: '200px',
-          }}>
-            {a.body}
-          </p>
-          <span style={{ fontFamily: 'Amiko', fontSize: '10px', color: '#000000' }}>{date}</span>
-        </div>
+        {/* Body */}
+        <p style={{
+          fontFamily: 'Amiko', fontSize: '11px', color: '#000000',
+          margin: '0 0 2px 4px', lineHeight: '15px',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {a.body}
+        </p>
+        {/* Date + author */}
+        <span style={{ fontFamily: 'Amiko', fontSize: '10px', color: '#000000', paddingLeft: '4px' }}>
+          {date} · {a.author.firstName} {a.author.lastName}
+        </span>
       </div>
+
+      {/* Big black right arrow */}
+      <svg width="16" height="28" viewBox="0 0 16 28" fill="none" style={{ flexShrink: 0 }}>
+        <path d="M2 2L13 14L2 26" stroke="#222B45" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
     </div>
   )
 }
@@ -322,7 +338,7 @@ function AgendaCard({ agenda: a, onClick }: { agenda: AgendaItem; onClick: () =>
     <div
       onClick={onClick}
       style={{
-        display: 'flex', alignItems: 'flex-start', gap: '12px',
+        display: 'flex', alignItems: 'center', gap: '10px',
         marginBottom: '10px', cursor: 'pointer',
       }}
     >
@@ -332,30 +348,43 @@ function AgendaCard({ agenda: a, onClick }: { agenda: AgendaItem; onClick: () =>
         background: 'rgba(97,102,219,0.2)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#6166DB' }} />
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <circle cx="13" cy="10" r="4.5" stroke="#6166DB" strokeWidth="1.8"/>
+          <path d="M4.5 22c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5" stroke="#6166DB" strokeWidth="1.8" strokeLinecap="round"/>
+        </svg>
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           background: '#55337B', borderRadius: '20px',
           padding: '4px 14px', marginBottom: '4px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          display: 'block', overflow: 'hidden', marginRight: '8px',
         }}>
-          <span style={{ fontFamily: 'Amiko', fontWeight: 700, fontSize: '12px', color: '#FFFFFF' }}>
+          <span style={{
+            fontFamily: 'Amiko', fontWeight: 700, fontSize: '12px', color: '#FFFFFF',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            display: 'block',
+          }}>
             {date}
           </span>
-          <span style={{ fontSize: '16px', color: '#FFFFFF', marginLeft: '8px' }}>›</span>
         </div>
         <p style={{
           fontFamily: 'Amiko', fontSize: '11px', color: '#000000',
-          margin: 0, lineHeight: '15px',
+          margin: '0 0 2px 4px', lineHeight: '15px',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          maxWidth: '240px', paddingLeft: '4px',
         }}>
           {a.description ?? a.title}
         </p>
+        <span style={{ fontFamily: 'Amiko', fontSize: '10px', color: '#000000', paddingLeft: '4px' }}>
+          {a.author.firstName} {a.author.lastName}
+        </span>
       </div>
+
+      {/* Big black right arrow */}
+      <svg width="16" height="28" viewBox="0 0 16 28" fill="none" style={{ flexShrink: 0 }}>
+        <path d="M2 2L13 14L2 26" stroke="#222B45" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
     </div>
   )
 }
