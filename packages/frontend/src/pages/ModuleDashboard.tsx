@@ -98,7 +98,7 @@ export default function ModuleDashboard() {
         <motion.button
           initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
           transition={{ ...spring, delay: 0 }}
-          onClick={() => navigate('/module-homepage')}
+          onClick={(e) => { e.stopPropagation(); console.log('back clicked'); navigate('/module-homepage') }}
           style={{
             position: 'absolute', left: '28px', top: '74px',
             width: '38px', height: '42px',
@@ -121,7 +121,7 @@ export default function ModuleDashboard() {
             position: 'absolute', left: 0, right: 0, top: '69px',
             fontFamily: 'Amiko', fontWeight: 400, fontSize: '40px',
             lineHeight: '53px', color: '#000000', margin: 0,
-            textAlign: 'center',
+            textAlign: 'center', pointerEvents: 'none',
           }}
         >
           Dashboard
