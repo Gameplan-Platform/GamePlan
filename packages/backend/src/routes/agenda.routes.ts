@@ -7,6 +7,7 @@ import {
   likeAgendaController,
   unlikeAgendaController,
   deleteAgendaController,
+  updateAgendaController,
 } from "../controllers/agenda.controller";
 
 const router = Router({ mergeParams: true });
@@ -17,5 +18,6 @@ router.get("/:agendaId", requireAuth, getAgendaController);
 router.post("/:agendaId/like", requireAuth, likeAgendaController);
 router.delete("/:agendaId/like", requireAuth, unlikeAgendaController);
 router.delete("/:agendaId", requireAuth, deleteAgendaController);
+router.patch("/:agendaId", requireAuth, updateAgendaController);
 
 export default router;

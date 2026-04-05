@@ -332,7 +332,7 @@ function AnnouncementCard({ announcement: a, onClick }: { announcement: Announce
 }
 
 function AgendaCard({ agenda: a, onClick }: { agenda: AgendaItem; onClick: () => void }) {
-  const date = new Date(a.date).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric', year: 'numeric' })
+  const date = new Date(a.date.split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'numeric', day: 'numeric', year: 'numeric' })
 
   return (
     <div

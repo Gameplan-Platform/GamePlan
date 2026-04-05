@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 type ModuleParams = { moduleId: string };
 type AgendaParams = { moduleId: string; agendaId: string };
 import { validateCreateAgenda } from "../validators/agenda.validator";
-import { createAgenda, getAgenda, listAgendas, likeAgenda, unlikeAgenda, deleteAgenda } from "../services/agenda.service";
+import { createAgenda, getAgenda, listAgendas, likeAgenda, unlikeAgenda, deleteAgenda, updateAgenda } from "../services/agenda.service";
 
 export async function createAgendaController(req: Request<ModuleParams>, res: Response) {
   try {
@@ -130,5 +130,30 @@ export async function deleteAgendaController(req: Request<AgendaParams>, res: Re
 
     console.error("Delete agenda error:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+export async function updateAgendaController(req: Request<AgendaParams>, res: Response){
+  try {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized"});
+
+    const { moduleId, agendaId}  = req.params;
+    const { title, description, date } = req.body;
+
+    const agenda = await updateAgenda(req.user.userId, moduleId, agendaId, title, description, date);
+
+    return res.status(200).json({ agenda });
+  } catch(error) {
+    const message = error instanceof Error ? error.message : "Internal server error";
+    
+    if (message === "Not a member of this module" || message === "Only module admins can edit agenda items") {
+      return res.status(403).json({ error: message });
+    }
+    if (message === "Agenda not found") {
+      return res.status(404).json({ error: message });
+    }
+
+    console.error("Update agenda error:", error);
+    return res.status(500).json({ error: "Internal server error"});
   }
 }

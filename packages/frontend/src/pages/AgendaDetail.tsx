@@ -75,7 +75,7 @@ export default function AgendaDetail() {
   }
 
   const date = agenda
-    ? new Date(agenda.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+    ? new Date(agenda.date.split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
     : ''
 
   if (loading) return (

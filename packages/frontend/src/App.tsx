@@ -13,6 +13,8 @@ import CreateAnnouncement from './pages/CreateAnnouncement'
 import CreateAgenda from './pages/CreateAgenda'
 import AnnouncementDetail from './pages/AnnouncementDetail'
 import AgendaDetail from './pages/AgendaDetail'
+import EditAnnouncement from './pages/EditAnnouncement'
+import EditAgenda from './pages/EditAgenda'
 
 export default function App() {
   return (
@@ -30,8 +32,10 @@ export default function App() {
         <Route path="/modules/:id" element={<ModuleDashboard />} />
         <Route path="/modules/:id/announcements/create" element={<CreateAnnouncement />} />
         <Route path="/modules/:id/announcements/:announcementId" element={<AnnouncementDetail />} />
+        <Route path="/modules/:id/announcements/:announcementId/edit" element={<EditAnnouncement />} />
         <Route path="/modules/:id/agendas/create" element={<CreateAgenda />} />
         <Route path="/modules/:id/agendas/:agendaId" element={<AgendaDetail />} />
+        <Route path="/modules/:id/agendas/:agendaId/edit" element={<EditAgenda />} />
       </Routes>
     </BrowserRouter>
   )

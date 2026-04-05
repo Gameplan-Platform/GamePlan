@@ -7,6 +7,7 @@ import {
   likeAnnouncementController,
   unlikeAnnouncementController,
   deleteAnnouncementController,
+  updateAnnouncementController,
 } from "../controllers/announcements.controller";
 
 const router = Router({ mergeParams: true });
@@ -17,5 +18,6 @@ router.get("/:announcementId", requireAuth, getAnnouncementController);
 router.post("/:announcementId/like", requireAuth, likeAnnouncementController);
 router.delete("/:announcementId/like", requireAuth, unlikeAnnouncementController);
 router.delete("/:announcementId", requireAuth, deleteAnnouncementController);
+router.patch("/:announcementId", requireAuth, updateAnnouncementController);
 
 export default router;
