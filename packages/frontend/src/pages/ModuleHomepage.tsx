@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { api } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
-import BottomNav from '../components/BottomNav'
 
 const spring = { type: 'spring' as const, stiffness: 100, damping: 14 }
 
@@ -390,8 +389,6 @@ export default function ModuleHomepage() {
             </div>
           </div>
         )}
-        <BottomNav activeTab="dashboard" />
-
       </div>
     </div>
   )

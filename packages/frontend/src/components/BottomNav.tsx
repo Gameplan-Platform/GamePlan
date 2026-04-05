@@ -1,14 +1,31 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { api } from '../utils/api'
+import { useAuth } from '../context/AuthContext'
 
-type TabKey = 'dashboard' | 'calendar' | 'progress' | 'roster' | 'messaging'
+type BackendTab = 'home' | 'dashboard' | 'calendar' | 'progress' | 'roster' | 'messaging'
+type FrontendTab = 'dashboard' | 'calendar' | 'progress' | 'roster' | 'messaging'
 
 type BottomNavProps = {
-  activeTab?: TabKey
+  activeTab: FrontendTab
+}
+
+interface ModuleNavigationResponse {
+  navigation: {
+    moduleId: string
+    moduleName: string
+    moduleType?: string
+    systemKey?: string | null
+    tabs: BackendTab[]
+  }
 }
 
 const spring = { type: 'spring' as const, stiffness: 120, damping: 14 }
+
+function normalizeBackendTab(tab: BackendTab): FrontendTab {
+  return tab === 'home' ? 'dashboard' : tab
+}
 
 function DashboardIcon({ active }: { active: boolean }) {
   return (
@@ -109,7 +126,7 @@ function MessagingIcon({ active }: { active: boolean }) {
   )
 }
 
-function TabIcon({ tab, active }: { tab: TabKey; active: boolean }) {
+function TabIcon({ tab, active }: { tab: FrontendTab; active: boolean }) {
   switch (tab) {
     case 'dashboard':
       return <DashboardIcon active={active} />
@@ -126,61 +143,117 @@ function TabIcon({ tab, active }: { tab: TabKey; active: boolean }) {
   }
 }
 
-export default function BottomNav({ activeTab = 'dashboard' }: BottomNavProps) {
+const tabConfig: Record<FrontendTab, { label: string; subpath: string }> = {
+  dashboard: { label: 'Dashboard', subpath: '' },
+  calendar: { label: 'Calendar', subpath: 'calendar' },
+  progress: { label: 'Progress', subpath: 'progress' },
+  roster: { label: 'Roster', subpath: 'roster' },
+  messaging: { label: 'Messaging', subpath: 'messaging' },
+}
+
+export default function BottomNav({ activeTab }: BottomNavProps) {
   const navigate = useNavigate()
-  const [hoveredTab, setHoveredTab] = useState<TabKey | null>(null)
+  const location = useLocation()
+  const { moduleId } = useParams<{ moduleId: string }>()
+  const { token } = useAuth()
+  const [hoveredTab, setHoveredTab] = useState<FrontendTab | null>(null)
+  const [tabs, setTabs] = useState<FrontendTab[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const items: { key: TabKey; label: string; route?: string }[] = [
-    { key: 'dashboard', label: 'Dashboard', route: '/module-homepage' },
-    { key: 'calendar', label: 'Calendar' },
-    { key: 'progress', label: 'Progress' },
-    { key: 'roster', label: 'Roster' },
-    { key: 'messaging', label: 'Messaging' },
-  ]
-
-  const handleClick = (item: { key: TabKey; label: string; route?: string }) => {
-    if (item.route) {
-      navigate(item.route)
+  useEffect(() => {
+    if (!moduleId || !token) {
+      setTabs([])
+      setLoading(false)
       return
     }
 
-    alert(`${item.label} page is not connected yet.`)
+    let cancelled = false
+
+    async function loadNavigation() {
+      try {
+        const data = await api<ModuleNavigationResponse>(`/modules/${moduleId}/navigation`, {
+          token: token ?? undefined,
+        })
+
+        if (!cancelled) {
+          const normalized = data.navigation.tabs.map(normalizeBackendTab)
+          setTabs(Array.from(new Set(normalized)))
+        }
+      } catch (error) {
+        console.error('Failed to load module navigation:', error)
+        if (!cancelled) {
+          setTabs([])
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadNavigation()
+
+    return () => {
+      cancelled = true
+    }
+  }, [moduleId, token])
+
+  const visibleTabs = useMemo(() => tabs, [tabs])
+
+  const handleNavigate = (tab: FrontendTab) => {
+    if (!moduleId) return
+
+    const config = tabConfig[tab]
+    const target = config.subpath
+      ? `/modules/${moduleId}/${config.subpath}`
+      : `/modules/${moduleId}`
+
+    if (location.pathname !== target) {
+      navigate(target)
+    }
+  }
+
+  if (!moduleId || loading || visibleTabs.length === 0) {
+    return null
   }
 
   return (
-    <motion.div
+    <motion.nav
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ ...spring, delay: 0.15 }}
+      transition={{ ...spring, delay: 0.12 }}
+      aria-label="Module navigation"
       style={{
         position: 'absolute',
-        left: '22px',
-        bottom: '18px',
-        width: '396px',
-        height: '82px',
+        left: '5%',
+        right: '5%',
+        bottom: '24px',
+        minHeight: '76px',
         background: '#E9E8F8',
         borderRadius: '28px',
         boxShadow: '0 10px 26px rgba(24, 28, 50, 0.14)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 16px',
+        padding: '0 12px',
         zIndex: 40,
       }}
     >
-      {items.map((item) => {
-        const isActive = item.key === activeTab
-        const isHovered = hoveredTab === item.key
-        const showHighlight = isActive || isHovered
+      {visibleTabs.map((tab) => {
+        const isActive = activeTab === tab
+        const isHovered = hoveredTab === tab
+        const highlighted = isActive || isHovered
 
         return (
           <button
-            key={item.key}
-            onClick={() => handleClick(item)}
-            onMouseEnter={() => setHoveredTab(item.key)}
+            key={tab}
+            type="button"
+            onClick={() => handleNavigate(tab)}
+            onMouseEnter={() => setHoveredTab(tab)}
             onMouseLeave={() => setHoveredTab(null)}
             style={{
-              width: '64px',
+              flex: 1,
+              minWidth: 0,
               height: '100%',
               border: 'none',
               background: 'transparent',
@@ -190,27 +263,28 @@ export default function BottomNav({ activeTab = 'dashboard' }: BottomNavProps) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '4px',
-              padding: 0,
+              padding: '10px 4px',
               position: 'relative',
               transition: 'transform 0.15s ease',
               transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
             }}
           >
-            <TabIcon tab={item.key} active={showHighlight} />
+            <TabIcon tab={tab} active={highlighted} />
             <span
               style={{
                 fontFamily: 'Amiko',
-                fontSize: '11px',
-                fontWeight: showHighlight ? 700 : 600,
-                color: showHighlight ? '#6166DB' : '#7E83D7',
+                fontSize: 'clamp(10px, 1.9vw, 11px)',
+                fontWeight: highlighted ? 700 : 600,
+                color: highlighted ? '#6166DB' : '#7E83D7',
                 transition: 'all 0.15s ease',
+                whiteSpace: 'nowrap',
               }}
             >
-              {item.label}
+              {tabConfig[tab].label}
             </span>
           </button>
         )
       })}
-    </motion.div>
+    </motion.nav>
   )
 }
