@@ -8,7 +8,6 @@ import {
   likeAgendaController,
   unlikeAgendaController,
   deleteAgendaController,
-  updateAgendaController,
 } from "../controllers/agenda.controller";
 
 const router = Router({ mergeParams: true });

@@ -8,7 +8,6 @@ import {
   likeAnnouncementController,
   unlikeAnnouncementController,
   deleteAnnouncementController,
-  updateAnnouncementController,
 } from "../controllers/announcements.controller";
 
 const router = Router({ mergeParams: true });
