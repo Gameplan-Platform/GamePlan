@@ -24,8 +24,7 @@ export default function EditAgenda() {
       .then(data => {
         setTitle(data.agenda.title)
         setDescription(data.agenda.description ?? '')
-        // Convert ISO date to yyyy-mm-dd for input
-        setDate(new Date(data.agenda.date).toISOString().split('T')[0])
+        setDate(data.agenda.date.slice(0, 10))
       })
       .catch(err => setError(err instanceof Error ? err.message : 'Failed to load'))
       .finally(() => setLoading(false))
@@ -80,11 +79,10 @@ export default function EditAgenda() {
 
         {/* Title */}
         <p style={{
-          position: 'absolute', left: '112px', top: '69px',
-          width: '216px', height: '53px',
+          position: 'absolute', left: 0, right: 0, top: '69px',
           fontFamily: 'Amiko', fontWeight: 400, fontSize: '40px',
           lineHeight: '53px', color: '#000000', margin: 0,
-          pointerEvents: 'none',
+          textAlign: 'center', pointerEvents: 'none',
         }}>
           Dashboard
         </p>

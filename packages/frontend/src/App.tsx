@@ -31,9 +31,11 @@ export default function App() {
         <Route path="/modules/join" element={<JoinModule />} />
         <Route path="/modules/:id" element={<ModuleDashboard />} />
         <Route path="/modules/:id/announcements/create" element={<CreateAnnouncement />} />
+        <Route path="/modules/:id/announcements/:announcementId/edit" element={<EditAnnouncement />} />
         <Route path="/modules/:id/announcements/:announcementId" element={<AnnouncementDetail />} />
         <Route path="/modules/:id/announcements/:announcementId/edit" element={<EditAnnouncement />} />
         <Route path="/modules/:id/agendas/create" element={<CreateAgenda />} />
+        <Route path="/modules/:id/agendas/:agendaId/edit" element={<EditAgenda />} />
         <Route path="/modules/:id/agendas/:agendaId" element={<AgendaDetail />} />
         <Route path="/modules/:id/agendas/:agendaId/edit" element={<EditAgenda />} />
       </Routes>
