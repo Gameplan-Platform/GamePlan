@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { api } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import BottomNav from '../components/BottomNav'
 
 const spring = { type: 'spring' as const, stiffness: 100, damping: 14 }
 
@@ -169,8 +170,8 @@ export default function ModuleDashboard() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.1 }}
           style={{
-            position: 'absolute', top: '155px', left: '20px', right: '20px',
-            bottom: '20px', overflowY: 'auto', padding: '0 10px 20px',
+           position: 'absolute', top: '155px', left: '20px', right: '20px',
+           bottom: '110px', overflowY: 'auto', padding: '0 10px 20px',
           }}
         >
           {/* Announcements section */}
@@ -211,6 +212,7 @@ export default function ModuleDashboard() {
             )}
           </Section>
         </motion.div>
+        <BottomNav />
       </div>
     </div>
   )
@@ -386,6 +388,7 @@ function AgendaCard({ agenda: a, onClick }: { agenda: AgendaItem; onClick: () =>
         <path d="M2 2L13 14L2 26" stroke="#222B45" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     </div>
+    
   )
 }
 

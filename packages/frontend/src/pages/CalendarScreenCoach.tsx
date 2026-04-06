@@ -1,7 +1,8 @@
-import { useState , useEffect} from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
+import BottomNav from '../components/BottomNav'
 
 
 
@@ -31,14 +32,14 @@ interface CalendarEvent {
   allDay: boolean;
 }
 
-export default function CalendarScreenCoach() {
+export default function CalendarScreenUser() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [events, setEvents] = useState<Record<string, CalendarEvent[]>>({});
-  const navigate = useNavigate();
+  const [events, setEvents] = useState<Record<string, { id: string; title: string; date: string; startTime?: string; endTime?: string; allDay: boolean }[]>>({});
   const { moduleId } = useParams();
+  const navigate = useNavigate();
   const { token } = useAuth();
 
 
@@ -113,7 +114,7 @@ export default function CalendarScreenCoach() {
   return (
     <div style={{ fontFamily: "'Amiko', sans-serif" }} className="bg-white min-h-screen w-full max-w-[440px] mx-auto flex flex-col">
 
-      {/* Import font */}
+      {/* Import  font */}
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Amiko:wght@400;600;700&display=swap');`}</style>
 
       {/* Header */}
@@ -189,37 +190,29 @@ export default function CalendarScreenCoach() {
           <p className="text-center text-[#8f9bb3] text-sm mt-4">No events for this date</p>
         ) : (
           selectedEvents.map((ev, i) => (
-            <div 
-            key={i} 
-            onClick={() => navigate(`/modules/${moduleId}/calendar/${ev.id}`)}
-            className="flex justify-between items-center px-4 py-4 rounded-2xl border border-gray-100 shadow-sm">
+            <div key={i} 
+              onClick={() => navigate(`/modules/${moduleId}/calendar/${ev.id}`)}
+              className="flex justify-between items-center px-4 py-4 rounded-2xl border border-gray-100 shadow-sm cursor-pointer"
+            >
               <div className="flex gap-3 items-start">
                 <span className="text-[#735bf2] text-[10px] mt-1">●</span>
                 <div>
-                  <div className="text-xs text-[#8f9bb3] mb-0.5 tracking-wide">{ev.startTime}-{ev.endTime}</div>
+                  <div className="text-xs text-[#8f9bb3] mb-0.5 tracking-wide">
+                    {ev.allDay ? "All Day" : `${ev.startTime ?? ""} - ${ev.endTime ?? ""}`}
+                  </div>
                   <div className="text-[#222b45] font-semibold text-base tracking-wide">{ev.title}</div>
                 </div>
               </div>
-              <button 
-                className="flex gap-0.5">
+              <div className="flex gap-0.5">
                 {[0,1,2].map(d => <div key={d} className="w-1 h-1 bg-[#8f9bb3] rounded-full" />)}
-              </button>
+              </div>
             </div>
           ))
         )}
       </div>
-      {/* Add Event */}
-      <div className="w-full max-w-[440px] mx-auto relative">
-        <button
-          onClick={() => navigate(`/modules/${moduleId}/calendar/add-event`)}
-          className="absolute bottom-28 right-6 w-14 h-14 bg-[#b8e366] rounded-full text-white text-3xl shadow-lg flex items-center justify-center"
-        >
-          +
-        </button>
-      </div>
 
       {/* Bottom spacer for nav bar */}
-      <div className="h-24" />
+      <BottomNav />
     </div>
   );
 }
