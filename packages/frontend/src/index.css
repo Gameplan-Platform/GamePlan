@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+textarea::placeholder {
+  color: #C8C8C8;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  color: #C8C8C8;
+}
+input[type="date"].has-value::-webkit-datetime-edit {
+  color: #000000;
+}
+
+.section-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.section-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.section-scroll::-webkit-scrollbar-thumb {
+  background: #CED3DE;
+  border-radius: 4px;
+}
+
 input[type="date"]::-webkit-calendar-picker-indicator {
   transform: translateX(-17px);
   cursor: pointer;

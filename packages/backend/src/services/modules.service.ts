@@ -117,14 +117,12 @@ export async function getModuleInfo(moduleId: string, userId: string) {
   });
 
   if (!module) {
-    throw new Error("Module not found");
-  }
-
-  const isMember = module.memberships.some(
-    (member: { userId: string }) => member.userId === userId
-  );
-
-  if (!isMember) {
+    throw new Error("Module not found");}
+  
+  const membership = module.memberships.find(
+    (member: { userId: string }) => member.userId === userId);
+  
+  if(!membership){
     throw new Error("Not authorized");
   }
 
@@ -134,8 +132,10 @@ export async function getModuleInfo(moduleId: string, userId: string) {
     description: module.description,
     type: module.type,
     systemKey: module.systemKey,
+    joinCode: module.joinCode,
     createdAt: module.createdAt,
     updatedAt: module.updatedAt,
+    memberRole: membership.memberRole,
   };
 }
 
