@@ -2,6 +2,7 @@ import { useState , useEffect} from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
+import BottomNav from '../components/BottomNav'
 
 
 
@@ -111,7 +112,19 @@ export default function CalendarScreenCoach() {
 
 
   return (
-    <div style={{ fontFamily: "'Amiko', sans-serif" }} className="bg-white min-h-screen w-full max-w-[440px] mx-auto flex flex-col">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+  <div
+    style={{
+      fontFamily: "'Amiko', sans-serif",
+      width: '440px',
+      height: '956px',
+      borderRadius: '55px',
+      overflow: 'hidden',
+      background: '#FFFFFF',
+      position: 'relative',
+    }}
+    className="mx-auto flex flex-col"
+  >
 
       {/* Import font */}
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Amiko:wght@400;600;700&display=swap');`}</style>
@@ -219,7 +232,9 @@ export default function CalendarScreenCoach() {
       </div>
 
       {/* Bottom spacer for nav bar */}
-      <div className="h-24" />
+      <BottomNav />
     </div>
+    </div>
+    
   );
 }
