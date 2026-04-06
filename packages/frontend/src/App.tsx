@@ -48,6 +48,7 @@ export default function App() {
         <Route path="/modules/:moduleId/calendar/:eventId/edit" element={<EditEvent />} />
         <Route path="/modules/:id" element={<ModuleDashboard />} />
         <Route path="/modules/:id/roster" element={<ModuleAttendanceScreen />} />
+        <Route path="/modules/:moduleId/roster" element={<ModuleAttendanceScreen />} />
         <Route path="/modules/:id/announcements/create" element={<CreateAnnouncement />} />
         <Route path="/modules/:id/announcements/:announcementId/edit" element={<EditAnnouncement />} />
         <Route path="/modules/:id/announcements/:announcementId" element={<AnnouncementDetail />} />
