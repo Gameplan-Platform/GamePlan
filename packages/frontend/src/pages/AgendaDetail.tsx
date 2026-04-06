@@ -75,7 +75,7 @@ export default function AgendaDetail() {
   }
 
   const date = agenda
-    ? new Date(agenda.date.split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })
+    ? new Date(agenda.date.split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
     : ''
 
   if (loading) return (
@@ -115,100 +115,89 @@ export default function AgendaDetail() {
           </svg>
         </button>
 
-        {/* Title */}
-        <p style={{
-          position: 'absolute', left: 0, right: 0, top: '69px',
-          fontFamily: 'Amiko', fontWeight: 400, fontSize: '40px',
-          lineHeight: '53px', color: '#000000', margin: 0,
-          textAlign: 'center', pointerEvents: 'none',
-        }}>
-          Dashboard
-        </p>
-
         {/* Content */}
         <div style={{
-          position: 'absolute', top: '155px', left: '24px', right: '24px', bottom: '24px',
+          position: 'absolute', top: '130px', left: '24px', right: '24px', bottom: '24px',
           overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px',
         }}>
-          {/* Date bubble */}
+          {/* Title bubble */}
           <div style={{
             background: '#55337B', borderRadius: '20px',
             padding: '8px 18px',
           }}>
             <span style={{ fontFamily: 'Amiko', fontWeight: 700, fontSize: '16px', color: '#FFFFFF' }}>
-              {date}
+              {agenda.title}
             </span>
           </div>
 
-          {/* Title + author */}
+          {/* Author + date */}
           <div style={{ display: 'flex', justifyContent: 'space-between', paddingLeft: '4px', paddingRight: '4px' }}>
-            <span style={{ fontFamily: 'Amiko', fontSize: '13px', fontWeight: 700, color: '#222B45' }}>
-              {agenda.title}
-            </span>
             <span style={{ fontFamily: 'Amiko', fontSize: '11px', color: '#888' }}>
               {agenda.author.firstName} {agenda.author.lastName}
             </span>
+            <span style={{ fontFamily: 'Amiko', fontSize: '11px', color: '#888' }}>{date}</span>
           </div>
 
           {/* Description */}
           <div style={{
             background: '#FFFFFF', borderRadius: '20px',
+            border: '1px solid #E0E0E0',
             boxShadow: '0px 0px 4px rgba(0,0,0,0.15)',
-            padding: '16px 18px', flex: 1,
+            padding: '16px 18px', minHeight: '200px', maxHeight: '500px',
           }}>
             <p style={{ fontFamily: 'Amiko', fontSize: '14px', color: '#222B45', margin: 0, lineHeight: '22px', whiteSpace: 'pre-wrap' }}>
               {agenda.description ?? agenda.title}
             </p>
           </div>
 
-          {/* Like button */}
-          <button
-            onClick={handleLike}
-            style={{
-              alignSelf: 'flex-start',
-              display: 'flex', alignItems: 'center', gap: '6px',
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              paddingLeft: '4px',
-            }}
-          >
-            <svg width="22" height="20" viewBox="0 0 22 20" fill={agenda.likedByMe ? '#6166DB' : 'none'}>
-              <path d="M11 18.5C11 18.5 1.5 13 1.5 6.5C1.5 4.01 3.51 2 6 2C7.74 2 9.26 2.93 10.12 4.3C10.35 4.68 10.65 4.68 10.88 4.3C11.74 2.93 13.26 2 15 2C17.49 2 19.5 4.01 19.5 6.5C19.5 13 11 18.5 11 18.5Z"
-                stroke="#6166DB" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span style={{ fontFamily: 'Amiko', fontSize: '13px', color: '#6166DB' }}>
-              {agenda.likeCount} {agenda.likeCount === 1 ? 'like' : 'likes'}
-            </span>
-          </button>
+          {/* Like + admin buttons */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '8px' }}>
+            <button
+              onClick={handleLike}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '6px',
+                background: 'transparent', border: 'none', cursor: 'pointer',
+                paddingLeft: '4px',
+              }}
+            >
+              <svg width="22" height="20" viewBox="0 0 22 20" fill={agenda.likedByMe ? '#6166DB' : 'none'}>
+                <path d="M11 18.5C11 18.5 1.5 13 1.5 6.5C1.5 4.01 3.51 2 6 2C7.74 2 9.26 2.93 10.12 4.3C10.35 4.68 10.65 4.68 10.88 4.3C11.74 2.93 13.26 2 15 2C17.49 2 19.5 4.01 19.5 6.5C19.5 13 11 18.5 11 18.5Z"
+                  stroke="#6166DB" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span style={{ fontFamily: 'Amiko', fontSize: '13px', color: '#6166DB' }}>
+                {agenda.likeCount} {agenda.likeCount === 1 ? 'like' : 'likes'}
+              </span>
+            </button>
 
-          {/* Admin buttons */}
-          {isAdmin && (
-            <div style={{ display: 'flex', gap: '12px', paddingBottom: '8px' }}>
-              <button
-                onClick={() => navigate(`/modules/${moduleId}/agendas/${agendaId}/edit`)}
-                style={{
-                  flex: 1, height: '45px', borderRadius: '20px',
-                  background: '#B8E466', border: 'none', cursor: 'pointer',
-                  fontFamily: 'Amiko', fontSize: '16px', color: '#FFFFFF',
-                  boxShadow: '0px 2px 4px rgba(0,0,0,0.15)',
-                }}
-              >
-                Edit
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                style={{
-                  flex: 1, height: '45px', borderRadius: '20px',
-                  background: '#FF6B6B', border: 'none', cursor: 'pointer',
-                  fontFamily: 'Amiko', fontSize: '16px', color: '#FFFFFF',
-                  boxShadow: '0px 2px 4px rgba(0,0,0,0.15)',
-                  opacity: deleting ? 0.5 : 1,
-                }}
-              >
-                {deleting ? '...' : 'Delete'}
-              </button>
-            </div>
-          )}
+            {isAdmin && (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => navigate(`/modules/${moduleId}/agendas/${agendaId}/edit`)}
+                  style={{
+                    height: '36px', padding: '0 18px', borderRadius: '20px',
+                    background: '#B8E466', border: 'none', cursor: 'pointer',
+                    fontFamily: 'Amiko', fontSize: '14px', color: '#FFFFFF',
+                    boxShadow: '0px 2px 4px rgba(0,0,0,0.15)',
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  style={{
+                    height: '36px', padding: '0 18px', borderRadius: '20px',
+                    background: '#E53935', border: 'none', cursor: 'pointer',
+                    fontFamily: 'Amiko', fontSize: '14px', color: '#FFFFFF',
+                    boxShadow: '0px 2px 4px rgba(0,0,0,0.15)',
+                    opacity: deleting ? 0.5 : 1,
+                  }}
+                >
+                  {deleting ? '...' : 'Delete'}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

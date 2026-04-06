@@ -332,7 +332,7 @@ function AnnouncementCard({ announcement: a, onClick }: { announcement: Announce
 }
 
 function AgendaCard({ agenda: a, onClick }: { agenda: AgendaItem; onClick: () => void }) {
-  const date = new Date(a.date.split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'numeric', day: 'numeric', year: 'numeric' })
+  const date = new Date(a.date.split('T')[0] + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 
   return (
     <div
@@ -366,7 +366,7 @@ function AgendaCard({ agenda: a, onClick }: { agenda: AgendaItem; onClick: () =>
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             display: 'block',
           }}>
-            {date}
+            {a.title}
           </span>
         </div>
         <p style={{
@@ -374,10 +374,10 @@ function AgendaCard({ agenda: a, onClick }: { agenda: AgendaItem; onClick: () =>
           margin: '0 0 2px 4px', lineHeight: '15px',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
-          {a.description ?? a.title}
+          {a.description ?? ''}
         </p>
         <span style={{ fontFamily: 'Amiko', fontSize: '10px', color: '#000000', paddingLeft: '4px' }}>
-          {a.author.firstName} {a.author.lastName}
+          {date} · {a.author.firstName} {a.author.lastName}
         </span>
       </div>
 
