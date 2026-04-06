@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { useAuth } from './context/AuthContext'
 import TitleScreen from './pages/TitleScreen'
 import LandingScreen from './pages/LandingScreen'
 import SignupScreen from './pages/SignupScreen'
@@ -9,12 +10,23 @@ import ModuleHomepage from './pages/ModuleHomepage'
 import ModuleDashboard from './pages/ModuleDashboard'
 import CreateModule from './pages/CreateModule'
 import JoinModule from './pages/JoinModule'
+import CalendarScreenCoach from './pages/CalendarScreenCoach'
+import CalendarScreenUser from './pages/CalendarScreenUser'
+import AddEvent from './pages/AddEvent'
+import ViewEvent from './pages/ViewEvent'
+import EditEvent from './pages/EditEvent'
 import CreateAnnouncement from './pages/CreateAnnouncement'
 import CreateAgenda from './pages/CreateAgenda'
 import AnnouncementDetail from './pages/AnnouncementDetail'
 import AgendaDetail from './pages/AgendaDetail'
 import EditAnnouncement from './pages/EditAnnouncement'
 import EditAgenda from './pages/EditAgenda'
+
+function CalendarRoute() {
+  const { role } = useAuth();
+  if (role === 'COACH') return <CalendarScreenCoach />;
+  return <CalendarScreenUser />;
+}
 
 export default function App() {
   return (
@@ -29,6 +41,10 @@ export default function App() {
         <Route path="/module-homepage" element={<ModuleHomepage />} />
         <Route path="/modules/create" element={<CreateModule />} />
         <Route path="/modules/join" element={<JoinModule />} />
+        <Route path="/modules/:moduleId/calendar" element={<CalendarRoute />} />
+        <Route path="/modules/:moduleId/calendar/add-event" element={<AddEvent />} />
+        <Route path="/modules/:moduleId/calendar/:eventId" element={<ViewEvent />} />
+        <Route path="/modules/:moduleId/calendar/:eventId/edit" element={<EditEvent />} />
         <Route path="/modules/:id" element={<ModuleDashboard />} />
         <Route path="/modules/:id/announcements/create" element={<CreateAnnouncement />} />
         <Route path="/modules/:id/announcements/:announcementId/edit" element={<EditAnnouncement />} />
