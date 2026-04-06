@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import React from 'react'
 import { useAuth } from './context/AuthContext'
 import TitleScreen from './pages/TitleScreen'
 import LandingScreen from './pages/LandingScreen'
@@ -7,6 +8,7 @@ import LoginScreen from './pages/LoginScreen'
 import RoleSelectScreen from './pages/RoleSelectScreen'
 import VerifyEmail from './pages/VerifyEmail'
 import ModuleHomepage from './pages/ModuleHomepage'
+import ModuleDashboard from './pages/ModuleDashboard'
 import CreateModule from './pages/CreateModule'
 import JoinModule from './pages/JoinModule'
 import CalendarScreenCoach from './pages/CalendarScreenCoach'
@@ -14,6 +16,12 @@ import CalendarScreenUser from './pages/CalendarScreenUser'
 import AddEvent from './pages/AddEvent'
 import ViewEvent from './pages/ViewEvent'
 import EditEvent from './pages/EditEvent'
+import CreateAnnouncement from './pages/CreateAnnouncement'
+import CreateAgenda from './pages/CreateAgenda'
+import AnnouncementDetail from './pages/AnnouncementDetail'
+import AgendaDetail from './pages/AgendaDetail'
+import EditAnnouncement from './pages/EditAnnouncement'
+import EditAgenda from './pages/EditAgenda'
 
 function CalendarRoute() {
   const { role } = useAuth();
@@ -38,6 +46,15 @@ export default function App() {
         <Route path="/modules/:moduleId/calendar/add-event" element={<AddEvent />} />
         <Route path="/modules/:moduleId/calendar/:eventId" element={<ViewEvent />} />
         <Route path="/modules/:moduleId/calendar/:eventId/edit" element={<EditEvent />} />
+        <Route path="/modules/:id" element={<ModuleDashboard />} />
+        <Route path="/modules/:id/announcements/create" element={<CreateAnnouncement />} />
+        <Route path="/modules/:id/announcements/:announcementId/edit" element={<EditAnnouncement />} />
+        <Route path="/modules/:id/announcements/:announcementId" element={<AnnouncementDetail />} />
+        <Route path="/modules/:id/announcements/:announcementId/edit" element={<EditAnnouncement />} />
+        <Route path="/modules/:id/agendas/create" element={<CreateAgenda />} />
+        <Route path="/modules/:id/agendas/:agendaId/edit" element={<EditAgenda />} />
+        <Route path="/modules/:id/agendas/:agendaId" element={<AgendaDetail />} />
+        <Route path="/modules/:id/agendas/:agendaId/edit" element={<EditAgenda />} />
       </Routes>
     </BrowserRouter>
   )
