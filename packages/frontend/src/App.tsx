@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import React from 'react'
 import { useAuth } from './context/AuthContext'
 import TitleScreen from './pages/TitleScreen'
 import LandingScreen from './pages/LandingScreen'
