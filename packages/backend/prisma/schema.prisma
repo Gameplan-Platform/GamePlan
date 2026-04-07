@@ -35,30 +35,32 @@ enum ModuleType {
 }
 
 model User {
-  id                String               @id @default(cuid())
-  email             String               @unique
-  username          String               @unique
-  firstName         String
-  lastName          String
-  dob               DateTime
-  password          String
-  role              Role                 @default(ATHLETE)
-  emailVerified     Boolean              @default(false)
-  verificationToken String?
-  profilePicture    String?
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
+  id                        String               @id @default(cuid())
+  email                     String               @unique
+  username                  String               @unique
+  firstName                 String
+  lastName                  String
+  dob                       DateTime
+  password                  String
+  role                      Role                 @default(ATHLETE)
+  emailVerified             Boolean              @default(false)
+  verificationToken         String?
+  profilePicture            String?
+  createdAt                 DateTime             @default(now())
+  updatedAt                 DateTime             @updatedAt
 
-  memberships       Membership[]
-  createdModules    Module[]             @relation("CreatedModules")
-  moduleMemberships ModuleMembership[]
-  attendanceRecords Attendance[]         @relation("AttendanceMember")
-  markedAttendances Attendance[]         @relation("AttendanceMarkedBy")
-  createdEvents     Event[]              @relation("CreatedEvents")
-  announcements     Announcement[]
-  announcementLikes AnnouncementLike[]
-  agendas           Agenda[]
-  agendaLikes       AgendaLike[]
+  memberships               Membership[]
+  conversationMemberships   ConversationMember[]
+  sentMessages              Message[]            @relation("SentMessages")
+  createdModules            Module[]             @relation("CreatedModules")
+  moduleMemberships         ModuleMembership[]
+  attendanceRecords         Attendance[]         @relation("AttendanceMember")
+  markedAttendances         Attendance[]         @relation("AttendanceMarkedBy")
+  createdEvents             Event[]              @relation("CreatedEvents")
+  announcements             Announcement[]
+  announcementLikes         AnnouncementLike[]
+  agendas                   Agenda[]
+  agendaLikes               AgendaLike[]
 }
 
 model Gym {
@@ -110,6 +112,7 @@ model Module {
 
   createdBy       User?              @relation("CreatedModules", fields: [createdById], references: [id], onDelete: SetNull)
   attendances     Attendance[]
+  conversations   Conversation[]
   memberships     ModuleMembership[]
   events          Event[]
   announcements   Announcement[]
@@ -217,4 +220,41 @@ model AgendaLike {
   agenda    Agenda   @relation(fields: [agendaId], references: [id], onDelete: Cascade)
 
   @@unique([userId, agendaId])
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  name      String?
+  isGroup   Boolean   @default(false)
+  moduleId  String?
+
+  module    Module?   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  members   ConversationMember[]
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model ConversationMember {
+  id                String        @id @default(cuid())
+  conversationId    String
+  userId            String
+  conversation      Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime      @default(now())
+  @@unique([conversationId, userId]) 
+}
+
+model Message {
+  id                String        @id @default(cuid())
+  conversationId    String
+  senderId          String
+  content           String
+  isRead            Boolean       @default(false)
+
+  conversation      Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender            User          @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  createdAt         DateTime      @default(now())      
+  updatedAt         DateTime      @updatedAt
 }
