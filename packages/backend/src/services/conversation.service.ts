@@ -70,3 +70,39 @@ export async function getConversationMessages( conversationId: string, userId: s
         },
     });
 }
+
+export async function sendMessage(
+    conversationId: string,
+    senderId: string, 
+    content: string
+) {
+    const membership = await prisma.conversationMember.findFirst({
+        where: {
+            conversationId,
+            userId: senderId,
+        },
+    });
+
+    if (!membership) {
+        throw new Error ("Not authorized");
+    }
+
+    const message = await prisma.message.create({
+        data: {
+            conversationId,
+            senderId,
+            content,
+        }
+    });
+
+    await prisma.conversation.update({
+        where: {
+            id: conversationId,
+        },
+        data: {
+            updatedAt: new Date(),
+        },
+    });
+
+    return message;
+}
