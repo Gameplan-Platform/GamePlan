@@ -1,0 +1,76 @@
+import { Request, Response } from "express";
+import {
+    getUserInboxPreviews,
+    getMessages,
+    sendMessage,
+} from "../services/conversation.service";
+
+export async function getUserInboxPreviewsController (req: Request, res: Response) {
+    try {
+        const userId = req.user?.userId;
+
+        if (!userId) {
+            return res.status(401).json({ error: "Unauthtorized" });
+        }
+
+        const previews = await getUserInboxPreviews(userId);
+
+        return res.status(200).json({ previews });
+    } catch (error) {
+        console.error("Get inbox previews error:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+export async function getMessagesController (req: Request, res: Response) {
+    try {
+        const userId = req.user?.userId;
+        const conversationId = req.params.conversationId as string;
+
+        if (!userId) {
+            return res.status(400).json({ error: "Unauthorized" });
+        }
+
+        const messages = await getMessages(conversationId, userId);
+
+        return res.status(200).json({ messages });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Internal server error";
+        
+        if (message === "Not authorized") {
+            res.status(403).json({ error: message })
+        }
+
+        console.error("Get messages error:", error);
+        return res.status(500).json({ error: "Internal server error"})
+    }
+} 
+
+export async function sendMessageController (req: Request, res: Response) {
+    try {
+        const userId = req.user?.userId;
+        const conversationId = req.params.conversationId as string;
+        const { content } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        if (!content || typeof content !== "string") {
+            return res.status(400).json({ error: "Message content is required" });
+        }
+
+        const message = await sendMessage(conversationId, userId, content);
+
+        return res.status(201).json({ message: "Message sent successfully", data: message, });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Internal server error";
+
+        if (message === "Not authorized") {
+            return res.status(403).json({ error: message });
+        }
+
+        console.error("Send message error:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+}   

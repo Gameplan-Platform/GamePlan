@@ -46,7 +46,7 @@ export async function getUserInboxPreviews( userId: string ) {
     });
 }
 
-export async function getConversationMessages( conversationId: string, userId: string ) {
+export async function getMessages( conversationId: string, userId: string ) {
     const membership = await prisma.conversationMember.findFirst({
         where: {
             conversationId,
