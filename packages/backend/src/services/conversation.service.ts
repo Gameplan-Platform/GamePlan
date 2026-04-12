@@ -19,7 +19,7 @@ export async function createGroupConversation( moduleId: string, name: string, m
 }
 
 export async function getUserInboxPreviews( userId: string ) {
-    return prisma.conversation.findMany({
+     const conversations = await prisma.conversation.findMany({
         where: {
             members: {
                 some: {
@@ -43,6 +43,27 @@ export async function getUserInboxPreviews( userId: string ) {
         orderBy: {
             updatedAt: "desc",
         },
+    });
+
+    return conversations.map((conversation) => {
+        const latestMessage = conversation.messages[0];
+
+        return {
+            id: conversation.id,
+            name: conversation.name,
+            isGroup: conversation.isGroup,
+            latestMessage: latestMessage?.content || null, 
+            latestMessageTime: latestMessage?.createdAt || null,
+            hasUnread:
+                latestMessage &&
+                latestMessage.senderId !== userId &&
+                !latestMessage.isRead,
+            members: conversation.members.map((m) => ({
+                id: m.user.id,
+                firstName: m.user.firstName,
+                lasttName: m.user.lastName,
+            })),
+        };
     });
 }
 
