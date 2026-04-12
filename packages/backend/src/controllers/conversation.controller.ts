@@ -3,6 +3,7 @@ import {
     getUserInboxPreviews,
     getMessages,
     sendMessage,
+    markMessageAsRead,
 } from "../services/conversation.service";
 
 export async function getUserInboxPreviewsController (req: Request, res: Response) {
@@ -30,9 +31,9 @@ export async function getMessagesController (req: Request, res: Response) {
         if (!userId) {
             return res.status(400).json({ error: "Unauthorized" });
         }
-
+        
+        await markMessageAsRead(conversationId, userId);
         const messages = await getMessages(conversationId, userId);
-
         return res.status(200).json({ messages });
     } catch (error) {
         const message = error instanceof Error ? error.message : "Internal server error";

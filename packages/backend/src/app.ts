@@ -25,6 +25,6 @@ app.use("/api/modules", attendanceRoutes);
 app.use("/api/events", eventsRoutes);
 app.use("/api/modules/:moduleId/announcements", announcementsRoutes);
 app.use("/api/modules/:moduleId/agendas", agendasRoutes);
-app.use("/api/modules/conversations", conversationRoutes);
+app.use("/api/conversations", conversationRoutes);
 
 export default app;

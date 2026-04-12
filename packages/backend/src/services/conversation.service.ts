@@ -106,3 +106,29 @@ export async function sendMessage(
 
     return message;
 }
+
+export async function markMessageAsRead(conversationId: string, userId: string) {
+    const membership = await prisma.conversationMember.findFirst({
+        where: {
+            conversationId,
+            userId,
+        },
+    });
+
+    if (!membership) {
+        throw new Error ("Not authorized");
+    }
+
+    return prisma.message.updateMany({
+        where: {
+            conversationId,
+            senderId: {
+                not: userId,
+            },
+            isRead: false,
+        },
+        data: {
+            isRead: true,
+        },
+    });
+}
