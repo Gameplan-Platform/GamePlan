@@ -1,5 +1,6 @@
 import prisma from "../lib/prisma";
 import { generateJoinCode } from "../utils/generateJoinCode";
+import { createRoleBasedGroupChats, addUserToRoleGroupChat } from "./conversation.service";
 
 async function generateUniqueJoinCode(): Promise<string> {
   let joinCode = generateJoinCode();
@@ -33,6 +34,7 @@ export async function createModule(userId: string, name: string, description?: s
     },
   });
 
+  await createRoleBasedGroupChats(module.id);
   return module;
 }
 
@@ -94,8 +96,7 @@ export async function joinModule(userId: string, joinCode: string, userRole: str
     throw new Error("Already a member");
   }
 
-  //coaches get admin access??
-  const memberRole = userRole === "COACH" ? "MODULE_ADMIN" : "MEMBER";
+  const memberRole = "MEMBER";
 
   const membership = await prisma.moduleMembership.create({
     data: {
@@ -105,6 +106,7 @@ export async function joinModule(userId: string, joinCode: string, userRole: str
     },
   });
 
+  await addUserToRoleGroupChat(module.id, userId, userRole);
   return { module, membership };
 }
 

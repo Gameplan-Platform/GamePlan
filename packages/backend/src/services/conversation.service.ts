@@ -153,3 +153,61 @@ export async function markMessageAsRead(conversationId: string, userId: string) 
         },
     });
 }
+
+export async function createRoleBasedGroupChats(moduleId: string) {
+    const chats = ["Athlete Chat", "Parent Chat", "Coach Chat"];
+
+    return Promise.all(
+        chats.map((name) =>
+            prisma.conversation.create({
+                data: {
+                    name,
+                    isGroup: true,
+                    moduleId,
+                },
+            })
+        )
+    );
+}
+
+export async function addUserToRoleGroupChat( moduleId: string, userId: string, role: string) {
+    let conversationName: string | null = null;
+
+    if (role === "ATHLETE") {
+        conversationName = "Athlete Chat";
+    } else if (role === "PARENT") {
+        conversationName = "Parent Chat";
+    } else if (role === "COACH") {
+        conversationName = "Coach Chat";
+    }
+
+    if (!conversationName) {
+        return null;
+    }
+
+    const conversation = await prisma.conversation.findFirst({
+        where: {
+            moduleId,
+            isGroup: true,
+            name: conversationName,
+        },
+    });
+
+    if(!conversation) {
+        throw new Error ("Group conversation not found");
+    }
+
+    return prisma.conversationMember.upsert({
+        where: {
+            conversationId_userId: {
+                conversationId: conversation.id,
+                userId,
+            },
+        },
+        update: {},
+        create: {
+            conversationId: conversation.id,
+            userId,
+        }
+    })
+}
