@@ -241,7 +241,7 @@ export async function findPrivateConversation (userId: string, otherUserId: stri
   }) || null;
 }
 
-export async function createPrivateconversation (userId: string, otherUserId: string, moduleId: string){
+export async function createPrivateConversation (userId: string, otherUserId: string, moduleId: string){
   return prisma.conversation.create({
     data: {
       moduleId,
@@ -260,12 +260,37 @@ export async function createPrivateconversation (userId: string, otherUserId: st
 }
 
 //Will create conversation if it doesn't exist
-export async function getPrivateConversation (userId: string, otherUserId: string, moduleId: string) {
-  const existingConversation = await findPrivateConversation(userId, otherUserId, moduleId);
+export async function getPrivateConversation(
+  userId: string,
+  otherUserId: string,
+  moduleId: string
+) {
+  if (userId === otherUserId) {
+    throw new Error("Cannot message yourself");
+  }
+
+  const memberships = await prisma.moduleMembership.findMany({
+    where: {
+      moduleId,
+      userId: {
+        in: [userId, otherUserId],
+      },
+    },
+  });
+
+  if (memberships.length !== 2) {
+    throw new Error("Not authorized");
+  }
+
+  const existingConversation = await findPrivateConversation(
+    userId,
+    otherUserId,
+    moduleId
+  );
 
   if (existingConversation) {
     return existingConversation;
   }
 
-  return createPrivateconversation(userId, otherUserId, moduleId);
+  return createPrivateConversation(userId, otherUserId, moduleId);
 }
