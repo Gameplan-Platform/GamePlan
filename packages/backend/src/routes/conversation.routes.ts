@@ -4,6 +4,7 @@ import {
     getUserInboxPreviewsController,
     getMessagesController,
     sendMessageController,
+    getPrivateConversationController,
 }   from "../controllers/conversation.controller";
 
 const router = Router();
@@ -11,5 +12,6 @@ const router = Router();
 router.get("/", requireAuth, getUserInboxPreviewsController);
 router.get("/:conversationId/messages", requireAuth, getMessagesController);
 router.post("/:conversationId/message", requireAuth, sendMessageController);
+router.get("/:private", requireAuth, getPrivateConversationController);
 
 export default router;

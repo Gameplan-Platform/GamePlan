@@ -209,5 +209,63 @@ export async function addUserToRoleGroupChat( moduleId: string, userId: string, 
             conversationId: conversation.id,
             userId,
         }
-    })
+    });
+}
+
+export async function findPrivateConversation (userId: string, otherUserId: string, moduleId: string) {
+  const conversations = prisma.conversation.findMany({
+    where: {
+      moduleId,
+      isGroup: false,
+      members: {
+        some: {
+          userId: {
+            in: [userId, otherUserId],
+          },
+        },
+      },
+    },
+    include: {
+      members: true,
+    }
+  });
+
+  return (await conversations).find((conversation) =>{
+    const memberIds = conversation.members.map((m) => m.userId);
+
+    return (
+      memberIds.length === 2 && 
+      memberIds.includes(userId) && 
+      memberIds.includes(otherUserId)
+    );
+  }) || null;
+}
+
+export async function createPrivateconversation (userId: string, otherUserId: string, moduleId: string){
+  return prisma.conversation.create({
+    data: {
+      moduleId,
+      isGroup: false,
+      members: {
+        create: [ 
+          { userId },
+          { userId: otherUserId }, 
+        ],
+      },
+    },
+    include: {
+      members: true,
+    }
+  });
+}
+
+//Will create conversation if it doesn't exist
+export async function getPrivateConversation (userId: string, otherUserId: string, moduleId: string) {
+  const existingConversation = await findPrivateConversation(userId, otherUserId, moduleId);
+
+  if (existingConversation) {
+    return existingConversation;
+  }
+
+  return createPrivateconversation(userId, otherUserId, moduleId);
 }

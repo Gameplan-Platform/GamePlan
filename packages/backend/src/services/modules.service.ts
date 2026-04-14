@@ -212,3 +212,4 @@ export async function getModuleRoster(moduleId: string, userId: string) {
     profilePicture: membership.user.profilePicture,
   }));
 }
+
