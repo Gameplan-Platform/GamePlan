@@ -7,12 +7,12 @@ import {
     getPrivateConversation,
 } from "../services/conversation.service";
 
-export async function getUserInboxPreviewsController (req: Request, res: Response) {
+export async function getUserInboxPreviewsController(req: Request, res: Response) {
     try {
         const userId = req.user?.userId;
 
         if (!userId) {
-            return res.status(401).json({ error: "Unauthtorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
 
         const previews = await getUserInboxPreviews(userId);
@@ -24,31 +24,31 @@ export async function getUserInboxPreviewsController (req: Request, res: Respons
     }
 }
 
-export async function getMessagesController (req: Request, res: Response) {
+export async function getMessagesController(req: Request, res: Response) {
     try {
         const userId = req.user?.userId;
         const conversationId = req.params.conversationId as string;
 
         if (!userId) {
-            return res.status(400).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
-        
+
         await markMessageAsRead(conversationId, userId);
         const messages = await getMessages(conversationId, userId);
         return res.status(200).json({ messages });
     } catch (error) {
         const message = error instanceof Error ? error.message : "Internal server error";
-        
+
         if (message === "Not authorized") {
-            res.status(403).json({ error: message })
+            return res.status(403).json({ error: message });
         }
 
         console.error("Get messages error:", error);
-        return res.status(500).json({ error: "Internal server error"})
+        return res.status(500).json({ error: "Internal server error" });
     }
-} 
+}
 
-export async function sendMessageController (req: Request, res: Response) {
+export async function sendMessageController(req: Request, res: Response) {
     try {
         const userId = req.user?.userId;
         const conversationId = req.params.conversationId as string;
@@ -75,26 +75,43 @@ export async function sendMessageController (req: Request, res: Response) {
         console.error("Send message error:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
-}  
+}
 
-export async function getPrivateConversationController (req: Request, res: Response) {
+export async function getPrivateConversationController(req: Request, res: Response) {
     try {
-        const userId = req.user?.userId 
+        const userId = req.user?.userId;
         const { otherUserId, moduleId } = req.body;
-        
+
         if (!userId) {
-          return  res.status(401).json({ error: "Unauthorized"});        
+            return res.status(401).json({ error: "Unauthorized" });
         }
 
         if (!otherUserId || !moduleId) {
-            return res.status(400).json({error: "otherUserId && moduleId are required"});
+            return res
+                .status(400)
+                .json({ error: "otherUserId and moduleId are required" });
         }
 
-        const conversation = await getPrivateConversation(userId, otherUserId, moduleId);
+        const conversation = await getPrivateConversation(
+            userId,
+            otherUserId,
+            moduleId
+        );
 
         return res.status(200).json({ conversation });
     } catch (error) {
-        console.error("Get private conversation error: ", error);
+        const message =
+            error instanceof Error ? error.message : "Internal server error";
+
+        if (message === "Cannot message yourself") {
+            return res.status(400).json({ error: message });
+        }
+
+        if (message === "Not authorized") {
+            return res.status(403).json({ error: message });
+        }
+
+        console.error("Get private conversation error:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
 }

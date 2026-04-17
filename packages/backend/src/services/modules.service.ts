@@ -35,6 +35,17 @@ export async function createModule(userId: string, name: string, description?: s
   });
 
   await createRoleBasedGroupChats(module.id);
+
+  const creator = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+
+  if (!creator) {
+    throw new Error("User not found");
+  }
+
+  await addUserToRoleGroupChat(module.id, userId, creator.role);
   return module;
 }
 
@@ -75,25 +86,38 @@ export async function listMyModules(userId: string) {
 }
 
 //add module
-export async function joinModule(userId: string, joinCode: string, userRole: string)
-{
-  // find module by join code
+export async function joinModule(userId: string, joinCode: string) {
   const module = await prisma.module.findUnique({
-    where: { joinCode },
-  });
-
-  if (!module){
-    throw new Error("Invalid join code");
-  }
-  //check if already a member
-  const existingMem = await prisma.moduleMembership.findUnique({
     where: {
-      userId_moduleId: { userId, moduleId: module.id},
+      joinCode
     },
   });
 
-  if (existingMem){
+  if (!module) {
+    throw new Error("Invalid join code");
+  }
+
+  const existingMem = await prisma.moduleMembership.findUnique({
+    where: {
+      userId_moduleId: { userId, moduleId: module.id },
+    },
+  });
+
+  if (existingMem) {
     throw new Error("Already a member");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId
+    },
+    select: {
+      role: true
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
   }
 
   const memberRole = "MEMBER";
@@ -106,7 +130,8 @@ export async function joinModule(userId: string, joinCode: string, userRole: str
     },
   });
 
-  await addUserToRoleGroupChat(module.id, userId, userRole);
+  await addUserToRoleGroupChat(module.id, userId, user.role);
+
   return { module, membership };
 }
 
@@ -119,12 +144,13 @@ export async function getModuleInfo(moduleId: string, userId: string) {
   });
 
   if (!module) {
-    throw new Error("Module not found");}
-  
+    throw new Error("Module not found");
+  }
+
   const membership = module.memberships.find(
     (member: { userId: string }) => member.userId === userId);
-  
-  if(!membership){
+
+  if (!membership) {
     throw new Error("Not authorized");
   }
 

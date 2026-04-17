@@ -1,6 +1,6 @@
 import prisma from "../lib/prisma";
 
-export async function createGroupConversation( moduleId: string, name: string, memberIds: string[] ) {
+export async function createGroupConversation(moduleId: string, name: string, memberIds: string[]) {
     return prisma.conversation.create({
         data: {
             name,
@@ -14,12 +14,12 @@ export async function createGroupConversation( moduleId: string, name: string, m
         },
         include: {
             members: true,
-            },
-        });
+        },
+    });
 }
 
-export async function getUserInboxPreviews( userId: string ) {
-     const conversations = await prisma.conversation.findMany({
+export async function getUserInboxPreviews(userId: string) {
+    const conversations = await prisma.conversation.findMany({
         where: {
             members: {
                 some: {
@@ -52,22 +52,22 @@ export async function getUserInboxPreviews( userId: string ) {
             id: conversation.id,
             name: conversation.name,
             isGroup: conversation.isGroup,
-            latestMessage: latestMessage?.content || null, 
+            latestMessage: latestMessage?.content || null,
             latestMessageTime: latestMessage?.createdAt || null,
             hasUnread:
                 latestMessage &&
                 latestMessage.senderId !== userId &&
                 !latestMessage.isRead,
-            members: conversation.members.map((m) => ({
-                id: m.user.id,
-                firstName: m.user.firstName,
-                lasttName: m.user.lastName,
+            members: conversation.members.map((member) => ({
+                id: member.user.id,
+                firstName: member.user.firstName,
+                lastName: member.user.lastName,
             })),
         };
     });
 }
 
-export async function getMessages( conversationId: string, userId: string ) {
+export async function getMessages(conversationId: string, userId: string) {
     const membership = await prisma.conversationMember.findFirst({
         where: {
             conversationId,
@@ -79,7 +79,7 @@ export async function getMessages( conversationId: string, userId: string ) {
         throw new Error("Not authorized");
     }
 
-    return prisma.message.findMany ({
+    return prisma.message.findMany({
         where: {
             conversationId,
         },
@@ -94,7 +94,7 @@ export async function getMessages( conversationId: string, userId: string ) {
 
 export async function sendMessage(
     conversationId: string,
-    senderId: string, 
+    senderId: string,
     content: string
 ) {
     const membership = await prisma.conversationMember.findFirst({
@@ -105,7 +105,7 @@ export async function sendMessage(
     });
 
     if (!membership) {
-        throw new Error ("Not authorized");
+        throw new Error("Not authorized");
     }
 
     const message = await prisma.message.create({
@@ -137,7 +137,7 @@ export async function markMessageAsRead(conversationId: string, userId: string) 
     });
 
     if (!membership) {
-        throw new Error ("Not authorized");
+        throw new Error("Not authorized");
     }
 
     return prisma.message.updateMany({
@@ -170,7 +170,7 @@ export async function createRoleBasedGroupChats(moduleId: string) {
     );
 }
 
-export async function addUserToRoleGroupChat( moduleId: string, userId: string, role: string) {
+export async function addUserToRoleGroupChat(moduleId: string, userId: string, role: string) {
     let conversationName: string | null = null;
 
     if (role === "ATHLETE") {
@@ -180,6 +180,7 @@ export async function addUserToRoleGroupChat( moduleId: string, userId: string, 
     } else if (role === "COACH") {
         conversationName = "Coach Chat";
     }
+
 
     if (!conversationName) {
         return null;
@@ -193,8 +194,8 @@ export async function addUserToRoleGroupChat( moduleId: string, userId: string, 
         },
     });
 
-    if(!conversation) {
-        throw new Error ("Group conversation not found");
+    if (!conversation) {
+        throw new Error("Group conversation not found");
     }
 
     return prisma.conversationMember.upsert({
@@ -212,85 +213,125 @@ export async function addUserToRoleGroupChat( moduleId: string, userId: string, 
     });
 }
 
-export async function findPrivateConversation (userId: string, otherUserId: string, moduleId: string) {
-  const conversations = prisma.conversation.findMany({
-    where: {
-      moduleId,
-      isGroup: false,
-      members: {
-        some: {
-          userId: {
-            in: [userId, otherUserId],
-          },
+export async function findPrivateConversation(userId: string, otherUserId: string, moduleId: string) {
+    const conversations = prisma.conversation.findMany({
+        where: {
+            moduleId,
+            isGroup: false,
+            members: {
+                some: {
+                    userId: {
+                        in: [userId, otherUserId],
+                    },
+                },
+            },
         },
-      },
-    },
-    include: {
-      members: true,
-    }
-  });
+        include: {
+            members: true,
+        }
+    });
 
-  return (await conversations).find((conversation) =>{
-    const memberIds = conversation.members.map((m) => m.userId);
+    return (await conversations).find((conversation) => {
+        const memberIds = conversation.members.map((m) => m.userId);
 
-    return (
-      memberIds.length === 2 && 
-      memberIds.includes(userId) && 
-      memberIds.includes(otherUserId)
-    );
-  }) || null;
+        return (
+            memberIds.length === 2 &&
+            memberIds.includes(userId) &&
+            memberIds.includes(otherUserId)
+        );
+    }) || null;
 }
 
-export async function createPrivateConversation (userId: string, otherUserId: string, moduleId: string){
-  return prisma.conversation.create({
-    data: {
-      moduleId,
-      isGroup: false,
-      members: {
-        create: [ 
-          { userId },
-          { userId: otherUserId }, 
-        ],
-      },
-    },
-    include: {
-      members: true,
-    }
-  });
+export async function createPrivateConversation(userId: string, otherUserId: string, moduleId: string) {
+    return prisma.conversation.create({
+        data: {
+            moduleId,
+            isGroup: false,
+            members: {
+                create: [
+                    { userId },
+                    { userId: otherUserId },
+                ],
+            },
+        },
+        include: {
+            members: true,
+        }
+    });
 }
 
 //Will create conversation if it doesn't exist
-export async function getPrivateConversation(
-  userId: string,
-  otherUserId: string,
-  moduleId: string
-) {
-  if (userId === otherUserId) {
-    throw new Error("Cannot message yourself");
-  }
+export async function getPrivateConversation(userId: string, otherUserId: string, moduleId: string) {
+    if (userId === otherUserId) {
+        throw new Error("Cannot message yourself");
+    }
 
-  const memberships = await prisma.moduleMembership.findMany({
-    where: {
-      moduleId,
-      userId: {
-        in: [userId, otherUserId],
-      },
-    },
-  });
+    const memberships = await prisma.moduleMembership.findMany({
+        where: {
+            moduleId,
+            userId: {
+                in: [userId, otherUserId],
+            },
+        },
+    });
 
-  if (memberships.length !== 2) {
-    throw new Error("Not authorized");
-  }
+    if (memberships.length !== 2) {
+        throw new Error("Not authorized");
+    }
 
-  const existingConversation = await findPrivateConversation(
-    userId,
-    otherUserId,
-    moduleId
-  );
+    const users = await prisma.user.findMany({
+        where: {
+            id: {
+                in: [userId, otherUserId],
+            },
+        },
+        select: {
+            id: true,
+            role: true,
+        },
+    });
 
-  if (existingConversation) {
-    return existingConversation;
-  }
+    const currentUser = users.find((user) => user.id === userId);
+    const otherUser = users.find((user) => user.id === otherUserId);
 
-  return createPrivateConversation(userId, otherUserId, moduleId);
+    if (!currentUser || !otherUser) {
+        throw new Error("Not authorized");
+    }
+
+    const canMessage = canInitiatePrivateConversation(
+        currentUser.role,
+        otherUser.role
+    );
+
+    if (!canMessage) {
+        throw new Error("Not authorized");
+    }
+
+    const existingConversation = await findPrivateConversation(
+        userId,
+        otherUserId,
+        moduleId
+    );
+
+    if (existingConversation) {
+        return existingConversation;
+    }
+
+    return createPrivateConversation(userId, otherUserId, moduleId);
+}
+
+function canInitiatePrivateConversation(senderRole: string, targetRole: string) {
+    if (senderRole === "COACH") {
+        return ["COACH", "ATHLETE", "PARENT"].includes(targetRole);
+    }
+
+    if (senderRole === "ATHLETE") {
+        return ["COACH", "ATHLETE"].includes(targetRole);
+    }
+
+    if (senderRole === "PARENT") {
+        return ["PARENT", "ATHLETE"].includes(targetRole);
+    }
+
+    return false;
 }
