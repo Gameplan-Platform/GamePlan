@@ -84,7 +84,16 @@ export async function getMessages(conversationId: string, userId: string) {
             conversationId,
         },
         include: {
-            sender: true,
+            sender: {
+                select: {
+                    id: true,
+                    username: true,
+                    firstName: true,
+                    lastName: true,
+                    role: true,
+                    profilePicture: true,
+                },
+            },
         },
         orderBy: {
             createdAt: "asc",
