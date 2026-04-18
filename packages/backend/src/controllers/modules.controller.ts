@@ -79,19 +79,19 @@ export async function listMyModulesController(req: Request, res: Response) {
   }
 }
 
-export async function joinModuleController(req: Request, res: Response){
-  try{
-    if (!req.user){
-      return res.status(401).json({ error: "Unauthorized"});
+export async function joinModuleController(req: Request, res: Response) {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const { joinCode } = req.body;
 
     if (!joinCode || typeof joinCode !== "string") {
-      return res.status(400).json({ error: "Join code is required."});
+      return res.status(400).json({ error: "Join code is required." });
     }
 
-    const result = await joinModule(req.user.userId, joinCode, req.user.role);
+    const result = await joinModule(req.user.userId, joinCode);
 
     return res.status(201).json({
       message: "Successfully joined module",
@@ -110,7 +110,7 @@ export async function joinModuleController(req: Request, res: Response){
     }
 
     console.error("Join module error:", error);
-    return res.status(500).json({ error: "Internal server error"});
+    return res.status(500).json({ error: "Internal server error" });
   }
 }
 
