@@ -9,6 +9,7 @@ import eventsRoutes from "./routes/events.routes";
 import announcementsRoutes from "./routes/announcements.routes";
 import agendasRoutes from "./routes/agenda.routes";
 import conversationRoutes from "./routes/conversation.routes";
+import goalsRoutes from "./routes/goals.routes";
 
 /* Express App */
 const app = express();
@@ -26,5 +27,6 @@ app.use("/api/events", eventsRoutes);
 app.use("/api/modules/:moduleId/announcements", announcementsRoutes);
 app.use("/api/modules/:moduleId/agendas", agendasRoutes);
 app.use("/api/conversations", conversationRoutes);
+app.use("/api/modules/:moduleId/goals", goalsRoutes);
 
 export default app;
