@@ -148,7 +148,7 @@ const tabs: Array<{
   {
     key: 'progress',
     label: 'Progress',
-    enabled: false,
+    enabled: true,
     getPath: (moduleId) => `/modules/${moduleId}/progress`,
   },
   {

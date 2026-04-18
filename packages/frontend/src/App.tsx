@@ -22,6 +22,7 @@ import AgendaDetail from './pages/AgendaDetail'
 import EditAnnouncement from './pages/EditAnnouncement'
 import EditAgenda from './pages/EditAgenda'
 import ModuleAttendanceScreen from './pages/ModuleAttendanceScreen'
+import ProgressPage from './pages/ProgressPage'
 
 function CalendarRoute() {
   const { role } = useAuth();
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="/modules/:id" element={<ModuleDashboard />} />
         <Route path="/modules/:id/roster" element={<ModuleAttendanceScreen />} />
         <Route path="/modules/:moduleId/roster" element={<ModuleAttendanceScreen />} />
+        <Route path="/modules/:moduleId/progress" element={<ProgressPage />} />
         <Route path="/modules/:id/announcements/create" element={<CreateAnnouncement />} />
         <Route path="/modules/:id/announcements/:announcementId/edit" element={<EditAnnouncement />} />
         <Route path="/modules/:id/announcements/:announcementId" element={<AnnouncementDetail />} />

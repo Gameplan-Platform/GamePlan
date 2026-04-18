@@ -63,6 +63,8 @@ model User {
   agendaLikes               AgendaLike[]
   athleteGoals              Goal[]               @relation("AthleteGoals")
   assignedGoals             Goal[]               @relation("AssignedGoals")
+  athleteScores             Score[]              @relation("AthleteScores")
+  recordedScores            Score[]              @relation("RecordedScores")
 }
 
 model Gym {
@@ -120,6 +122,7 @@ model Module {
   announcements   Announcement[]
   agendas         Agenda[]
   goals           Goal[]
+  scores          Score[]
 }
 
 model ModuleMembership {
@@ -279,4 +282,25 @@ model Goal {
   assignedBy   User      @relation("AssignedGoals", fields: [assignedById], references: [id], onDelete: Cascade)
 
   @@index([moduleId, athleteId])
+}
+
+model Score {
+  id           String    @id @default(cuid())
+  moduleId     String
+  athleteId    String
+  recordedById String
+  eventName    String?
+  score        Float
+  deductions   Float     @default(0)
+  date         DateTime
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  module       Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  athlete      User      @relation("AthleteScores", fields: [athleteId], references: [id], onDelete: Cascade)
+  recordedBy   User      @relation("RecordedScores", fields: [recordedById], references: [id], onDelete: Cascade)
+
+  @@index([moduleId, athleteId])
+  @@index([moduleId, date])
 }
