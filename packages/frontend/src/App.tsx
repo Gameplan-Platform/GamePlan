@@ -22,6 +22,7 @@ import AgendaDetail from './pages/AgendaDetail'
 import EditAnnouncement from './pages/EditAnnouncement'
 import EditAgenda from './pages/EditAgenda'
 import ModuleAttendanceScreen from './pages/ModuleAttendanceScreen'
+import Messaging from './pages/Inbox'
 
 function CalendarRoute() {
   const { role } = useAuth();
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="/modules/:id/agendas/:agendaId/edit" element={<EditAgenda />} />
         <Route path="/modules/:id/agendas/:agendaId" element={<AgendaDetail />} />
         <Route path="/modules/:id/agendas/:agendaId/edit" element={<EditAgenda />} />
+        <Route path="/modules/:id/messaging" element={<Messaging />} />
       </Routes>
     </BrowserRouter>
   )
