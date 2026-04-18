@@ -50,6 +50,7 @@ export async function createModule(userId: string, name: string, description?: s
   }
 
   await addUserToRoleGroupChat(module.id, userId, creator.role);
+  await addUserToModuleChat(module.id, userId);
   return module;
 }
 
@@ -92,9 +93,7 @@ export async function listMyModules(userId: string) {
 //add module
 export async function joinModule(userId: string, joinCode: string) {
   const module = await prisma.module.findUnique({
-    where: {
-      joinCode
-    },
+    where: { joinCode },
   });
 
   if (!module) {
@@ -112,29 +111,24 @@ export async function joinModule(userId: string, joinCode: string) {
   }
 
   const user = await prisma.user.findUnique({
-    where: {
-      id: userId
-    },
-    select: {
-      role: true
-    },
+    where: { id: userId },
+    select: { role: true },
   });
 
   if (!user) {
     throw new Error("User not found");
   }
 
-  const memberRole = "MEMBER";
-
   const membership = await prisma.moduleMembership.create({
     data: {
       userId,
       moduleId: module.id,
-      memberRole,
+      memberRole: "MEMBER",
     },
   });
 
   await addUserToRoleGroupChat(module.id, userId, user.role);
+  await addUserToModuleChat(module.id, userId);
 
   return { module, membership };
 }

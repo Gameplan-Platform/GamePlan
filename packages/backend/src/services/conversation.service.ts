@@ -207,6 +207,32 @@ export async function addUserToModuleChat(moduleId: string, userId: string) {
     });
 }
 
+export async function markConversationAsRead(conversationId: string, userId: string) {
+    const membership = await prisma.conversationMember.findFirst({
+        where: {
+            conversationId,
+            userId,
+        },
+    });
+
+    if (!membership) {
+        throw new Error("Not authorized");
+    }
+
+    return prisma.message.updateMany({
+        where: {
+            conversationId,
+            senderId: {
+                not: userId,
+            },
+            isRead: false,
+        },
+        data: {
+            isRead: true,
+        },
+    });
+}
+
 export async function addUserToRoleGroupChat(moduleId: string, userId: string, role: string) {
     let conversationName: string | null = null;
 
