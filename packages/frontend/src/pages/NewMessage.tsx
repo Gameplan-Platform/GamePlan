@@ -18,7 +18,6 @@ export default function NewMessage() {
 
   const [roster, setRoster] = useState<RosterMember[]>([])
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState<string | null>(null)
 
   const currentUserId = token
@@ -30,7 +29,6 @@ export default function NewMessage() {
     api<{ roster: RosterMember[] }>(`/modules/${moduleId}/roster`, { token })
       .then(data => setRoster(data.roster))
       .catch(() => {})
-      .finally(() => setLoading(false))
   }, [token, moduleId])
 
   const filtered = roster.filter(member =>

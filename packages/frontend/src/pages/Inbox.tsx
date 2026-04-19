@@ -30,7 +30,7 @@ export default function Messaging() {
         console.log('conversations:', data.previews)
         setConversations(data.previews)})
       .catch(() => {})
-  }, [token])
+  }, [token, moduleId])
 
   const formatMessageTime = (dateStr: string) => {
     const date = new Date(dateStr)
