@@ -120,7 +120,7 @@ export default function ConversationDetail() {
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Amiko:wght@400;600;700&display=swap');`}</style>
 
         {/* Header */}
-        <div className="relative flex items-center justify-center px-6 pt-10 pb-6 border-b border-gray-100 flex-shrink-0">
+        <div className="relative flex items-center justify-center px-6 pt-16 pb-6 border-b border-gray-100 flex-shrink-0">
           <button
             className="absolute left-6 w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center text-lg text-[#222b45]"
             onClick={() => navigate(`/modules/${moduleId}/messaging`)}

@@ -11,6 +11,8 @@ interface Conversation {
   latestMessage: string | null
   latestMessageTime: string | null
   moduleId?: string
+  hasUnread: boolean
+  profilePicture?: string | null
   members: { id: string; firstName: string; lastName: string }[]
 }
 
@@ -80,12 +82,19 @@ export default function Messaging() {
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Amiko:wght@400;600;700&display=swap');`}</style>
 
         {/* Header */}
-        <div className="relative flex items-center justify-center px-6 pt-10 pb-10">
+        <div className="relative flex items-center justify-center px-6 pt-16 pb-10">
           <button
             className="absolute left-6 w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center text-lg text-[#222b45]"
-            onClick={() => window.history.back()}
+            onClick={() => navigate(`/modules/${moduleId}`)}
           >‹</button>
-          <h1 className="text-4xl font-bold text-[#222b45]">Inbox</h1>
+          <h1 style={{
+            fontFamily: 'Amiko',
+            fontWeight: 400,
+            fontSize: '40px',
+            lineHeight: '53px',
+            color: '#000000',
+            margin: 0,
+          }}>Inbox</h1>
           <button
             onClick={() => navigate(`/modules/${moduleId}/messages/new`)}
             style={{
@@ -116,15 +125,30 @@ export default function Messaging() {
               className="flex items-center gap-5 py-6 border-b border-gray-100 cursor-pointer"
             >
               {/* Unread dot */}
-              {conv.latestMessage
+              {conv.hasUnread
                 ? <div className="w-2 h-2 rounded-full bg-[#6166db] flex-shrink-0" />
                 : <div className="w-2 h-2 flex-shrink-0" />
               }
 
+              <div style={{
+                width: '44px', height: '44px', borderRadius: '50%',
+                background: '#6166DB', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                overflow: 'hidden',
+                }}>
+                {conv.profilePicture ? (
+                  <img src={conv.profilePicture} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                  <span style={{ fontFamily: 'Amiko', fontSize: '16px', color: '#FFFFFF', fontWeight: 700 }}>
+                    {getConversationName(conv).charAt(0).toUpperCase()}
+                  </span>
+                  )}
+              </div>
+
               {/* Content */}
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-[#222b45]">
+                  <span className="text-base font-bold text-[#222b45]">
                     {getConversationName(conv)}
                   </span>
                   {conv.latestMessageTime && (
@@ -133,7 +157,7 @@ export default function Messaging() {
                     </span>
                   )}
                 </div>
-                <p className="text-xs mt-0.5 truncate text-[#8f9bb3]">
+                <p className="text-sm mt-0.5 truncate text-[#8f9bb3]">
                   {conv.latestMessage ?? 'No messages yet'}
                 </p>
               </div>
