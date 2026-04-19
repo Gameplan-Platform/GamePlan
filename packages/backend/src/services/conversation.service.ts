@@ -18,9 +18,10 @@ export async function createGroupConversation(moduleId: string, name: string, me
     });
 }
 
-export async function getUserInboxPreviews(userId: string) {
+export async function getUserInboxPreviews(userId: string, moduleId?: string) {
     const conversations = await prisma.conversation.findMany({
         where: {
+            ...(moduleId ? { moduleId } : {}),
             members: {
                 some: {
                     userId,
