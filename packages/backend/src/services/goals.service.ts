@@ -131,6 +131,9 @@ export async function updateGoal(
     if (Object.keys(data).some((k) => k !== "completed")) {
       throw new Error("Athletes can only update goal completion status");
     }
+    if (completed === undefined) {
+      throw new Error("Completion status is required");
+    }
 
     const updated = await prisma.goal.update({
       where: { id: goalId },

@@ -85,7 +85,9 @@ export async function updateGoalController(req: Request<GoalParams>, res: Respon
     return res.status(200).json({ goal });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    if (["Title cannot be empty", "Invalid date format"].includes(message)) return res.status(400).json({ error: message });
+    if (["Title cannot be empty", "Invalid date format", "Completion status is required", "Athletes can only update goal completion status"].includes(message)) {
+      return res.status(400).json({ error: message });
+    }
     if (message === "Athletes can only update goal completion status") {
       return res.status(400).json({ error: message });
     }
