@@ -10,12 +10,13 @@ import {
 export async function getUserInboxPreviewsController(req: Request, res: Response) {
     try {
         const userId = req.user?.userId;
+        const moduleId = req.query.moduleId as string | undefined;
 
         if (!userId) {
             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const previews = await getUserInboxPreviews(userId);
+        const previews = await getUserInboxPreviews(userId, moduleId);
 
         return res.status(200).json({ previews });
     } catch (error) {
