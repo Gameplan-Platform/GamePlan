@@ -5,6 +5,7 @@ import {
   addUserToRoleGroupChat,
   addUserToModuleChat
 } from "./conversation.service";
+import { createRoleBasedGroupChats, addUserToRoleGroupChat } from "./conversation.service";
 
 async function generateUniqueJoinCode(): Promise<string> {
   let joinCode = generateJoinCode();
@@ -93,7 +94,9 @@ export async function listMyModules(userId: string) {
 //add module
 export async function joinModule(userId: string, joinCode: string) {
   const module = await prisma.module.findUnique({
-    where: { joinCode },
+    where: {
+      joinCode
+    },
   });
 
   if (!module) {
