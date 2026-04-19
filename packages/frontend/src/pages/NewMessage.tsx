@@ -79,30 +79,6 @@ export default function NewMessage() {
           <h1 className="text-3xl font-bold text-[#222b45]">New Message</h1>
         </div>
 
-        {/* Search */}
-        <div className="px-6 pb-4 flex-shrink-0">
-          <div style={{
-            background: '#F0F0F8', borderRadius: '22px',
-            display: 'flex', alignItems: 'center',
-            padding: '0 16px', height: '44px',
-          }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ marginRight: '8px', flexShrink: 0 }}>
-              <circle cx="11" cy="11" r="8" stroke="#8f9bb3" strokeWidth="2"/>
-              <path d="M21 21L16.65 16.65" stroke="#8f9bb3" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search people..."
-              style={{
-                flex: 1, background: 'transparent',
-                border: 'none', outline: 'none',
-                fontFamily: 'Amiko', fontSize: '14px', color: '#222B45',
-              }}
-            />
-          </div>
-        </div>
-
         {/* To: field */}
         <div style={{
         display: 'flex', alignItems: 'center',
