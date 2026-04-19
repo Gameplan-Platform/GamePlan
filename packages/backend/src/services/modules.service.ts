@@ -5,7 +5,6 @@ import {
   addUserToRoleGroupChat,
   addUserToModuleChat
 } from "./conversation.service";
-import { createRoleBasedGroupChats, addUserToRoleGroupChat } from "./conversation.service";
 
 async function generateUniqueJoinCode(): Promise<string> {
   let joinCode = generateJoinCode();
