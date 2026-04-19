@@ -165,7 +165,7 @@ export async function markMessageAsRead(conversationId: string, userId: string) 
 }
 
 export async function createRoleBasedGroupChats(moduleId: string) {
-    const chats = ["Athlete Chat", "Parent Chat", "Coach Chat"];
+    const chats = ["Athlete Chat", "Parent Chat", "Coach Chat", "Module Chat"];
 
     return Promise.all(
         chats.map((name) =>
@@ -178,6 +178,60 @@ export async function createRoleBasedGroupChats(moduleId: string) {
             })
         )
     );
+}
+
+export async function addUserToModuleChat(moduleId: string, userId: string) {
+    const conversation = await prisma.conversation.findFirst({
+        where: {
+            moduleId,
+            isGroup: true,
+            name: "Module Chat",
+        },
+    });
+
+    if (!conversation) {
+        throw new Error("Module-wide conversation not found");
+    }
+
+    return prisma.conversationMember.upsert({
+        where: {
+            conversationId_userId: {
+                conversationId: conversation.id,
+                userId,
+            },
+        },
+        update: {},
+        create: {
+            conversationId: conversation.id,
+            userId,
+        },
+    });
+}
+
+export async function markConversationAsRead(conversationId: string, userId: string) {
+    const membership = await prisma.conversationMember.findFirst({
+        where: {
+            conversationId,
+            userId,
+        },
+    });
+
+    if (!membership) {
+        throw new Error("Not authorized");
+    }
+
+    return prisma.message.updateMany({
+        where: {
+            conversationId,
+            senderId: {
+                not: userId,
+            },
+            isRead: false,
+        },
+        data: {
+            isRead: true,
+        },
+    });
 }
 
 export async function addUserToRoleGroupChat(moduleId: string, userId: string, role: string) {
