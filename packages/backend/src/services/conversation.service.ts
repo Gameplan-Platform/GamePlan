@@ -267,7 +267,7 @@ export async function markConversationAsRead(conversationId: string, userId: str
             senderId: {
                 not: userId,
             },
-            reads: {
+            readReceipts: {
                 none: {
                     userId,
                 },
