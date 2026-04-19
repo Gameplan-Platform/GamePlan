@@ -60,7 +60,7 @@ export async function createGoalController(req: Request<ModuleParams>, res: Resp
     return res.status(201).json({ goal });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    if (message === "Title is required" || message === "Athlete ID is required") {
+    if (["Title is required", "Athlete ID is required", "Invalid date format"].includes(message)) {
       return res.status(400).json({ error: message });
     }
     if (message === "Module not found") return res.status(404).json({ error: message });
@@ -85,7 +85,7 @@ export async function updateGoalController(req: Request<GoalParams>, res: Respon
     return res.status(200).json({ goal });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    if (message === "Title cannot be empty") return res.status(400).json({ error: message });
+    if (["Title cannot be empty", "Invalid date format"].includes(message)) return res.status(400).json({ error: message });
     if (message === "Athletes can only update goal completion status") {
       return res.status(400).json({ error: message });
     }

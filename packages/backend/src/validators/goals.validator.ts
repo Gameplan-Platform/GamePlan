@@ -1,17 +1,21 @@
 import { z } from "zod";
 
+const validDate = z
+  .string()
+  .refine((v) => !isNaN(Date.parse(v)), "Invalid date format");
+
 const createGoalSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   athleteId: z.string().min(1, "Athlete ID is required"),
-  dueDate: z.string().datetime({ offset: true }).optional(),
+  dueDate: validDate.optional(),
 });
 
 const updateGoalSchema = z.object({
   title: z.string().min(1, "Title cannot be empty").optional(),
   description: z.string().optional(),
   completed: z.boolean().optional(),
-  dueDate: z.string().datetime({ offset: true }).nullable().optional(),
+  dueDate: validDate.nullable().optional(),
 });
 
 export function validateCreateGoal(data: unknown) {
