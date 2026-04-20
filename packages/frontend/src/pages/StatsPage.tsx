@@ -260,7 +260,7 @@ export default function StatsPage() {
                   />
                   <Tooltip
                     contentStyle={{ fontFamily: 'Amiko', fontSize: 12, borderRadius: '10px', border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
-                    formatter={(v: number | undefined) => [`-${(v ?? 0).toFixed(2)} pts`, 'Deducted']}
+                    formatter={(v) => [`-${typeof v === 'number' ? v.toFixed(2) : '0.00'} pts`, 'Deducted']}
                   />
                   <Line dataKey="points" stroke={accent} strokeWidth={2} dot={{ r: 4, fill: accent }} activeDot={{ r: 6 }} />
                 </LineChart>
@@ -293,7 +293,7 @@ export default function StatsPage() {
                     />
                     <Tooltip
                       contentStyle={{ fontFamily: 'Amiko', fontSize: 12, borderRadius: '10px', border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
-                      formatter={(v: number | undefined, _: unknown, props: { payload?: { label?: string } }) => [v ?? 0, props.payload?.label ?? '']}
+                      formatter={(v, _name, props) => [typeof v === 'number' ? v : 0, (props.payload as { label?: string } | undefined)?.label ?? '']}
                     />
                     <Bar dataKey="count" fill={green} radius={[6, 6, 0, 0]} />
                   </BarChart>

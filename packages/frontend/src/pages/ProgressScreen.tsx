@@ -206,16 +206,16 @@ function ProgressRing({ percent }: { percent: number }) {
 function GoalRow({
   goal,
   onToggle,
+  onDelete,
+  canManage,
 }: {
   goal: Goal
   onToggle: (id: string) => void
+  onDelete: (id: string) => void
+  canManage: boolean
 }) {
   return (
-    <motion.button
-      whileHover={{ y: -1.5 }}
-      whileTap={{ scale: 0.995 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-      onClick={() => onToggle(goal.id)}
+    <div
       style={{
         width: '100%',
         minHeight: '48px',
@@ -226,50 +226,65 @@ function GoalRow({
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
-        textAlign: 'left',
-        cursor: 'pointer',
         boxShadow: '0 8px 22px rgba(34, 43, 69, 0.08)',
       }}
     >
-      <div
+      <button
+        onClick={() => onToggle(goal.id)}
         style={{
-          width: '22px',
-          height: '22px',
-          borderRadius: '50%',
-          background: goal.completed ? green : '#D9D9D9',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: '12px',
+          flex: 1, border: 'none', background: 'transparent',
+          cursor: 'pointer', padding: 0, textAlign: 'left',
         }}
       >
-        {goal.completed ? (
-          <span
-            style={{
-              color: '#FFFFFF',
-              fontSize: '13px',
-              fontWeight: 700,
-              lineHeight: 1,
-            }}
-          >
-            ✓
-          </span>
-        ) : null}
-      </div>
+        <div
+          style={{
+            width: '22px',
+            height: '22px',
+            borderRadius: '50%',
+            background: goal.completed ? green : '#D9D9D9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          {goal.completed ? (
+            <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+              <path d="M1 4L4 7L10 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          ) : null}
+        </div>
+        <span
+          style={{
+            fontFamily,
+            fontSize: '14px',
+            fontWeight: 600,
+            color: textPrimary,
+            textDecoration: goal.completed ? 'line-through' : 'none',
+            opacity: goal.completed ? 0.72 : 1,
+          }}
+        >
+          {goal.title}
+        </span>
+      </button>
 
-      <span
-        style={{
-          fontFamily,
-          fontSize: '14px',
-          fontWeight: 600,
-          color: textPrimary,
-          textDecoration: goal.completed ? 'line-through' : 'none',
-          opacity: goal.completed ? 0.72 : 1,
-        }}
-      >
-        {goal.title}
-      </span>
-    </motion.button>
+      {canManage && (
+        <button
+          onClick={e => { e.stopPropagation(); onDelete(goal.id) }}
+          style={{
+            width: '34px', height: '34px', borderRadius: '10px',
+            border: '1px solid #F3D6D6', background: '#FFF7F7',
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', flexShrink: 0,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M6 7H18M9 7V5H15V7M8 7L9 19H15L16 7" stroke="#D85050" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -347,7 +362,7 @@ function RoutineCard({
           {canManage && (
             <>
               <button
-                onClick={onEdit}
+                onClick={e => { e.stopPropagation(); onEdit() }}
                 style={{
                   width: '34px',
                   height: '34px',
@@ -371,7 +386,7 @@ function RoutineCard({
               </button>
 
               <button
-                onClick={onDelete}
+                onClick={e => { e.stopPropagation(); onDelete() }}
                 style={{
                   width: '34px',
                   height: '34px',
@@ -398,7 +413,7 @@ function RoutineCard({
           )}
 
           <button
-            onClick={onView}
+            onClick={e => { e.stopPropagation(); onView() }}
             style={{
               border: 'none',
               background: 'transparent',
@@ -734,6 +749,18 @@ export default function ProgressScreen() {
     }
   }
 
+  const deleteGoal = async (goalId: string) => {
+    if (!token) return
+    const previous = goals
+    setGoals(prev => prev.filter(g => g.id !== goalId))
+    try {
+      await api(`/goals/${goalId}`, { method: 'DELETE', token })
+    } catch (error) {
+      setGoals(previous)
+      alert(error instanceof Error ? error.message : 'Failed to delete goal')
+    }
+  }
+
   const openNewRoutine = () => {
     setEditingRoutineId(null)
     setRoutineTitle('')
@@ -801,8 +828,8 @@ export default function ProgressScreen() {
     try {
       await api(`/routines/${routineId}`, { method: 'DELETE', token })
     } catch (error) {
-      console.error('Failed to delete routine', error)
       setRoutines(previous)
+      alert(error instanceof Error ? error.message : 'Failed to delete routine')
     }
   }
 
@@ -1104,7 +1131,7 @@ export default function ProgressScreen() {
                 >
                   {goals.length > 0 ? (
                     goals.map(goal => (
-                      <GoalRow key={goal.id} goal={goal} onToggle={toggleGoal} />
+                      <GoalRow key={goal.id} goal={goal} onToggle={toggleGoal} onDelete={deleteGoal} canManage={canManageRoutines} />
                     ))
                   ) : (
                     <div
@@ -1128,45 +1155,32 @@ export default function ProgressScreen() {
                 <div style={{ marginTop: '16px' }}>
                   <AnimatePresence mode="wait">
                     {!showAddGoal ? (
-                      <motion.button
+                      <motion.div
                         key="collapsed-add-goal"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
                         transition={{ duration: 0.18 }}
-                        onClick={() => setShowAddGoal(true)}
-                        style={{
-                          width: '100%',
-                          height: '46px',
-                          borderRadius: '999px',
-                          border: '1px solid #E8ECF5',
-                          background: '#FFFFFF',
-                          boxShadow: '0 12px 24px rgba(34, 43, 69, 0.07)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                        }}
+                        style={{ display: 'flex', justifyContent: 'flex-end' }}
                       >
-                        <div
+                        <motion.button
+                          whileHover={{ scale: 1.08 }}
+                          whileTap={{ scale: 0.94 }}
+                          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                          onClick={() => setShowAddGoal(true)}
                           style={{
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '50%',
-                            background: green,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#FFFFFF',
-                            fontSize: '18px',
-                            fontWeight: 700,
-                            lineHeight: 1,
-                            boxShadow: '0 10px 18px rgba(183, 222, 88, 0.3)',
+                            width: '44px', height: '44px', borderRadius: '50%',
+                            border: 'none', background: green,
+                            boxShadow: '0 10px 20px rgba(183, 222, 88, 0.35)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer',
                           }}
                         >
-                          +
-                        </div>
-                      </motion.button>
+                          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <path d="M9 3V15M3 9H15" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
+                          </svg>
+                        </motion.button>
+                      </motion.div>
                     ) : (
                       <motion.div
                         key="expanded-add-goal"
