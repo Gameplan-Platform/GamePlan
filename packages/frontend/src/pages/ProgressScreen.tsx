@@ -1,19 +1,31 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import BottomNav from '../components/BottomNav'
 import { useAuth } from '../context/AuthContext'
+import { api } from '../utils/api'
 
 type Goal = {
-  id: number
+  id: string
   title: string
   completed: boolean
+  athleteId: string
+}
+
+type Deduction = {
+  id?: string
+  category: string
+  value: number
+  notes?: string | null
 }
 
 type Routine = {
-  id: number
+  id: string
   title: string
-  notes: string
+  date: string
+  notes: string | null
+  athleteId: string
+  deductions: Deduction[]
 }
 
 const fontFamily = '"Amiko", sans-serif'
@@ -29,12 +41,14 @@ const hoverTransition = { type: 'spring' as const, stiffness: 320, damping: 22 }
 
 const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
-const initialGoals: Goal[] = [
-  { id: 1, title: 'Hit 0', completed: false },
-  { id: 2, title: 'Upgrade elites', completed: true },
-  { id: 3, title: 'Get a paid bid', completed: false },
-  { id: 4, title: 'Add in punch fronts', completed: true },
-]
+function parseUserId(token: string): string {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.userId ?? ''
+  } catch {
+    return ''
+  }
+}
 
 function ymd(date: Date) {
   const y = date.getFullYear()
@@ -193,7 +207,7 @@ function GoalRow({
   onToggle,
 }: {
   goal: Goal
-  onToggle: (id: number) => void
+  onToggle: (id: string) => void
 }) {
   return (
     <motion.button
@@ -561,11 +575,12 @@ export default function ProgressScreen() {
   const navigate = useNavigate()
   const { id, moduleId } = useParams<{ id: string; moduleId: string }>()
   const currentModuleId = id ?? moduleId
-  const { role } = useAuth()
+  const { role, token } = useAuth()
 
   const [activeTab, setActiveTab] = useState<'goals' | 'routines'>('goals')
 
-  const [goals, setGoals] = useState<Goal[]>(initialGoals)
+  const [goals, setGoals] = useState<Goal[]>([])
+  const [goalsLoading, setGoalsLoading] = useState(true)
   const [showAddGoal, setShowAddGoal] = useState(false)
   const [goalInput, setGoalInput] = useState('')
 
@@ -573,32 +588,51 @@ export default function ProgressScreen() {
 
   const [selectedRoutineDate, setSelectedRoutineDate] = useState(defaultRoutineDate)
   const [calendarOpen, setCalendarOpen] = useState(false)
-  const [routinesByDate, setRoutinesByDate] = useState<Record<string, Routine[]>>({
-    [defaultRoutineDate]: [
-      {
-        id: 1,
-        title: 'Full Out 1',
-        notes: 'Run full routine with counts and clean ending.',
-      },
-      {
-        id: 2,
-        title: 'Tumbling Run Through 1',
-        notes: 'Focus on timing and pass consistency.',
-      },
-      {
-        id: 3,
-        title: 'Stunt Section 1',
-        notes: 'Review transitions and hit positions.',
-      },
-    ],
-  })
+  const [routines, setRoutines] = useState<Routine[]>([])
+  const [routinesLoading, setRoutinesLoading] = useState(true)
 
   const [showRoutineModal, setShowRoutineModal] = useState(false)
-  const [editingRoutineId, setEditingRoutineId] = useState<number | null>(null)
+  const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null)
   const [routineTitle, setRoutineTitle] = useState('')
   const [routineNotes, setRoutineNotes] = useState('')
+  const [routineDeductions, setRoutineDeductions] = useState<Deduction[]>([])
+  const [savingRoutine, setSavingRoutine] = useState(false)
 
   const canManageRoutines = role === 'COACH'
+
+  useEffect(() => {
+    if (!currentModuleId || !token) return
+
+    let cancelled = false
+
+    setGoalsLoading(true)
+    api<Goal[]>(`/modules/${currentModuleId}/goals`, { token })
+      .then(data => {
+        if (!cancelled) setGoals(data)
+      })
+      .catch(error => {
+        if (!cancelled) console.error('Failed to load goals', error)
+      })
+      .finally(() => {
+        if (!cancelled) setGoalsLoading(false)
+      })
+
+    setRoutinesLoading(true)
+    api<Routine[]>(`/modules/${currentModuleId}/routines`, { token })
+      .then(data => {
+        if (!cancelled) setRoutines(data)
+      })
+      .catch(error => {
+        if (!cancelled) console.error('Failed to load routines', error)
+      })
+      .finally(() => {
+        if (!cancelled) setRoutinesLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [currentModuleId, token])
 
   const completedCount = useMemo(
     () => goals.filter(goal => goal.completed).length,
@@ -610,44 +644,70 @@ export default function ProgressScreen() {
     return Math.round((completedCount / goals.length) * 100)
   }, [completedCount, goals])
 
-  const routinesForSelectedDate = routinesByDate[selectedRoutineDate] ?? []
+  const routinesForSelectedDate = useMemo(
+    () => routines.filter(r => r.date.slice(0, 10) === selectedRoutineDate),
+    [routines, selectedRoutineDate]
+  )
 
-  const toggleGoal = (goalId: number) => {
+  const toggleGoal = async (goalId: string) => {
+    if (!token) return
+    const previous = goals
+    const target = previous.find(g => g.id === goalId)
+    if (!target) return
+
+    const nextCompleted = !target.completed
     setGoals(prev =>
       prev.map(goal =>
-        goal.id === goalId ? { ...goal, completed: !goal.completed } : goal
+        goal.id === goalId ? { ...goal, completed: nextCompleted } : goal
       )
     )
+
+    try {
+      await api<{ goal: Goal }>(`/goals/${goalId}`, {
+        method: 'PATCH',
+        body: { completed: nextCompleted },
+        token,
+      })
+    } catch (error) {
+      console.error('Failed to update goal', error)
+      setGoals(previous)
+    }
   }
 
-  const addGoal = () => {
+  const addGoal = async () => {
     const title = goalInput.trim()
-    if (!title) return
+    if (!title || !currentModuleId || !token) return
 
-    setGoals(prev => [
-      ...prev,
-      {
-        id: Date.now(),
-        title,
-        completed: false,
-      },
-    ])
-
-    setGoalInput('')
-    setShowAddGoal(false)
+    try {
+      const res = await api<{ goal: Goal }>(
+        `/modules/${currentModuleId}/goals`,
+        {
+          method: 'POST',
+          body: { title, athleteId: parseUserId(token) },
+          token,
+        }
+      )
+      setGoals(prev => [...prev, res.goal])
+      setGoalInput('')
+      setShowAddGoal(false)
+    } catch (error) {
+      console.error('Failed to add goal', error)
+    }
   }
 
   const openNewRoutine = () => {
     setEditingRoutineId(null)
     setRoutineTitle('')
     setRoutineNotes('')
+    setRoutineDeductions([])
     setShowRoutineModal(true)
   }
 
   const openEditRoutine = (routine: Routine) => {
     setEditingRoutineId(routine.id)
     setRoutineTitle(routine.title)
-    setRoutineNotes(routine.notes)
+    setRoutineNotes(routine.notes ?? '')
+    setRoutineDeductions(routine.deductions.map(d => ({ ...d })))
     setShowRoutineModal(true)
   }
 
@@ -656,52 +716,84 @@ export default function ProgressScreen() {
     setEditingRoutineId(null)
     setRoutineTitle('')
     setRoutineNotes('')
+    setRoutineDeductions([])
   }
 
-  const saveRoutine = () => {
+  const addDeductionRow = () => {
+    setRoutineDeductions(prev => [...prev, { category: '', value: 0, notes: '' }])
+  }
+
+  const updateDeductionRow = (index: number, patch: Partial<Deduction>) => {
+    setRoutineDeductions(prev =>
+      prev.map((row, i) => (i === index ? { ...row, ...patch } : row))
+    )
+  }
+
+  const removeDeductionRow = (index: number) => {
+    setRoutineDeductions(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const saveRoutine = async () => {
     const trimmedTitle = routineTitle.trim()
-    if (!trimmedTitle) return
+    if (!trimmedTitle || !currentModuleId || !token) return
 
-    setRoutinesByDate(prev => {
-      const current = prev[selectedRoutineDate] ?? []
+    const cleanedDeductions = routineDeductions
+      .map(d => ({
+        category: d.category.trim(),
+        value: Number(d.value) || 0,
+        notes: d.notes?.toString().trim() || undefined,
+      }))
+      .filter(d => d.category.length > 0)
 
+    setSavingRoutine(true)
+    try {
       if (editingRoutineId !== null) {
-        return {
-          ...prev,
-          [selectedRoutineDate]: current.map(routine =>
-            routine.id === editingRoutineId
-              ? {
-                  ...routine,
-                  title: trimmedTitle,
-                  notes: routineNotes.trim(),
-                }
-              : routine
-          ),
-        }
+        const res = await api<{ routine: Routine }>(`/routines/${editingRoutineId}`, {
+          method: 'PATCH',
+          body: {
+            title: trimmedTitle,
+            notes: routineNotes.trim() || null,
+            deductions: cleanedDeductions,
+          },
+          token,
+        })
+        setRoutines(prev => prev.map(r => (r.id === res.routine.id ? res.routine : r)))
+      } else {
+        const res = await api<{ routine: Routine }>(
+          `/modules/${currentModuleId}/routines`,
+          {
+            method: 'POST',
+            body: {
+              title: trimmedTitle,
+              date: selectedRoutineDate,
+              athleteId: parseUserId(token),
+              notes: routineNotes.trim() || undefined,
+              deductions: cleanedDeductions,
+            },
+            token,
+          }
+        )
+        setRoutines(prev => [res.routine, ...prev])
       }
-
-      const newRoutine: Routine = {
-        id: Date.now(),
-        title: trimmedTitle,
-        notes: routineNotes.trim(),
-      }
-
-      return {
-        ...prev,
-        [selectedRoutineDate]: [...current, newRoutine],
-      }
-    })
-
-    closeRoutineModal()
+      closeRoutineModal()
+    } catch (error) {
+      console.error('Failed to save routine', error)
+    } finally {
+      setSavingRoutine(false)
+    }
   }
 
-  const deleteRoutine = (routineId: number) => {
-    setRoutinesByDate(prev => ({
-      ...prev,
-      [selectedRoutineDate]: (prev[selectedRoutineDate] ?? []).filter(
-        routine => routine.id !== routineId
-      ),
-    }))
+  const deleteRoutine = async (routineId: string) => {
+    if (!token) return
+    const previous = routines
+    setRoutines(prev => prev.filter(r => r.id !== routineId))
+
+    try {
+      await api(`/routines/${routineId}`, { method: 'DELETE', token })
+    } catch (error) {
+      console.error('Failed to delete routine', error)
+      setRoutines(previous)
+    }
   }
 
   return (
@@ -1000,11 +1092,29 @@ export default function ProgressScreen() {
                     gap: '10px',
                   }}
                 >
-                  {goals.map(goal => (
-                    <GoalRow key={goal.id} goal={goal} onToggle={toggleGoal} />
-                  ))}
+                  {goals.length > 0 ? (
+                    goals.map(goal => (
+                      <GoalRow key={goal.id} goal={goal} onToggle={toggleGoal} />
+                    ))
+                  ) : (
+                    <div
+                      style={{
+                        borderRadius: '16px',
+                        border: '1px dashed #D9DEEB',
+                        background: '#FCFCFF',
+                        padding: '20px 14px',
+                        textAlign: 'center',
+                        fontFamily,
+                        fontSize: '13px',
+                        color: textSecondary,
+                      }}
+                    >
+                      {goalsLoading ? 'Loading goals…' : 'No goals assigned yet.'}
+                    </div>
+                  )}
                 </div>
 
+                {canManageRoutines ? (
                 <div style={{ marginTop: '16px' }}>
                   <AnimatePresence mode="wait">
                     {!showAddGoal ? (
@@ -1161,6 +1271,7 @@ export default function ProgressScreen() {
                     )}
                   </AnimatePresence>
                 </div>
+                ) : null}
               </motion.div>
             </>
           ) : (
@@ -1336,7 +1447,7 @@ export default function ProgressScreen() {
                         marginBottom: '6px',
                       }}
                     >
-                      No routines for this date yet
+                      {routinesLoading ? 'Loading routines…' : 'No routines for this date yet'}
                     </div>
 
                     <div
@@ -1527,6 +1638,134 @@ export default function ProgressScreen() {
                   />
                 </div>
 
+                <div style={{ marginBottom: '18px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <label
+                      style={{
+                        fontFamily,
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: textSecondary,
+                      }}
+                    >
+                      Deductions
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addDeductionRow}
+                      style={{
+                        height: '28px',
+                        padding: '0 12px',
+                        borderRadius: '999px',
+                        border: '1px solid #DFE5F0',
+                        background: '#FFFFFF',
+                        fontFamily,
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: accent,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      + Add
+                    </button>
+                  </div>
+
+                  {routineDeductions.length === 0 ? (
+                    <div
+                      style={{
+                        borderRadius: '12px',
+                        border: '1px dashed #DFE5F0',
+                        padding: '10px 12px',
+                        fontFamily,
+                        fontSize: '12px',
+                        color: textSecondary,
+                      }}
+                    >
+                      No deductions recorded yet.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '8px' }}>
+                      {routineDeductions.map((row, i) => (
+                        <div
+                          key={row.id ?? `new-${i}`}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 72px 28px',
+                            gap: '8px',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <input
+                            value={row.category}
+                            onChange={e =>
+                              updateDeductionRow(i, { category: e.target.value })
+                            }
+                            placeholder="Category (e.g. Tumbling)"
+                            style={{
+                              height: '38px',
+                              borderRadius: '10px',
+                              border: '1px solid #DFE5F0',
+                              padding: '0 10px',
+                              fontFamily,
+                              fontSize: '13px',
+                              color: textPrimary,
+                              background: '#FBFCFF',
+                              outline: 'none',
+                              boxSizing: 'border-box',
+                            }}
+                          />
+                          <input
+                            type="number"
+                            step="0.05"
+                            value={row.value}
+                            onChange={e =>
+                              updateDeductionRow(i, { value: Number(e.target.value) })
+                            }
+                            placeholder="0.0"
+                            style={{
+                              height: '38px',
+                              borderRadius: '10px',
+                              border: '1px solid #DFE5F0',
+                              padding: '0 10px',
+                              fontFamily,
+                              fontSize: '13px',
+                              color: textPrimary,
+                              background: '#FBFCFF',
+                              outline: 'none',
+                              boxSizing: 'border-box',
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeDeductionRow(i)}
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '50%',
+                              border: 'none',
+                              background: '#D94C4C',
+                              color: '#FFFFFF',
+                              fontSize: '14px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              lineHeight: 1,
+                            }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div
                   style={{
                     display: 'flex',
@@ -1554,6 +1793,7 @@ export default function ProgressScreen() {
 
                   <button
                     onClick={saveRoutine}
+                    disabled={savingRoutine}
                     style={{
                       height: '42px',
                       padding: '0 18px',
@@ -1564,11 +1804,16 @@ export default function ProgressScreen() {
                       fontSize: '13px',
                       fontWeight: 700,
                       color: '#FFFFFF',
-                      cursor: 'pointer',
+                      cursor: savingRoutine ? 'not-allowed' : 'pointer',
+                      opacity: savingRoutine ? 0.7 : 1,
                       boxShadow: '0 10px 20px rgba(98, 103, 227, 0.24)',
                     }}
                   >
-                    {editingRoutineId !== null ? 'Save Changes' : 'Add Routine'}
+                    {savingRoutine
+                      ? 'Saving…'
+                      : editingRoutineId !== null
+                        ? 'Save Changes'
+                        : 'Add Routine'}
                   </button>
                 </div>
               </motion.div>
