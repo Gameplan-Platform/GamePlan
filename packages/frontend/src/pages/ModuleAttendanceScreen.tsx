@@ -125,7 +125,6 @@ function buildCalendarDays(viewDate: Date) {
   })
 }
 
-
 function StatusButton({
   kind,
   active,
@@ -688,13 +687,19 @@ export default function ModuleAttendanceScreen() {
               ) : (
                 roster.map((member) => {
                   const expanded = selectedRosterMemberId === member.userId
-                  const isCoachRow = member.role === 'COACH'
+                  const isCoachRow =
+                    member.role === 'COACH' || member.role === 'MODULE_ADMIN'
+                  const roleBadgeLabel = isCoachRow ? 'Coach' : null
 
                   return (
                     <div key={member.userId} style={{ marginBottom: '10px' }}>
                       <motion.button
                         type="button"
-                        whileHover={isCoachRow ? {} : { y: -2, boxShadow: '0 8px 18px rgba(56, 60, 109, 0.10)' }}
+                        whileHover={
+                          isCoachRow
+                            ? {}
+                            : { y: -2, boxShadow: '0 8px 18px rgba(56, 60, 109, 0.10)' }
+                        }
                         whileTap={isCoachRow ? {} : { scale: 0.99 }}
                         transition={hoverTransition}
                         onClick={async () => {
@@ -754,7 +759,8 @@ export default function ModuleAttendanceScreen() {
                           }}
                         >
                           <span>{member.name}</span>
-                          {isCoachRow && (
+
+                          {roleBadgeLabel && (
                             <span
                               style={{
                                 fontSize: '10px',
@@ -765,7 +771,7 @@ export default function ModuleAttendanceScreen() {
                                 fontWeight: 700,
                               }}
                             >
-                              Coach
+                              {roleBadgeLabel}
                             </span>
                           )}
                         </div>
