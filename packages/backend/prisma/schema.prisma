@@ -62,6 +62,10 @@ model User {
   announcementLikes         AnnouncementLike[]
   agendas                   Agenda[]
   agendaLikes               AgendaLike[]
+  athleteGoals              Goal[]               @relation("AthleteGoals")
+  assignedGoals             Goal[]               @relation("AssignedGoals")
+  athleteScores             Score[]              @relation("AthleteScores")
+  recordedScores            Score[]              @relation("RecordedScores")
 }
 
 model Gym {
@@ -118,6 +122,8 @@ model Module {
   events          Event[]
   announcements   Announcement[]
   agendas         Agenda[]
+  goals           Goal[]
+  scores          Score[]
 }
 
 model ModuleMembership {
@@ -257,7 +263,7 @@ model Message {
   readReceipts      MessageRead[]
   conversation      Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender            User          @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  createdAt         DateTime      @default(now())      
+  createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 }
 
@@ -271,4 +277,44 @@ model MessageRead {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, userId])
+}
+
+model Goal {
+  id           String    @id @default(cuid())
+  title        String
+  description  String?
+  completed    Boolean   @default(false)
+  dueDate      DateTime?
+  moduleId     String
+  athleteId    String
+  assignedById String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  module       Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  athlete      User      @relation("AthleteGoals", fields: [athleteId], references: [id], onDelete: Cascade)
+  assignedBy   User      @relation("AssignedGoals", fields: [assignedById], references: [id], onDelete: Cascade)
+
+  @@index([moduleId, athleteId])
+}
+
+model Score {
+  id           String    @id @default(cuid())
+  moduleId     String
+  athleteId    String
+  recordedById String
+  eventName    String?
+  score        Float
+  deductions   Float     @default(0)
+  date         DateTime
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  module       Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  athlete      User      @relation("AthleteScores", fields: [athleteId], references: [id], onDelete: Cascade)
+  recordedBy   User      @relation("RecordedScores", fields: [recordedById], references: [id], onDelete: Cascade)
+
+  @@index([moduleId, athleteId])
+  @@index([moduleId, date])
 }
