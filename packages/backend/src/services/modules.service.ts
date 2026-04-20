@@ -1,6 +1,10 @@
 import prisma from "../lib/prisma";
 import { generateJoinCode } from "../utils/generateJoinCode";
-import { createRoleBasedGroupChats, addUserToRoleGroupChat } from "./conversation.service";
+import {
+  createRoleBasedGroupChats,
+  addUserToRoleGroupChat,
+  addUserToModuleChat
+} from "./conversation.service";
 
 async function generateUniqueJoinCode(): Promise<string> {
   let joinCode = generateJoinCode();
@@ -46,6 +50,7 @@ export async function createModule(userId: string, name: string, description?: s
   }
 
   await addUserToRoleGroupChat(module.id, userId, creator.role);
+  await addUserToModuleChat(module.id, userId);
   return module;
 }
 
@@ -108,29 +113,24 @@ export async function joinModule(userId: string, joinCode: string) {
   }
 
   const user = await prisma.user.findUnique({
-    where: {
-      id: userId
-    },
-    select: {
-      role: true
-    },
+    where: { id: userId },
+    select: { role: true },
   });
 
   if (!user) {
     throw new Error("User not found");
   }
 
-  const memberRole = "MEMBER";
-
   const membership = await prisma.moduleMembership.create({
     data: {
       userId,
       moduleId: module.id,
-      memberRole,
+      memberRole: "MEMBER",
     },
   });
 
   await addUserToRoleGroupChat(module.id, userId, user.role);
+  await addUserToModuleChat(module.id, userId);
 
   return { module, membership };
 }

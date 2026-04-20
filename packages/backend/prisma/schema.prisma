@@ -51,6 +51,7 @@ model User {
 
   memberships               Membership[]
   conversationMemberships   ConversationMember[]
+  readReceipts              MessageRead[]
   sentMessages              Message[]            @relation("SentMessages")
   createdModules            Module[]             @relation("CreatedModules")
   moduleMemberships         ModuleMembership[]
@@ -258,11 +259,24 @@ model Message {
   senderId          String
   content           String
   isRead            Boolean       @default(false)
-
+  
+  readReceipts      MessageRead[]
   conversation      Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender            User          @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
+}
+
+model MessageRead {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
 }
 
 model Goal {

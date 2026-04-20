@@ -160,7 +160,7 @@ const tabs: Array<{
   {
     key: 'messaging',
     label: 'Messaging',
-    enabled: false,
+    enabled: true,
     getPath: (moduleId) => `/modules/${moduleId}/messaging`,
   },
 ]

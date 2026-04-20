@@ -22,7 +22,10 @@ import AgendaDetail from './pages/AgendaDetail'
 import EditAnnouncement from './pages/EditAnnouncement'
 import EditAgenda from './pages/EditAgenda'
 import ModuleAttendanceScreen from './pages/ModuleAttendanceScreen'
-import ProgressPage from './pages/ProgressPage'
+import Messaging from './pages/Inbox'
+import ConversationDetail from './pages/ConversationDetail'
+import NewMessage from './pages/NewMessage'
+import ProgressScreen from './pages/ProgressScreen'
 
 function CalendarRoute() {
   const { role } = useAuth();
@@ -48,17 +51,19 @@ export default function App() {
         <Route path="/modules/:moduleId/calendar/:eventId" element={<ViewEvent />} />
         <Route path="/modules/:moduleId/calendar/:eventId/edit" element={<EditEvent />} />
         <Route path="/modules/:id" element={<ModuleDashboard />} />
-        <Route path="/modules/:id/roster" element={<ModuleAttendanceScreen />} />
         <Route path="/modules/:moduleId/roster" element={<ModuleAttendanceScreen />} />
-        <Route path="/modules/:moduleId/progress" element={<ProgressPage />} />
         <Route path="/modules/:id/announcements/create" element={<CreateAnnouncement />} />
         <Route path="/modules/:id/announcements/:announcementId/edit" element={<EditAnnouncement />} />
         <Route path="/modules/:id/announcements/:announcementId" element={<AnnouncementDetail />} />
-        <Route path="/modules/:id/announcements/:announcementId/edit" element={<EditAnnouncement />} />
         <Route path="/modules/:id/agendas/create" element={<CreateAgenda />} />
         <Route path="/modules/:id/agendas/:agendaId/edit" element={<EditAgenda />} />
         <Route path="/modules/:id/agendas/:agendaId" element={<AgendaDetail />} />
-        <Route path="/modules/:id/agendas/:agendaId/edit" element={<EditAgenda />} />
+        <Route path="/modules/:id/messaging" element={<Messaging />} />
+        <Route path="/modules/:id/messages/:conversationId" element={<ConversationDetail />} />
+        <Route path="/modules/:id/messages/new" element={<NewMessage />} />
+        <Route path="/modules/:moduleId/progress" element={<ProgressScreen />} />
+
+
       </Routes>
     </BrowserRouter>
   )

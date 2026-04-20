@@ -18,13 +18,12 @@ export async function createGroupConversation(moduleId: string, name: string, me
     });
 }
 
-export async function getUserInboxPreviews(userId: string) {
+export async function getUserInboxPreviews(userId: string, moduleId?: string) {
     const conversations = await prisma.conversation.findMany({
         where: {
+            ...(moduleId ? { moduleId } : {}),
             members: {
-                some: {
-                    userId,
-                },
+                some: { userId },
             },
         },
         include: {
@@ -38,6 +37,12 @@ export async function getUserInboxPreviews(userId: string) {
                     createdAt: "desc",
                 },
                 take: 1,
+                include: {
+                    readReceipts: {
+                        where: { userId },
+                        select: { id: true },
+                    },
+                },
             },
         },
         orderBy: {
@@ -48,16 +53,18 @@ export async function getUserInboxPreviews(userId: string) {
     return conversations.map((conversation) => {
         const latestMessage = conversation.messages[0];
 
+        const hasUnread =
+            !!latestMessage &&
+            latestMessage.senderId !== userId &&
+            latestMessage.readReceipts.length === 0;
+
         return {
             id: conversation.id,
             name: conversation.name,
             isGroup: conversation.isGroup,
             latestMessage: latestMessage?.content || null,
             latestMessageTime: latestMessage?.createdAt || null,
-            hasUnread:
-                latestMessage &&
-                latestMessage.senderId !== userId &&
-                !latestMessage.isRead,
+            hasUnread,
             members: conversation.members.map((member) => ({
                 id: member.user.id,
                 firstName: member.user.firstName,
@@ -79,7 +86,7 @@ export async function getMessages(conversationId: string, userId: string) {
         throw new Error("Not authorized");
     }
 
-    return prisma.message.findMany({
+    const messages = await prisma.message.findMany({
         where: {
             conversationId,
         },
@@ -94,18 +101,35 @@ export async function getMessages(conversationId: string, userId: string) {
                     profilePicture: true,
                 },
             },
+            readReceipts: {
+                where: { userId },
+                select: { id: true, readAt: true },
+            },
         },
         orderBy: {
             createdAt: "asc",
         },
     });
+
+    return messages.map((message) => ({
+        id: message.id,
+        conversationId: message.conversationId,
+        senderId: message.senderId,
+        content: message.content,
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt,
+        sender: message.sender,
+        isRead: message.senderId === userId ? true : message.readReceipts.length > 0,
+        readAt: message.readReceipts[0]?.readAt ?? null,
+    }));
 }
 
-export async function sendMessage(
-    conversationId: string,
-    senderId: string,
-    content: string
-) {
+export async function sendMessage
+    (
+        conversationId: string,
+        senderId: string,
+        content: string) {
+
     const membership = await prisma.conversationMember.findFirst({
         where: {
             conversationId,
@@ -149,22 +173,40 @@ export async function markMessageAsRead(conversationId: string, userId: string) 
         throw new Error("Not authorized");
     }
 
-    return prisma.message.updateMany({
+    const unreadMessages = await prisma.message.findMany({
         where: {
             conversationId,
             senderId: {
                 not: userId,
             },
-            isRead: false,
+            readReceipts: {
+                none: {
+                    userId,
+                },
+            },
         },
-        data: {
-            isRead: true,
+        select: {
+            id: true,
         },
     });
+
+    if (unreadMessages.length === 0) {
+        return { count: 0 };
+    }
+
+    await prisma.messageRead.createMany({
+        data: unreadMessages.map((message) => ({
+            messageId: message.id,
+            userId,
+        })),
+        skipDuplicates: true,
+    });
+
+    return { count: unreadMessages.length };
 }
 
 export async function createRoleBasedGroupChats(moduleId: string) {
-    const chats = ["Athlete Chat", "Parent Chat", "Coach Chat"];
+    const chats = ["Athlete Chat", "Parent Chat", "Coach Chat", "Module Chat"];
 
     return Promise.all(
         chats.map((name) =>
@@ -177,6 +219,78 @@ export async function createRoleBasedGroupChats(moduleId: string) {
             })
         )
     );
+}
+
+export async function addUserToModuleChat(moduleId: string, userId: string) {
+    const conversation = await prisma.conversation.findFirst({
+        where: {
+            moduleId,
+            isGroup: true,
+            name: "Module Chat",
+        },
+    });
+
+    if (!conversation) {
+        throw new Error("Module-wide conversation not found");
+    }
+
+    return prisma.conversationMember.upsert({
+        where: {
+            conversationId_userId: {
+                conversationId: conversation.id,
+                userId,
+            },
+        },
+        update: {},
+        create: {
+            conversationId: conversation.id,
+            userId,
+        },
+    });
+}
+
+export async function markConversationAsRead(conversationId: string, userId: string) {
+    const membership = await prisma.conversationMember.findFirst({
+        where: {
+            conversationId,
+            userId,
+        },
+    });
+
+    if (!membership) {
+        throw new Error("Not authorized");
+    }
+
+    const unreadMessages = await prisma.message.findMany({
+        where: {
+            conversationId,
+            senderId: {
+                not: userId,
+            },
+            readReceipts: {
+                none: {
+                    userId,
+                },
+            },
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    if (unreadMessages.length === 0) {
+        return { count: 0 };
+    }
+
+    await prisma.messageRead.createMany({
+        data: unreadMessages.map((message) => ({
+            messageId: message.id,
+            userId,
+        })),
+        skipDuplicates: true,
+    });
+
+    return { count: unreadMessages.length };
 }
 
 export async function addUserToRoleGroupChat(moduleId: string, userId: string, role: string) {
