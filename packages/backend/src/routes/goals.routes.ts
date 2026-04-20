@@ -1,19 +1,19 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.middleware";
+import { requireRole } from "../middleware/role.middleware";
 import {
   listGoalsController,
-  getGoalController,
   createGoalController,
   updateGoalController,
   deleteGoalController,
 } from "../controllers/goals.controller";
 
-const router = Router({ mergeParams: true });
+const moduleScoped = Router({ mergeParams: true });
+moduleScoped.get("/", requireAuth, listGoalsController);
+moduleScoped.post("/", requireAuth, requireRole("COACH"), createGoalController);
 
-router.get("/", requireAuth, listGoalsController);
-router.post("/", requireAuth, createGoalController);
-router.get("/:goalId", requireAuth, getGoalController);
-router.patch("/:goalId", requireAuth, updateGoalController);
-router.delete("/:goalId", requireAuth, deleteGoalController);
+const byId = Router();
+byId.patch("/:id", requireAuth, updateGoalController);
+byId.delete("/:id", requireAuth, requireRole("COACH"), deleteGoalController);
 
-export default router;
+export { moduleScoped as goalsModuleRouter, byId as goalsByIdRouter };

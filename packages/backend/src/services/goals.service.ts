@@ -1,180 +1,89 @@
 import prisma from "../lib/prisma";
 
-async function getModuleAndMembership(moduleId: string, userId: string) {
-  const module = await prisma.module.findUnique({
-    where: { id: moduleId },
-    include: { memberships: true },
+async function getMembership(userId: string, moduleId: string) {
+  return prisma.moduleMembership.findUnique({
+    where: { userId_moduleId: { userId, moduleId } },
   });
+}
 
-  if (!module) throw new Error("Module not found");
-
-  const membership = module.memberships.find((m) => m.userId === userId);
+export async function listGoals(
+  userId: string,
+  userRole: string,
+  moduleId: string,
+  athleteIdFilter?: string
+) {
+  const membership = await getMembership(userId, moduleId);
   if (!membership) throw new Error("Not a member of this module");
 
-  return { module, membership };
-}
+  // Only COACH users get the all-athletes view. Everyone else (ATHLETE,
+  // PARENT) only sees goals assigned to themselves.
+  const isCoach = userRole === "COACH";
+  const athleteId = isCoach ? athleteIdFilter : userId;
 
-function isCoachOrAdmin(role: string) {
-  return role === "COACH" || role === "MODULE_ADMIN";
-}
-
-export async function listGoals(moduleId: string, requesterId: string, athleteId?: string) {
-  const { membership } = await getModuleAndMembership(moduleId, requesterId);
-
-  if (isCoachOrAdmin(membership.memberRole)) {
-    // Coaches/admins can list all goals in the module, optionally filtered by athlete
-    const where = athleteId
-      ? { moduleId, athleteId }
-      : { moduleId };
-
-    const goals = await prisma.goal.findMany({
-      where,
-      include: {
-        athlete: { select: { id: true, firstName: true, lastName: true } },
-        assignedBy: { select: { id: true, firstName: true, lastName: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return goals;
-  }
-
-  // Athletes can only see their own goals
-  const goals = await prisma.goal.findMany({
-    where: { moduleId, athleteId: requesterId },
-    include: {
-      assignedBy: { select: { id: true, firstName: true, lastName: true } },
+  return prisma.goal.findMany({
+    where: {
+      moduleId,
+      ...(athleteId ? { athleteId } : {}),
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: "asc" },
   });
-
-  return goals;
-}
-
-export async function getGoal(moduleId: string, goalId: string, requesterId: string) {
-  const { membership } = await getModuleAndMembership(moduleId, requesterId);
-
-  const goal = await prisma.goal.findFirst({
-    where: { id: goalId, moduleId },
-    include: {
-      athlete: { select: { id: true, firstName: true, lastName: true } },
-      assignedBy: { select: { id: true, firstName: true, lastName: true } },
-    },
-  });
-
-  if (!goal) throw new Error("Goal not found");
-
-  // Athletes can only view goals assigned to them
-  if (!isCoachOrAdmin(membership.memberRole) && goal.athleteId !== requesterId) {
-    throw new Error("Not authorized");
-  }
-
-  return goal;
 }
 
 export async function createGoal(
+  coachId: string,
   moduleId: string,
-  requesterId: string,
-  data: { title: string; description?: string; athleteId: string; dueDate?: string }
+  athleteId: string,
+  title: string
 ) {
-  const { module, membership } = await getModuleAndMembership(moduleId, requesterId);
+  const membership = await getMembership(coachId, moduleId);
+  if (!membership) throw new Error("Not a member of this module");
+  if (membership.memberRole !== "MODULE_ADMIN") throw new Error("Not authorized");
 
-  if (!isCoachOrAdmin(membership.memberRole)) {
-    throw new Error("Only coaches can assign goals");
-  }
+  const athleteMembership = await getMembership(athleteId, moduleId);
+  if (!athleteMembership) throw new Error("Athlete is not a member of this module");
 
-  // Verify the athlete is a MEMBER of this module
-  const athleteMembership = module.memberships.find((m) => m.userId === data.athleteId);
-  if (!athleteMembership || athleteMembership.memberRole !== "MEMBER") {
-    throw new Error("Athlete not found in this module");
-  }
-
-  const goal = await prisma.goal.create({
-    data: {
-      title: data.title,
-      description: data.description,
-      athleteId: data.athleteId,
-      assignedById: requesterId,
-      moduleId,
-      dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
-    },
-    include: {
-      athlete: { select: { id: true, firstName: true, lastName: true } },
-      assignedBy: { select: { id: true, firstName: true, lastName: true } },
-    },
+  return prisma.goal.create({
+    data: { title, moduleId, athleteId, createdById: coachId },
   });
-
-  return goal;
 }
 
 export async function updateGoal(
-  moduleId: string,
+  userId: string,
+  userRole: string,
   goalId: string,
-  requesterId: string,
-  data: { title?: string; description?: string; completed?: boolean; dueDate?: string | null }
+  data: { title?: string; completed?: boolean }
 ) {
-  const { membership } = await getModuleAndMembership(moduleId, requesterId);
-
-  const goal = await prisma.goal.findFirst({
-    where: { id: goalId, moduleId },
-  });
-
+  const goal = await prisma.goal.findUnique({ where: { id: goalId } });
   if (!goal) throw new Error("Goal not found");
 
-  const coachOrAdmin = isCoachOrAdmin(membership.memberRole);
+  const membership = await getMembership(userId, goal.moduleId);
+  if (!membership) throw new Error("Not authorized");
 
-  // Athletes can only update the completion status of their own goals
-  if (!coachOrAdmin) {
-    if (goal.athleteId !== requesterId) throw new Error("Not authorized");
+  const isCoach = userRole === "COACH";
+  const isOwner = goal.athleteId === userId;
 
-    const { completed } = data;
-    if (Object.keys(data).some((k) => k !== "completed")) {
-      throw new Error("Athletes can only update goal completion status");
-    }
-    if (completed === undefined) {
-      throw new Error("Completion status is required");
-    }
+  // Title edits are coach-only. Completion toggles are allowed for the athlete
+  // the goal belongs to, or any coach in the module.
+  if (data.title !== undefined && !isCoach) throw new Error("Not authorized");
+  if (data.completed !== undefined && !isCoach && !isOwner) throw new Error("Not authorized");
 
-    const updated = await prisma.goal.update({
-      where: { id: goalId },
-      data: { completed },
-      include: {
-        athlete: { select: { id: true, firstName: true, lastName: true } },
-        assignedBy: { select: { id: true, firstName: true, lastName: true } },
-      },
-    });
-    return updated;
-  }
-
-  const updated = await prisma.goal.update({
+  return prisma.goal.update({
     where: { id: goalId },
     data: {
-      ...(data.title !== undefined && { title: data.title }),
-      ...(data.description !== undefined && { description: data.description }),
-      ...(data.completed !== undefined && { completed: data.completed }),
-      ...(data.dueDate !== undefined && { dueDate: data.dueDate ? new Date(data.dueDate) : null }),
-    },
-    include: {
-      athlete: { select: { id: true, firstName: true, lastName: true } },
-      assignedBy: { select: { id: true, firstName: true, lastName: true } },
+      ...(data.title !== undefined ? { title: data.title } : {}),
+      ...(data.completed !== undefined ? { completed: data.completed } : {}),
     },
   });
-
-  return updated;
 }
 
-export async function deleteGoal(moduleId: string, goalId: string, requesterId: string) {
-  const { membership } = await getModuleAndMembership(moduleId, requesterId);
-
-  if (!isCoachOrAdmin(membership.memberRole)) {
-    throw new Error("Only coaches can delete goals");
-  }
-
-  const goal = await prisma.goal.findFirst({
-    where: { id: goalId, moduleId },
-  });
-
+export async function deleteGoal(userId: string, goalId: string) {
+  const goal = await prisma.goal.findUnique({ where: { id: goalId } });
   if (!goal) throw new Error("Goal not found");
+
+  const membership = await getMembership(userId, goal.moduleId);
+  if (!membership || membership.memberRole !== "MODULE_ADMIN") {
+    throw new Error("Not authorized");
+  }
 
   await prisma.goal.delete({ where: { id: goalId } });
 }

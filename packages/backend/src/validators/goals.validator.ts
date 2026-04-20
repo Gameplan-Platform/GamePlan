@@ -1,22 +1,18 @@
 import { z } from "zod";
 
-const validDate = z
-  .string()
-  .refine((v) => !isNaN(Date.parse(v)), "Invalid date format");
-
 const createGoalSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
   athleteId: z.string().min(1, "Athlete ID is required"),
-  dueDate: validDate.optional(),
 });
 
-const updateGoalSchema = z.object({
-  title: z.string().min(1, "Title cannot be empty").optional(),
-  description: z.string().optional(),
-  completed: z.boolean().optional(),
-  dueDate: validDate.nullable().optional(),
-});
+const updateGoalSchema = z
+  .object({
+    title: z.string().min(1, "Title cannot be empty").optional(),
+    completed: z.boolean().optional(),
+  })
+  .refine(data => data.title !== undefined || data.completed !== undefined, {
+    message: "At least one field must be provided",
+  });
 
 export function validateCreateGoal(data: unknown) {
   const result = createGoalSchema.safeParse(data);

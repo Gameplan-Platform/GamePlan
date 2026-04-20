@@ -1,122 +1,80 @@
 import { Request, Response } from "express";
+import {
+  listGoals,
+  createGoal,
+  updateGoal,
+  deleteGoal,
+} from "../services/goals.service";
 import { validateCreateGoal, validateUpdateGoal } from "../validators/goals.validator";
-import { listGoals, getGoal, createGoal, updateGoal, deleteGoal } from "../services/goals.service";
 
-type ModuleParams = { moduleId: string };
-type GoalParams = { moduleId: string; goalId: string };
+function handleError(res: Response, error: unknown, context: string) {
+  const message = error instanceof Error ? error.message : "Internal server error";
 
-export async function listGoalsController(req: Request<ModuleParams>, res: Response) {
+  if (message === "Goal not found") return res.status(404).json({ error: message });
+  if (
+    message === "Not a member of this module" ||
+    message === "Not authorized" ||
+    message === "Athlete is not a member of this module"
+  ) {
+    return res.status(403).json({ error: message });
+  }
+
+  console.error(`${context} error:`, error);
+  return res.status(500).json({ error: "Internal server error" });
+}
+
+export async function listGoalsController(req: Request, res: Response) {
   try {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
     const { moduleId } = req.params;
-    const athleteId = req.query.athleteId as string | undefined;
+    if (!moduleId) return res.status(400).json({ error: "Module ID is required" });
 
-    const goals = await listGoals(moduleId, req.user.userId, athleteId);
+    const athleteIdFilter = typeof req.query.athleteId === "string" ? req.query.athleteId : undefined;
 
-    if (goals.length === 0) {
-      return res.status(200).json({ goals, message: "No goals available" });
-    }
-
-    return res.status(200).json({ goals });
+    const goals = await listGoals(req.user.userId, req.user.role, moduleId as string, athleteIdFilter);
+    return res.status(200).json(goals);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Internal server error";
-    if (message === "Module not found") return res.status(404).json({ error: message });
-    if (message === "Not a member of this module") return res.status(403).json({ error: message });
-    console.error("List goals error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return handleError(res, error, "List goals");
   }
 }
 
-export async function getGoalController(req: Request<GoalParams>, res: Response) {
-  try {
-    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-
-    const { moduleId, goalId } = req.params;
-    const goal = await getGoal(moduleId, goalId, req.user.userId);
-
-    return res.status(200).json({ goal });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Internal server error";
-    if (message === "Module not found") return res.status(404).json({ error: message });
-    if (message === "Goal not found") return res.status(404).json({ error: message });
-    if (message === "Not a member of this module" || message === "Not authorized") {
-      return res.status(403).json({ error: message });
-    }
-    console.error("Get goal error:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-}
-
-export async function createGoalController(req: Request<ModuleParams>, res: Response) {
+export async function createGoalController(req: Request, res: Response) {
   try {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
     const { moduleId } = req.params;
-    const data = validateCreateGoal(req.body);
+    if (!moduleId) return res.status(400).json({ error: "Module ID is required" });
 
-    const goal = await createGoal(moduleId, req.user.userId, data);
+    const { title, athleteId } = validateCreateGoal(req.body);
 
-    return res.status(201).json({ goal });
+    const goal = await createGoal(req.user.userId, moduleId as string, athleteId, title);
+    return res.status(201).json({ message: "Goal created successfully", goal });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Internal server error";
-    if (["Title is required", "Athlete ID is required", "Invalid date format"].includes(message)) {
-      return res.status(400).json({ error: message });
-    }
-    if (message === "Module not found") return res.status(404).json({ error: message });
-    if (message === "Athlete not found in this module") return res.status(404).json({ error: message });
-    if (message === "Not a member of this module" || message === "Only coaches can assign goals") {
-      return res.status(403).json({ error: message });
-    }
-    console.error("Create goal error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return handleError(res, error, "Create goal");
   }
 }
 
-export async function updateGoalController(req: Request<GoalParams>, res: Response) {
+export async function updateGoalController(req: Request, res: Response) {
   try {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
-    const { moduleId, goalId } = req.params;
     const data = validateUpdateGoal(req.body);
+    const goal = await updateGoal(req.user.userId, req.user.role, req.params.id as string, data);
 
-    const goal = await updateGoal(moduleId, goalId, req.user.userId, data);
-
-    return res.status(200).json({ goal });
+    return res.status(200).json({ message: "Goal updated successfully", goal });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Internal server error";
-    if (["Title cannot be empty", "Invalid date format", "Completion status is required", "Athletes can only update goal completion status"].includes(message)) {
-      return res.status(400).json({ error: message });
-    }
-    if (message === "Athletes can only update goal completion status") {
-      return res.status(400).json({ error: message });
-    }
-    if (message === "Module not found") return res.status(404).json({ error: message });
-    if (message === "Goal not found") return res.status(404).json({ error: message });
-    if (message === "Not a member of this module" || message === "Not authorized") {
-      return res.status(403).json({ error: message });
-    }
-    console.error("Update goal error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return handleError(res, error, "Update goal");
   }
 }
 
-export async function deleteGoalController(req: Request<GoalParams>, res: Response) {
+export async function deleteGoalController(req: Request, res: Response) {
   try {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
-    const { moduleId, goalId } = req.params;
-    await deleteGoal(moduleId, goalId, req.user.userId);
-
+    await deleteGoal(req.user.userId, req.params.id as string);
     return res.status(200).json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Internal server error";
-    if (message === "Module not found") return res.status(404).json({ error: message });
-    if (message === "Goal not found") return res.status(404).json({ error: message });
-    if (message === "Not a member of this module" || message === "Only coaches can delete goals") {
-      return res.status(403).json({ error: message });
-    }
-    console.error("Delete goal error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return handleError(res, error, "Delete goal");
   }
 }
