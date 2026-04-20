@@ -317,7 +317,7 @@ export default function RoutineDetailPage() {
                   />
                   <Tooltip
                     contentStyle={{ fontFamily: 'Amiko', fontSize: 12, borderRadius: '10px', border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
-                    formatter={(v: number) => [`${v.toFixed(2)} pts`, 'Deducted']}
+                    formatter={(v: number | undefined) => [`${(v ?? 0).toFixed(2)} pts`, 'Deducted']}
                   />
                   <Bar dataKey="points" fill={accent} radius={[6, 6, 0, 0]} />
                 </BarChart>
