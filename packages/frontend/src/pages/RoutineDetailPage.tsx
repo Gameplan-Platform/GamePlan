@@ -11,7 +11,6 @@ import BottomNav from '../components/BottomNav'
 const fontFamily = '"Amiko", sans-serif'
 const accent = '#6267E3'
 const accentDark = '#55337B'
-const green = '#B7DE58'
 const textPrimary = '#1F2937'
 const textSecondary = '#8B93A7'
 const cardBorder = '#EAEFF8'
@@ -33,8 +32,6 @@ const DEDUCTION_CATEGORIES = [
   { key: 'OOL-B', label: 'Building Out of Level',        pointsEach: 0.10 },
   { key: 'SRD',   label: 'Skill Restriction / Division', pointsEach: 0.50 },
 ] as const
-
-type DeductionKey = typeof DEDUCTION_CATEGORIES[number]['key']
 
 interface StoredDeduction {
   id?: string

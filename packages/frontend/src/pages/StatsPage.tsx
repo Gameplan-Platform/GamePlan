@@ -87,11 +87,18 @@ export default function StatsPage() {
 
   useEffect(() => {
     if (!moduleId || !token) return
-    setLoading(true)
-    api<Routine[]>(`/modules/${moduleId}/routines`, { token })
-      .then(data => setRoutines(data))
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    const load = async () => {
+      setLoading(true)
+      try {
+        const data = await api<Routine[]>(`/modules/${moduleId}/routines`, { token })
+        setRoutines(data)
+      } catch {
+        // silent
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [moduleId, token])
 
   const monthStart = ymd(viewMonth)
