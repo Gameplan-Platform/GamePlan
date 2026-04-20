@@ -270,6 +270,34 @@ async function main() {
     },
   ]
 
+  // Seed role-based group chats for custom module (mirrors what createRoleBasedGroupChats does)
+  await prisma.conversation.deleteMany({ where: { moduleId: customModule.id } })
+  const chatNames = ['Athlete Chat', 'Parent Chat', 'Coach Chat', 'Module Chat']
+  for (const name of chatNames) {
+    await prisma.conversation.create({
+      data: { name, isGroup: true, moduleId: customModule.id },
+    })
+  }
+
+  // Add users to Module Chat + their role chat (mirrors addUserToModuleChat / addUserToRoleGroupChat)
+  const chatsByName = await prisma.conversation.findMany({
+    where: { moduleId: customModule.id, isGroup: true },
+  })
+  const byName = (name: string) => chatsByName.find(c => c.name === name)!
+
+  for (const { userId, roleName } of [
+    { userId: coach.id,   roleName: 'Coach Chat'   },
+    { userId: athlete.id, roleName: 'Athlete Chat' },
+  ]) {
+    for (const convo of [byName('Module Chat'), byName(roleName)]) {
+      await prisma.conversationMember.upsert({
+        where: { conversationId_userId: { conversationId: convo.id, userId } },
+        update: {},
+        create: { conversationId: convo.id, userId },
+      })
+    }
+  }
+
   await prisma.routine.deleteMany({ where: { moduleId: customModule.id } });
   for (const fo of oct2025FullOuts) {
     await prisma.routine.create({
