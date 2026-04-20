@@ -275,11 +275,13 @@ function GoalRow({
 function RoutineCard({
   routine,
   canManage,
+  onView,
   onEdit,
   onDelete,
 }: {
   routine: Routine
   canManage: boolean
+  onView: () => void
   onEdit: () => void
   onDelete: () => void
 }) {
@@ -303,7 +305,7 @@ function RoutineCard({
           gap: '12px',
         }}
       >
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: 1, cursor: 'pointer' }} onClick={onView}>
           <div
             style={{
               fontFamily,
@@ -330,58 +332,79 @@ function RoutineCard({
           ) : null}
         </div>
 
-        {canManage ? (
-          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-            <button
-              onClick={onEdit}
-              style={{
-                width: '34px',
-                height: '34px',
-                borderRadius: '10px',
-                border: '1px solid #E8ECF6',
-                background: '#FFFFFF',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M4 20H8L18.5 9.5C19.3 8.7 19.3 7.3 18.5 6.5L17.5 5.5C16.7 4.7 15.3 4.7 14.5 5.5L4 16V20Z"
-                  stroke="#6166DB"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+          {canManage && (
+            <>
+              <button
+                onClick={onEdit}
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  border: '1px solid #E8ECF6',
+                  background: '#FFFFFF',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M4 20H8L18.5 9.5C19.3 8.7 19.3 7.3 18.5 6.5L17.5 5.5C16.7 4.7 15.3 4.7 14.5 5.5L4 16V20Z"
+                    stroke="#6166DB"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
 
-            <button
-              onClick={onDelete}
-              style={{
-                width: '34px',
-                height: '34px',
-                borderRadius: '10px',
-                border: '1px solid #F3D6D6',
-                background: '#FFF7F7',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M6 7H18M9 7V5H15V7M8 7L9 19H15L16 7"
-                  stroke="#D85050"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-        ) : null}
+              <button
+                onClick={onDelete}
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  border: '1px solid #F3D6D6',
+                  background: '#FFF7F7',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M6 7H18M9 7V5H15V7M8 7L9 19H15L16 7"
+                    stroke="#D85050"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </>
+          )}
+
+          <button
+            onClick={onView}
+            style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '10px',
+              border: '1px solid #E8ECF6',
+              background: '#F5F6FA',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+              <path d="M1 1L7 7L1 13" stroke="#6166DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
       </div>
     </motion.div>
   )
@@ -1423,6 +1446,7 @@ export default function ProgressScreen() {
                         key={routine.id}
                         routine={routine}
                         canManage={canManageRoutines}
+                        onView={() => navigate(`/modules/${currentModuleId}/routines/${routine.id}`)}
                         onEdit={() => openEditRoutine(routine)}
                         onDelete={() => deleteRoutine(routine.id)}
                       />
@@ -1491,6 +1515,7 @@ export default function ProgressScreen() {
               </motion.div>
 
               <button
+                onClick={() => navigate(`/modules/${currentModuleId}/progress/stats`)}
                 style={{
                   width: '100%',
                   height: '46px',
