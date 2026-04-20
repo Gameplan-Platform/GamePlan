@@ -124,14 +124,20 @@ export default function ProgressPage() {
   // Load summary whenever the selected athlete changes (or on mount for non-coaches)
   useEffect(() => {
     if (!moduleId || !token) return
-    setLoading(true)
-    setError(null)
-
-    const query = selectedAthleteId ? `?athleteId=${selectedAthleteId}` : ''
-    api<SummaryResponse>(`/modules/${moduleId}/scores/summary${query}`, { token })
-      .then(res => setData(res))
-      .catch(err => setError(err instanceof Error ? err.message : 'Failed to load'))
-      .finally(() => setLoading(false))
+    const load = async () => {
+      setLoading(true)
+      setError(null)
+      const query = selectedAthleteId ? `?athleteId=${selectedAthleteId}` : ''
+      try {
+        const res = await api<SummaryResponse>(`/modules/${moduleId}/scores/summary${query}`, { token })
+        setData(res)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load')
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [moduleId, token, selectedAthleteId])
 
   const chartData = (data?.scores ?? []).map(s => ({

@@ -25,7 +25,7 @@ import ModuleAttendanceScreen from './pages/ModuleAttendanceScreen'
 import Messaging from './pages/Inbox'
 import ConversationDetail from './pages/ConversationDetail'
 import NewMessage from './pages/NewMessage'
-import ProgressScreen from './pages/ProgressScreen'
+import ProgressPage from './pages/ProgressPage'
 
 function CalendarRoute() {
   const { role } = useAuth();
@@ -61,7 +61,7 @@ export default function App() {
         <Route path="/modules/:id/messaging" element={<Messaging />} />
         <Route path="/modules/:id/messages/:conversationId" element={<ConversationDetail />} />
         <Route path="/modules/:id/messages/new" element={<NewMessage />} />
-        <Route path="/modules/:moduleId/progress" element={<ProgressScreen />} />
+        <Route path="/modules/:moduleId/progress" element={<ProgressPage />} />
 
 
       </Routes>
