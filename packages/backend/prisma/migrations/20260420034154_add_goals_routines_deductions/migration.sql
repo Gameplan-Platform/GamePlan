@@ -1,3 +1,6 @@
+-- Drop old Goal table from previous migration (different schema)
+DROP TABLE IF EXISTS "Goal";
+
 -- CreateTable
 CREATE TABLE "Goal" (
     "id" TEXT NOT NULL,
