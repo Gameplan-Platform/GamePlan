@@ -65,6 +65,7 @@ export async function createRoutine(
     date: string;
     athleteId: string;
     notes?: string;
+    isFullOut?: boolean;
     deductions?: DeductionInput[];
   }
 ) {
@@ -82,6 +83,7 @@ export async function createRoutine(
       title: input.title,
       date,
       notes: input.notes,
+      isFullOut: input.isFullOut ?? false,
       moduleId,
       athleteId: input.athleteId,
       createdById: coachId,
@@ -100,6 +102,7 @@ export async function updateRoutine(
     title?: string;
     date?: string;
     notes?: string | null;
+    isFullOut?: boolean;
     deductions?: DeductionInput[];
   }
 ) {
@@ -118,6 +121,7 @@ export async function updateRoutine(
         ...(data.title !== undefined ? { title: data.title } : {}),
         ...(data.date !== undefined ? { date: parseDate(data.date) } : {}),
         ...(data.notes !== undefined ? { notes: data.notes } : {}),
+        ...(data.isFullOut !== undefined ? { isFullOut: data.isFullOut } : {}),
       },
     });
 
