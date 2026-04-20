@@ -32,7 +32,7 @@ export async function listGoalsController(req: Request, res: Response) {
 
     const athleteIdFilter = typeof req.query.athleteId === "string" ? req.query.athleteId : undefined;
 
-    const goals = await listGoals(req.user.userId, moduleId as string, athleteIdFilter);
+    const goals = await listGoals(req.user.userId, req.user.role, moduleId as string, athleteIdFilter);
     return res.status(200).json(goals);
   } catch (error) {
     return handleError(res, error, "List goals");
@@ -60,7 +60,7 @@ export async function updateGoalController(req: Request, res: Response) {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
     const data = validateUpdateGoal(req.body);
-    const goal = await updateGoal(req.user.userId, req.params.id as string, data);
+    const goal = await updateGoal(req.user.userId, req.user.role, req.params.id as string, data);
 
     return res.status(200).json({ message: "Goal updated successfully", goal });
   } catch (error) {

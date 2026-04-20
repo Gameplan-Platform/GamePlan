@@ -8,15 +8,16 @@ async function getMembership(userId: string, moduleId: string) {
 
 export async function listGoals(
   userId: string,
+  userRole: string,
   moduleId: string,
   athleteIdFilter?: string
 ) {
   const membership = await getMembership(userId, moduleId);
   if (!membership) throw new Error("Not a member of this module");
 
-  const isCoach = membership.memberRole === "MODULE_ADMIN";
-
-  // Athletes can only see their own goals; coaches can optionally filter by athlete.
+  // Only COACH users get the all-athletes view. Everyone else (ATHLETE,
+  // PARENT) only sees goals assigned to themselves.
+  const isCoach = userRole === "COACH";
   const athleteId = isCoach ? athleteIdFilter : userId;
 
   return prisma.goal.findMany({
@@ -48,6 +49,7 @@ export async function createGoal(
 
 export async function updateGoal(
   userId: string,
+  userRole: string,
   goalId: string,
   data: { title?: string; completed?: boolean }
 ) {
@@ -57,7 +59,7 @@ export async function updateGoal(
   const membership = await getMembership(userId, goal.moduleId);
   if (!membership) throw new Error("Not authorized");
 
-  const isCoach = membership.memberRole === "MODULE_ADMIN";
+  const isCoach = userRole === "COACH";
   const isOwner = goal.athleteId === userId;
 
   // Title edits are coach-only. Completion toggles are allowed for the athlete

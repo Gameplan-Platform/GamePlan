@@ -37,7 +37,7 @@ export async function listRoutinesController(req: Request, res: Response) {
 
     const athleteIdFilter = typeof req.query.athleteId === "string" ? req.query.athleteId : undefined;
 
-    const routines = await listRoutines(req.user.userId, moduleId as string, athleteIdFilter);
+    const routines = await listRoutines(req.user.userId, req.user.role, moduleId as string, athleteIdFilter);
     return res.status(200).json(routines);
   } catch (error) {
     return handleError(res, error, "List routines");
@@ -48,7 +48,7 @@ export async function getRoutineController(req: Request, res: Response) {
   try {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
-    const routine = await getRoutine(req.user.userId, req.params.id as string);
+    const routine = await getRoutine(req.user.userId, req.user.role, req.params.id as string);
     return res.status(200).json(routine);
   } catch (error) {
     return handleError(res, error, "Get routine");
