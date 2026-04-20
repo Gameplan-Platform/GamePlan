@@ -221,7 +221,7 @@ function GoalRow({
         minHeight: '48px',
         border: '1px solid #EEF2F8',
         background: '#FFFFFF',
-        borderRadius: '16px',
+        borderRadius: '999px',
         padding: '0 14px',
         display: 'flex',
         alignItems: 'center',
@@ -230,11 +230,12 @@ function GoalRow({
       }}
     >
       <button
-        onClick={() => onToggle(goal.id)}
+        onClick={() => canManage && onToggle(goal.id)}
         style={{
           display: 'flex', alignItems: 'center', gap: '12px',
           flex: 1, border: 'none', background: 'transparent',
-          cursor: 'pointer', padding: 0, textAlign: 'left',
+          cursor: canManage ? 'pointer' : 'default', padding: 0, textAlign: 'left',
+          pointerEvents: canManage ? 'auto' : 'none',
         }}
       >
         <div
@@ -249,11 +250,9 @@ function GoalRow({
             flexShrink: 0,
           }}
         >
-          {goal.completed ? (
-            <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
-              <path d="M1 4L4 7L10 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          ) : null}
+          <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+            <path d="M1 4L4 7L10 1" stroke={goal.completed ? '#fff' : 'rgba(255,255,255,0.45)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
         <span
           style={{
@@ -344,18 +343,6 @@ function RoutineCard({
             )}
           </div>
 
-          {routine.notes ? (
-            <div
-              style={{
-                fontFamily,
-                fontSize: '12px',
-                lineHeight: 1.5,
-                color: textSecondary,
-              }}
-            >
-              {routine.notes}
-            </div>
-          ) : null}
         </div>
 
         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
@@ -883,7 +870,7 @@ export default function ProgressScreen() {
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            zIndex: 4,
+            zIndex: 6,
           }}
         >
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
@@ -1152,148 +1139,93 @@ export default function ProgressScreen() {
                 </div>
 
                 {canManageRoutines ? (
-                <div style={{ marginTop: '16px' }}>
-                  <AnimatePresence mode="wait">
-                    {!showAddGoal ? (
+                <div style={{ marginTop: '10px', display: 'grid', gap: '10px' }}>
+                  <AnimatePresence>
+                    {showAddGoal && (
                       <motion.div
-                        key="collapsed-add-goal"
+                        key="add-goal-bubble"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
                         transition={{ duration: 0.18 }}
-                        style={{ display: 'flex', justifyContent: 'flex-end' }}
-                      >
-                        <motion.button
-                          whileHover={{ scale: 1.08 }}
-                          whileTap={{ scale: 0.94 }}
-                          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                          onClick={() => setShowAddGoal(true)}
-                          style={{
-                            width: '44px', height: '44px', borderRadius: '50%',
-                            border: 'none', background: green,
-                            boxShadow: '0 10px 20px rgba(183, 222, 88, 0.35)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                            <path d="M9 3V15M3 9H15" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
-                          </svg>
-                        </motion.button>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="expanded-add-goal"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
                         style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
+                          width: '100%', minHeight: '48px',
+                          borderRadius: '999px',
+                          border: '1px solid #EEF2F8', background: '#FFFFFF',
+                          boxShadow: '0 8px 22px rgba(34, 43, 69, 0.08)',
+                          display: 'flex', alignItems: 'center', padding: '0 8px', gap: '8px',
                         }}
                       >
-                        <div
-                          style={{
-                            flex: 1,
-                            minHeight: '50px',
-                            borderRadius: '18px',
-                            background: '#FFFFFF',
-                            border: '1px solid #EEF1F8',
-                            boxShadow: '0 12px 24px rgba(34, 43, 69, 0.08)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '0 14px',
-                            gap: '10px',
+                        <input
+                          value={goalInput}
+                          onChange={e => setGoalInput(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') addGoal()
+                            if (e.key === 'Escape') { setShowAddGoal(false); setGoalInput('') }
                           }}
-                        >
-                          <div
+                          placeholder="New Goal"
+                          autoFocus
+                          style={{
+                            flex: 1, border: 'none', outline: 'none',
+                            background: 'transparent', fontFamily,
+                            fontSize: '14px', fontWeight: 400, color: textPrimary,
+                            paddingLeft: '6px',
+                          }}
+                        />
+
+                        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                          <button
+                            onClick={() => { setShowAddGoal(false); setGoalInput('') }}
                             style={{
-                              color: green,
-                              fontSize: '18px',
-                              lineHeight: 1,
+                              width: '28px', height: '28px', borderRadius: '50%',
+                              border: 'none', background: '#D94C4C',
+                              cursor: 'pointer', display: 'flex', alignItems: 'center',
+                              justifyContent: 'center', flexShrink: 0,
                             }}
                           >
-                            ✦
-                          </div>
-
-                          <input
-                            value={goalInput}
-                            onChange={e => setGoalInput(e.target.value)}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') addGoal()
-                              if (e.key === 'Escape') {
-                                setShowAddGoal(false)
-                                setGoalInput('')
-                              }
-                            }}
-                            placeholder="Title"
-                            autoFocus
-                            style={{
-                              flex: 1,
-                              border: 'none',
-                              outline: 'none',
-                              background: 'transparent',
-                              fontFamily,
-                              fontSize: '14px',
-                              fontWeight: 600,
-                              color: textPrimary,
-                            }}
-                          />
+                            <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                              <path d="M1 1L7 7M7 1L1 7" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
+                          </button>
 
                           <button
-                            onClick={() => {
-                              setShowAddGoal(false)
-                              setGoalInput('')
-                            }}
+                            onClick={addGoal}
                             style={{
-                              width: '22px',
-                              height: '22px',
-                              borderRadius: '50%',
-                              border: 'none',
-                              background: '#D94C4C',
-                              color: '#FFFFFF',
-                              fontSize: '14px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              lineHeight: 1,
-                              flexShrink: 0,
+                              width: '28px', height: '28px', borderRadius: '50%',
+                              border: 'none', background: green,
+                              cursor: 'pointer', display: 'flex', alignItems: 'center',
+                              justifyContent: 'center', flexShrink: 0,
+                              boxShadow: '0 4px 10px rgba(183,222,88,0.35)',
                             }}
                           >
-                            ×
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                              <path d="M5 1V9M1 5H9" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
                           </button>
                         </div>
-
-                        <motion.button
-                          whileTap={{ scale: 0.95 }}
-                          onClick={addGoal}
-                          style={{
-                            width: '52px',
-                            height: '52px',
-                            borderRadius: '50%',
-                            border: 'none',
-                            background: green,
-                            color: '#FFFFFF',
-                            fontSize: '30px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            boxShadow: '0 14px 24px rgba(183, 222, 88, 0.34)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            lineHeight: 1,
-                            flexShrink: 0,
-                          }}
-                        >
-                          +
-                        </motion.button>
                       </motion.div>
                     )}
                   </AnimatePresence>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <motion.button
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.94 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      onClick={() => setShowAddGoal(true)}
+                      style={{
+                        width: '44px', height: '44px', borderRadius: '50%',
+                        border: 'none', background: green,
+                        boxShadow: '0 10px 20px rgba(183, 222, 88, 0.35)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M9 3V15M3 9H15" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
+                      </svg>
+                    </motion.button>
+                  </div>
                 </div>
                 ) : null}
               </motion.div>

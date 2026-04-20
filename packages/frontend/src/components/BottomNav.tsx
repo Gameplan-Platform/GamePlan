@@ -5,7 +5,7 @@ type FrontendTab = 'dashboard' | 'calendar' | 'progress' | 'roster' | 'messaging
 
 function getActiveTab(pathname: string): FrontendTab {
   if (pathname.includes('/calendar')) return 'calendar'
-  if (pathname.includes('/progress')) return 'progress'
+  if (pathname.includes('/progress') || pathname.includes('/routines')) return 'progress'
   if (pathname.includes('/roster')) return 'roster'
   if (pathname.includes('/messaging')) return 'messaging'
   return 'dashboard'

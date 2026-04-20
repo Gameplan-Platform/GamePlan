@@ -28,7 +28,7 @@ export async function listRoutines(
   if (!membership) throw new Error("Not a member of this module");
 
   const isCoach = userRole === "COACH";
-  const athleteId = isCoach ? athleteIdFilter : userId;
+  const athleteId = isCoach ? athleteIdFilter : undefined;
 
   return prisma.routine.findMany({
     where: {
@@ -40,7 +40,7 @@ export async function listRoutines(
   });
 }
 
-export async function getRoutine(userId: string, userRole: string, routineId: string) {
+export async function getRoutine(userId: string, _userRole: string, routineId: string) {
   const routine = await prisma.routine.findUnique({
     where: { id: routineId },
     include: { deductions: true },
@@ -50,9 +50,7 @@ export async function getRoutine(userId: string, userRole: string, routineId: st
   const membership = await getMembership(userId, routine.moduleId);
   if (!membership) throw new Error("Not authorized");
 
-  const isCoach = userRole === "COACH";
-  const isOwner = routine.athleteId === userId;
-  if (!isCoach && !isOwner) throw new Error("Not authorized");
+  // All module members can view any routine in the module
 
   return routine;
 }

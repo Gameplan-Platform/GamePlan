@@ -18,7 +18,7 @@ export async function listGoals(
   // Only COACH users get the all-athletes view. Everyone else (ATHLETE,
   // PARENT) only sees goals assigned to themselves.
   const isCoach = userRole === "COACH";
-  const athleteId = isCoach ? athleteIdFilter : userId;
+  const athleteId = isCoach ? athleteIdFilter : undefined;
 
   return prisma.goal.findMany({
     where: {
