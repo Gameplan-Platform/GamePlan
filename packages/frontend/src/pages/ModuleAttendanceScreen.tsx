@@ -539,30 +539,26 @@ export default function ModuleAttendanceScreen() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.96 }}
           transition={hoverTransition}
-          onClick={() => {
-            if (window.history.length > 1) {
-              navigate(-1)
-            } else {
-              navigate(`/modules/${moduleId}`)
-            }
-          }}
+          onClick={() => navigate(`/modules/${moduleId}`)}
           style={{
             position: 'absolute',
-            left: '24px',
-            top: '74px',
-            width: '36px',
-            height: '36px',
-            border: 'none',
+            left: '28px',
+            top: '52px',
+            width: '42px',
+            height: '42px',
+            border: '1px solid #D9DEEA',
             borderRadius: '14px',
-            background: '#F2F2F6',
+            background: '#F5F6FA',
+            boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
+            zIndex: 6,
           }}
         >
-          <svg width="9" height="14" viewBox="0 0 10 16" fill="none">
-            <path d="M8 2L3 8L8 14" stroke="#222B45" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+            <path d="M8.5 1L1.5 8L8.5 15" stroke="#222B45" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </motion.button>
 

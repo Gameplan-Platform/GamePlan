@@ -1,6 +1,8 @@
 import { useState , useEffect} from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useModule } from '../context/ModuleContext';
 import { api } from '../utils/api';
 import BottomNav from '../components/BottomNav'
 
@@ -41,6 +43,7 @@ export default function CalendarScreenCoach() {
   const navigate = useNavigate();
   const { moduleId } = useParams();
   const { token } = useAuth();
+  const { systemKey } = useModule();
 
 
 
@@ -131,10 +134,23 @@ export default function CalendarScreenCoach() {
 
       {/* Header */}
       <div className="relative flex items-center justify-center px-6 pt-8 pb-4">
-        <button
-            className="absolute left-6 w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center text-lg text-[#222b45]"
-            onClick={() => window.history.back()}
-        >‹</button>
+        <motion.button
+          initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.22 }}
+          onClick={() => navigate(`/modules/${moduleId}`)}
+          style={{
+            position: 'absolute', left: '24px',
+            width: '42px', height: '42px', borderRadius: '14px',
+            border: '1px solid #D9DEEA', background: '#F5F6FA',
+            boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+          }}
+        >
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+            <path d="M8.5 1L1.5 8L8.5 15" stroke="#222B45" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </motion.button>
         <h1 className="text-4xl font-bold text-[#222b45]">Calendar</h1>
       </div>
 
@@ -221,15 +237,17 @@ export default function CalendarScreenCoach() {
           ))
         )}
       </div>
-      {/* Add Event */}
-      <div className="w-full max-w-[440px] mx-auto relative">
-        <button
-          onClick={() => navigate(`/modules/${moduleId}/calendar/add-event`)}
-          className="absolute bottom-28 right-6 w-14 h-14 bg-[#b8e366] rounded-full text-white text-3xl shadow-lg flex items-center justify-center"
-        >
-          +
-        </button>
-      </div>
+      {/* Add Event — hidden in gym module */}
+      {systemKey !== 'gym' && (
+        <div className="w-full max-w-[440px] mx-auto relative">
+          <button
+            onClick={() => navigate(`/modules/${moduleId}/calendar/add-event`)}
+            className="absolute bottom-28 right-6 w-14 h-14 bg-[#b8e366] rounded-full text-white text-3xl shadow-lg flex items-center justify-center"
+          >
+            +
+          </button>
+        </div>
+      )}
 
       {/* Bottom spacer for nav bar */}
       <BottomNav />

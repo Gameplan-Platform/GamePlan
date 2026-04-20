@@ -226,8 +226,7 @@ export default function RoutineDetailPage() {
           }}
         >
 
-          {/* Notes — always shown for non-full-outs, hidden for full outs */}
-          {!routine.isFullOut && (
+          {/* Notes — always shown */}
           <div style={{ background: '#fff', borderRadius: '26px', padding: '18px', boxShadow: cardShadow, border: `1px solid ${cardBorder}`, marginBottom: '18px' }}>
             <SectionHeader title="Notes" />
             <textarea
@@ -277,7 +276,6 @@ export default function RoutineDetailPage() {
             )}
             </AnimatePresence>
           </div>
-          )}
 
           {/* Deductions + Chart — full outs only */}
           {routine.isFullOut && (<>

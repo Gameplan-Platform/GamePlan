@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { api } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import { useModule } from '../context/ModuleContext'
 import BottomNav from '../components/BottomNav'
 import React from 'react'
 
@@ -42,6 +43,7 @@ export default function ModuleDashboard() {
   const { id: moduleId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { token } = useAuth()
+  const { setSystemKey } = useModule()
 
   const [moduleInfo, setModuleInfo] = useState<ModuleInfo | null>(null)
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
@@ -62,6 +64,7 @@ export default function ModuleDashboard() {
     ])
       .then(([modData, annData, agendaData]) => {
         setModuleInfo(modData.module)
+        setSystemKey(modData.module.systemKey ?? null)
         setAnnouncements(annData.announcements)
         setAgendas(agendaData.agendas)
       })
