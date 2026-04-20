@@ -12,7 +12,6 @@ import BottomNav from '../components/BottomNav'
 const fontFamily = '"Amiko", sans-serif'
 const accent = '#6267E3'
 const accentDark = '#55337B'
-const green = '#B7DE58'
 const textPrimary = '#1F2937'
 const textSecondary = '#8B93A7'
 const cardBorder = '#EAEFF8'
@@ -43,6 +42,7 @@ interface Routine {
   id: string
   title: string
   date: string
+  isFullOut: boolean
   deductions: Deduction[]
 }
 
@@ -50,18 +50,32 @@ function SectionHeader({ title }: { title: string }) {
   return (
     <div style={{
       height: '42px',
-      borderRadius: '16px',
-      background: `linear-gradient(90deg, ${accentDark} 0%, #6A419F 100%)`,
-      boxShadow: '0 10px 20px rgba(97, 59, 151, 0.18)',
+      borderRadius: '999px',
+      background: accent,
+      boxShadow: '0 10px 20px rgba(98, 103, 227, 0.18)',
       display: 'flex',
       alignItems: 'center',
       padding: '0 18px',
       marginBottom: '14px',
     }}>
-      <span style={{ fontFamily, fontSize: '14px', fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
+      <span style={{ fontFamily, fontSize: '14px', fontWeight: 400, color: '#fff', letterSpacing: '0.02em' }}>
         {title}
       </span>
     </div>
+  )
+}
+
+// Custom x-axis tick: mm/dd on first line, truncated title on second
+function LineTick({ x, y, payload }: { x?: number | string; y?: number | string; payload?: { value: string } }) {
+  if (!payload || x == null || y == null) return null
+  const nx = typeof x === 'string' ? parseFloat(x) : x
+  const ny = typeof y === 'string' ? parseFloat(y) : y
+  const parts = (payload.value as string).split('|')
+  return (
+    <g transform={`translate(${nx},${ny})`}>
+      <text x={0} y={0} dy={10} textAnchor="middle" fill="#999" fontFamily="Amiko" fontSize={8}>{parts[0]}</text>
+      <text x={0} y={0} dy={20} textAnchor="middle" fill="#999" fontFamily="Amiko" fontSize={7}>{parts[1]}</text>
+    </g>
   )
 }
 
@@ -69,8 +83,9 @@ function ymd(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
-function formatMonthLabel(date: Date) {
-  return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+function mmdd(dateStr: string) {
+  const [, m, d] = dateStr.split('-')
+  return `${m}/${d}`
 }
 
 export default function StatsPage() {
@@ -87,66 +102,73 @@ export default function StatsPage() {
 
   useEffect(() => {
     if (!moduleId || !token) return
-    const load = async () => {
-      setLoading(true)
-      try {
-        const data = await api<Routine[]>(`/modules/${moduleId}/routines`, { token })
-        setRoutines(data)
-      } catch {
-        // silent
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
+    setLoading(true)
+    api<Routine[]>(`/modules/${moduleId}/routines`, { token })
+      .then(setRoutines)
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [moduleId, token])
 
   const monthStart = ymd(viewMonth)
   const monthEnd = ymd(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0))
 
-  const monthRoutines = useMemo(() =>
+  // Only full outs count for stats
+  const monthFullOuts = useMemo(() =>
     routines
-      .filter(r => r.date.slice(0, 10) >= monthStart && r.date.slice(0, 10) <= monthEnd)
+      .filter(r => r.isFullOut && r.date.slice(0, 10) >= monthStart && r.date.slice(0, 10) <= monthEnd)
       .sort((a, b) => a.date.localeCompare(b.date)),
     [routines, monthStart, monthEnd]
   )
 
-  // Line chart: total deduction points per routine in the month
+  // Line chart: total deduction points per full out
   const lineData = useMemo(() =>
-    monthRoutines.map(r => {
-      const totalPts = r.deductions.reduce((sum, d) => {
+    monthFullOuts.map(r => {
+      const pts = r.deductions.reduce((sum, d) => {
         const cat = DEDUCTION_CATEGORIES.find(c => c.key === d.category)
         return sum + (cat ? d.value * cat.pointsEach : 0)
       }, 0)
+      const shortTitle = r.title.length > 8 ? r.title.slice(0, 8) + '…' : r.title
       return {
-        name: r.title.length > 10 ? r.title.slice(0, 10) + '…' : r.title,
-        points: Number(totalPts.toFixed(2)),
-        date: r.date.slice(0, 10),
+        label: `${mmdd(r.date.slice(0, 10))}|${shortTitle}`,
+        fullName: `${r.title} (${mmdd(r.date.slice(0, 10))})`,
+        points: Number(pts.toFixed(2)),
       }
     }),
-    [monthRoutines]
+    [monthFullOuts]
   )
 
-  // Bar chart: total count per deduction type across the month
+  // Bar chart: total points per deduction category across all full outs, plus frequency count
   const barData = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const r of monthRoutines) {
+    for (const r of monthFullOuts) {
       for (const d of r.deductions) {
         counts[d.category] = (counts[d.category] ?? 0) + d.value
       }
     }
-    return DEDUCTION_CATEGORIES
-      .map(cat => ({ key: cat.key, label: cat.label, count: counts[cat.key] ?? 0 }))
-      .filter(d => d.count > 0)
-  }, [monthRoutines])
+    return DEDUCTION_CATEGORIES.map(cat => ({
+      key: cat.key,
+      label: cat.label,
+      points: Number((( counts[cat.key] ?? 0) * cat.pointsEach).toFixed(2)),
+      frequency: counts[cat.key] ?? 0,
+    }))
+  }, [monthFullOuts])
 
-  // Summary stats
-  const totalRoutines = monthRoutines.length
-  const totalDeductionPts = useMemo(() =>
-    lineData.reduce((s, d) => s + d.points, 0),
-    [lineData]
+  const activeBarData = barData.filter(d => d.frequency > 0)
+
+  const monthName = viewMonth.toLocaleDateString(undefined, { month: 'long' })
+  const monthYear = viewMonth.getFullYear()
+
+  const noDataMsg = (
+    <p style={{ fontFamily, fontSize: '13px', color: textSecondary, margin: '10px 0 4px', textAlign: 'left' }}>
+      No full outs logged this month.
+    </p>
   )
-  const avgPts = totalRoutines > 0 ? (totalDeductionPts / totalRoutines).toFixed(2) : '0.00'
+
+  const loadingMsg = (
+    <p style={{ fontFamily, fontSize: '13px', color: textSecondary, margin: '10px 0 4px', textAlign: 'left' }}>
+      Loading…
+    </p>
+  )
 
   return (
     <div style={{ minHeight: '100vh', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
@@ -168,7 +190,7 @@ export default function StatsPage() {
             border: '1px solid #D9DEEA', background: '#F5F6FA',
             boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', zIndex: 4,
+            cursor: 'pointer', zIndex: 6,
           }}
         >
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
@@ -182,7 +204,7 @@ export default function StatsPage() {
           transition={{ duration: 0.22, delay: 0.03 }}
           style={{
             position: 'absolute', top: '50px', left: 0, right: 0, margin: 0,
-            textAlign: 'center', fontSize: '26px', fontWeight: 700,
+            textAlign: 'center', fontSize: '22px', fontWeight: 700,
             color: '#0F172A', letterSpacing: '0.01em', zIndex: 4,
             padding: '0 80px',
           }}
@@ -196,118 +218,139 @@ export default function StatsPage() {
           transition={{ duration: 0.25, delay: 0.06 }}
           style={{
             position: 'absolute', top: '104px', left: '24px', right: '24px',
-            bottom: '112px', overflowY: 'auto', paddingRight: '4px',
+            bottom: '100px', overflowY: 'auto', paddingRight: '4px',
           }}
         >
 
           {/* Month nav */}
           <div style={{
-            background: '#fff', borderRadius: '26px', padding: '14px 18px',
-            boxShadow: cardShadow, border: `1px solid ${cardBorder}`, marginBottom: '18px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            marginBottom: '18px', padding: '0 4px',
           }}>
             <button
               onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1))}
-              style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '6px 10px', fontSize: '18px', color: accent }}
-            >‹</button>
-            <span style={{ fontFamily, fontSize: '14px', fontWeight: 700, color: textPrimary }}>
-              {formatMonthLabel(viewMonth)}
-            </span>
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center' }}
+            >
+              <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+                <path d="M7 1L1 7L7 13" stroke="#222B45" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily, fontSize: '20px', fontWeight: 700, color: '#222B45', lineHeight: 1.1 }}>
+                {monthName}
+              </div>
+              <div style={{ fontFamily, fontSize: '12px', fontWeight: 400, color: textSecondary, marginTop: '2px' }}>
+                {monthYear}
+              </div>
+            </div>
+
             <button
               onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1))}
-              style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '6px 10px', fontSize: '18px', color: accent }}
-            >›</button>
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center' }}
+            >
+              <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+                <path d="M1 1L7 7L1 13" stroke="#222B45" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
           </div>
 
-          {/* Summary cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '18px' }}>
-            {[
-              { label: 'Routines', value: totalRoutines },
-              { label: 'Total Deducted', value: `-${totalDeductionPts.toFixed(2)}` },
-              { label: 'Avg / Routine', value: `-${avgPts}` },
-            ].map(({ label, value }) => (
-              <div key={label} style={{
-                background: '#fff', borderRadius: '18px', padding: '14px 10px',
-                border: `1px solid ${cardBorder}`, boxShadow: cardShadow, textAlign: 'center',
-              }}>
-                <div style={{ fontFamily, fontSize: '10px', fontWeight: 600, color: textSecondary, marginBottom: '6px' }}>{label}</div>
-                <div style={{ fontFamily, fontSize: '16px', fontWeight: 700, color: textPrimary }}>{value}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Line chart */}
+          {/* Line chart — total deduction pts over time */}
           <div style={{ background: '#fff', borderRadius: '26px', padding: '18px', boxShadow: cardShadow, border: `1px solid ${cardBorder}`, marginBottom: '18px' }}>
-            <SectionHeader title="Deductions Over Time" />
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '24px 0', fontFamily, fontSize: '13px', color: textSecondary }}>Loading…</div>
-            ) : lineData.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '24px 0', fontFamily, fontSize: '13px', color: textSecondary }}>No routines this month.</div>
-            ) : (
-              <ResponsiveContainer width="100%" height={180}>
-                <LineChart data={lineData} margin={{ top: 4, right: 8, bottom: 20, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#EEE" />
+            <SectionHeader title="Total Points in Deductions Over Time" />
+            {loading ? loadingMsg : lineData.length === 0 ? noDataMsg : (
+              <ResponsiveContainer width="100%" height={190}>
+                <LineChart data={lineData} margin={{ top: 4, right: 12, bottom: 28, left: -8 }}>
+                  <CartesianGrid stroke="#E8EBF4" vertical={false} />
                   <XAxis
-                    dataKey="name"
-                    tick={{ fontFamily: 'Amiko', fontSize: 10, fill: '#999' }}
+                    dataKey="label"
+                    tick={(props) => <LineTick {...props} />}
                     tickLine={false} axisLine={false}
-                    label={{ value: 'Routine', position: 'insideBottom', offset: -12, style: { fontFamily: 'Amiko', fontSize: 10, fill: '#999' } }}
+                    interval={0}
+                    height={36}
+                    label={{ value: 'Date', position: 'insideBottom', offset: 0, style: { fontFamily: 'Amiko', fontSize: 9, fill: '#999', textAnchor: 'middle' } }}
                   />
                   <YAxis
-                    tick={{ fontFamily: 'Amiko', fontSize: 10, fill: '#999' }}
+                    tick={{ fontFamily: 'Amiko', fontSize: 9, fill: '#999' }}
                     tickLine={false} axisLine={false}
-                    label={{ value: 'Points', angle: -90, position: 'insideLeft', offset: 10, style: { fontFamily: 'Amiko', fontSize: 10, fill: '#999' } }}
+                    width={44}
+                    domain={[0, 15]}
+                    ticks={[0, 3, 6, 9, 12, 15]}
+                    label={{ value: 'Points', angle: -90, dx: -10, style: { fontFamily: 'Amiko', fontSize: 9, fill: '#999', textAnchor: 'middle' } }}
                   />
                   <Tooltip
-                    contentStyle={{ fontFamily: 'Amiko', fontSize: 12, borderRadius: '10px', border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
-                    formatter={(v) => [`-${typeof v === 'number' ? v.toFixed(2) : '0.00'} pts`, 'Deducted']}
+                    contentStyle={{ fontFamily: 'Amiko', fontSize: 14, borderRadius: '14px', border: 'none', boxShadow: '0 6px 24px rgba(0,0,0,0.13)', padding: '10px 16px' }}
+                    labelStyle={{ fontFamily: 'Amiko', fontSize: 14, fontWeight: 400, color: textPrimary, marginBottom: '4px' }}
+                    itemStyle={{ fontFamily: 'Amiko', fontSize: 13, fontWeight: 400, color: accentDark }}
+                    labelFormatter={(_label, payload) => {
+                      const entry = payload?.[0]?.payload as { fullName?: string } | undefined
+                      return entry?.fullName ?? _label
+                    }}
+                    formatter={(v) => [`${typeof v === 'number' ? v.toFixed(2) : '0.00'} pts`, 'Deducted']}
                   />
-                  <Line dataKey="points" stroke={accent} strokeWidth={2} dot={{ r: 4, fill: accent }} activeDot={{ r: 6 }} />
+                  <Line
+                    dataKey="points" stroke={accent} strokeWidth={2}
+                    dot={{ r: 5, fill: '#B8E466', stroke: '#B8E466' }}
+                    activeDot={{ r: 7, fill: '#B8E466' }}
+                    isAnimationActive={false}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             )}
           </div>
 
-          {/* Bar chart: deduction frequency */}
+          {/* Bar chart — deduction frequency */}
           <div style={{ background: '#fff', borderRadius: '26px', padding: '18px', boxShadow: cardShadow, border: `1px solid ${cardBorder}`, marginBottom: '28px' }}>
-            <SectionHeader title="Deduction Frequency" />
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '24px 0', fontFamily, fontSize: '13px', color: textSecondary }}>Loading…</div>
-            ) : barData.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '24px 0', fontFamily, fontSize: '13px', color: textSecondary }}>No deductions this month.</div>
-            ) : (
+            <SectionHeader title="Frequency of Deduction Type" />
+            {loading ? loadingMsg : monthFullOuts.length === 0 ? noDataMsg : (
               <>
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={barData} margin={{ top: 4, right: 8, bottom: 20, left: -20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#EEE" />
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={barData} margin={{ top: 4, right: 8, bottom: 10, left: -8 }}>
+                    <CartesianGrid vertical={false} stroke="#E8EBF4" />
                     <XAxis
                       dataKey="key"
-                      tick={{ fontFamily: 'Amiko', fontSize: 10, fill: '#999' }}
+                      tick={{ fontFamily: 'Amiko', fontSize: 8, fill: '#999' }}
                       tickLine={false} axisLine={false}
-                      label={{ value: 'Type', position: 'insideBottom', offset: -12, style: { fontFamily: 'Amiko', fontSize: 10, fill: '#999' } }}
+                      angle={-40}
+                      textAnchor="end"
+                      interval={0}
+                      height={40}
+                      label={{ value: 'Deduction', position: 'insideBottom', offset: 0, style: { fontFamily: 'Amiko', fontSize: 9, fill: '#999' } }}
                     />
                     <YAxis
-                      tick={{ fontFamily: 'Amiko', fontSize: 10, fill: '#999' }}
+                      width={52}
+                      tick={{ fontFamily: 'Amiko', fontSize: 9, fill: '#999' }}
                       tickLine={false} axisLine={false}
-                      label={{ value: 'Count', angle: -90, position: 'insideLeft', offset: 10, style: { fontFamily: 'Amiko', fontSize: 10, fill: '#999' } }}
+                      domain={[0, 5]}
+                      ticks={[0, 1, 2, 3, 4, 5]}
+                      label={{ value: 'Points', angle: -90, dx: -10, style: { fontFamily: 'Amiko', fontSize: 9, fill: '#999', textAnchor: 'middle' } }}
                     />
                     <Tooltip
                       contentStyle={{ fontFamily: 'Amiko', fontSize: 12, borderRadius: '10px', border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}
-                      formatter={(v, _name, props) => [typeof v === 'number' ? v : 0, (props.payload as { label?: string } | undefined)?.label ?? '']}
+                      labelFormatter={(key) => DEDUCTION_CATEGORIES.find(c => c.key === key)?.label ?? key}
+                      formatter={(v) => [`${typeof v === 'number' ? v.toFixed(2) : '0.00'} pts`, 'Points']}
                     />
-                    <Bar dataKey="count" fill={green} radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="points" fill={accentDark} radius={[4, 4, 0, 0]} isAnimationActive={false} />
                   </BarChart>
                 </ResponsiveContainer>
 
-                {/* Legend */}
-                <div style={{ marginTop: '12px', display: 'grid', gap: '4px' }}>
-                  {barData.map(d => (
-                    <div key={d.key} style={{ display: 'flex', justifyContent: 'space-between', fontFamily, fontSize: '11px', color: textSecondary }}>
-                      <span><strong style={{ color: textPrimary }}>{d.key}</strong> — {d.label}</span>
-                      <span style={{ fontWeight: 700, color: textPrimary }}>{d.count}×</span>
-                    </div>
-                  ))}
-                </div>
+                {/* Frequency legend — only show categories with occurrences */}
+                {activeBarData.length > 0 && (
+                  <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #EEF2F8', display: 'grid', gap: '6px' }}>
+                    {activeBarData.map(d => (
+                      <div key={d.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily, fontSize: '12px' }}>
+                        <div style={{
+                          background: '#EEF8D8', border: '1px solid #D6EFA0',
+                          borderRadius: '20px', padding: '4px 10px',
+                          fontSize: '11px', fontWeight: 600, color: '#4A6B1A',
+                        }}>
+                          {d.key} — {d.label}
+                        </div>
+                        <span style={{ fontWeight: 700, color: textPrimary, flexShrink: 0, marginLeft: '8px' }}>{d.frequency}×</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </>
             )}
           </div>
