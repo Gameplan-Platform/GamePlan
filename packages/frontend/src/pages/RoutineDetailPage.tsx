@@ -98,7 +98,7 @@ export default function RoutineDetailPage() {
     api(`/routines/${routineId}`, { method: 'PATCH', token, body: { deductions } })
       .then(() => { setDeductionSaved(true); setTimeout(() => setDeductionSaved(false), 1500) })
       .catch(() => {})
-  }, [counts])
+  }, [counts, routineId, token])
 
   const saveNotes = async () => {
     if (!routineId || !token) return

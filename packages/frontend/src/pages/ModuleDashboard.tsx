@@ -70,7 +70,7 @@ export default function ModuleDashboard() {
       })
       .catch(err => setError(err instanceof Error ? err.message : 'Failed to load'))
       .finally(() => setLoading(false))
-  }, [moduleId, token])
+  }, [moduleId, token, setSystemKey])
 
   if (loading) {
     return (

@@ -16,6 +16,7 @@ export function ModuleProvider({ children }: { children: ReactNode }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useModule() {
   const ctx = useContext(ModuleContext)
   if (!ctx) throw new Error('useModule must be used within ModuleProvider')
