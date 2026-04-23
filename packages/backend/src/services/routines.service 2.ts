@@ -28,7 +28,7 @@ export async function listRoutines(
   if (!membership) throw new Error("Not a member of this module");
 
   const isCoach = userRole === "COACH";
-  const athleteId = isCoach ? athleteIdFilter : undefined;
+  const athleteId = isCoach ? athleteIdFilter : userId;
 
   return prisma.routine.findMany({
     where: {
@@ -40,7 +40,7 @@ export async function listRoutines(
   });
 }
 
-export async function getRoutine(userId: string, _userRole: string, routineId: string) {
+export async function getRoutine(userId: string, userRole: string, routineId: string) {
   const routine = await prisma.routine.findUnique({
     where: { id: routineId },
     include: { deductions: true },
@@ -50,7 +50,9 @@ export async function getRoutine(userId: string, _userRole: string, routineId: s
   const membership = await getMembership(userId, routine.moduleId);
   if (!membership) throw new Error("Not authorized");
 
-  // All module members can view any routine in the module
+  const isCoach = userRole === "COACH";
+  const isOwner = routine.athleteId === userId;
+  if (!isCoach && !isOwner) throw new Error("Not authorized");
 
   return routine;
 }
@@ -63,7 +65,6 @@ export async function createRoutine(
     date: string;
     athleteId: string;
     notes?: string;
-    isFullOut?: boolean;
     deductions?: DeductionInput[];
   }
 ) {
@@ -81,7 +82,6 @@ export async function createRoutine(
       title: input.title,
       date,
       notes: input.notes,
-      isFullOut: input.isFullOut ?? false,
       moduleId,
       athleteId: input.athleteId,
       createdById: coachId,
@@ -100,7 +100,6 @@ export async function updateRoutine(
     title?: string;
     date?: string;
     notes?: string | null;
-    isFullOut?: boolean;
     deductions?: DeductionInput[];
   }
 ) {
@@ -119,7 +118,6 @@ export async function updateRoutine(
         ...(data.title !== undefined ? { title: data.title } : {}),
         ...(data.date !== undefined ? { date: parseDate(data.date) } : {}),
         ...(data.notes !== undefined ? { notes: data.notes } : {}),
-        ...(data.isFullOut !== undefined ? { isFullOut: data.isFullOut } : {}),
       },
     });
 

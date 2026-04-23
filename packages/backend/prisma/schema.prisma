@@ -326,6 +326,7 @@ model Routine {
   title       String
   date        DateTime
   notes       String?
+  isFullOut   Boolean  @default(false)
   moduleId    String
   athleteId   String
   createdById String

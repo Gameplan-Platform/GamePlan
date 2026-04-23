@@ -32,6 +32,7 @@ export default function VerifyEmail() {
         setStatus("error");
         setMessage(err instanceof Error ? err.message : "Verification failed");
       });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   // Auto-redirect after successful verification

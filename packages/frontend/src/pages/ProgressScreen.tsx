@@ -24,13 +24,14 @@ type Routine = {
   title: string
   date: string
   notes: string | null
+  isFullOut: boolean
   athleteId: string
   deductions: Deduction[]
 }
 
 const fontFamily = '"Amiko", sans-serif'
 const accent = '#6267E3'
-const accentDark = '#613B97'
+const accentDark = '#55337B'
 const green = '#B7DE58'
 const pageBackground = '#F3F4F6'
 const textPrimary = '#1F2937'
@@ -112,7 +113,7 @@ function TopTab({
         color: active ? '#FFFFFF' : '#2B3140',
         fontFamily,
         fontSize: '13px',
-        fontWeight: 700,
+        fontWeight: 400,
         cursor: 'pointer',
         boxShadow: active
           ? '0 10px 24px rgba(98, 103, 227, 0.22)'
@@ -205,81 +206,97 @@ function ProgressRing({ percent }: { percent: number }) {
 function GoalRow({
   goal,
   onToggle,
+  onDelete,
+  canManage,
 }: {
   goal: Goal
   onToggle: (id: string) => void
+  onDelete: (id: string) => void
+  canManage: boolean
 }) {
   return (
-    <motion.button
-      whileHover={{ y: -1.5 }}
-      whileTap={{ scale: 0.995 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-      onClick={() => onToggle(goal.id)}
+    <div
       style={{
         width: '100%',
         minHeight: '48px',
         border: '1px solid #EEF2F8',
         background: '#FFFFFF',
-        borderRadius: '16px',
+        borderRadius: '999px',
         padding: '0 14px',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
-        textAlign: 'left',
-        cursor: 'pointer',
         boxShadow: '0 8px 22px rgba(34, 43, 69, 0.08)',
       }}
     >
-      <div
+      <button
+        onClick={() => canManage && onToggle(goal.id)}
         style={{
-          width: '22px',
-          height: '22px',
-          borderRadius: '50%',
-          background: goal.completed ? green : '#D9D9D9',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
+          display: 'flex', alignItems: 'center', gap: '12px',
+          flex: 1, border: 'none', background: 'transparent',
+          cursor: canManage ? 'pointer' : 'default', padding: 0, textAlign: 'left',
+          pointerEvents: canManage ? 'auto' : 'none',
         }}
       >
-        {goal.completed ? (
-          <span
-            style={{
-              color: '#FFFFFF',
-              fontSize: '13px',
-              fontWeight: 700,
-              lineHeight: 1,
-            }}
-          >
-            ✓
-          </span>
-        ) : null}
-      </div>
+        <div
+          style={{
+            width: '22px',
+            height: '22px',
+            borderRadius: '50%',
+            background: goal.completed ? green : '#D9D9D9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+            <path d="M1 4L4 7L10 1" stroke={goal.completed ? '#fff' : 'rgba(255,255,255,0.45)'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <span
+          style={{
+            fontFamily,
+            fontSize: '14px',
+            fontWeight: 600,
+            color: textPrimary,
+            textDecoration: goal.completed ? 'line-through' : 'none',
+            opacity: goal.completed ? 0.72 : 1,
+          }}
+        >
+          {goal.title}
+        </span>
+      </button>
 
-      <span
-        style={{
-          fontFamily,
-          fontSize: '14px',
-          fontWeight: 600,
-          color: textPrimary,
-          textDecoration: goal.completed ? 'line-through' : 'none',
-          opacity: goal.completed ? 0.72 : 1,
-        }}
-      >
-        {goal.title}
-      </span>
-    </motion.button>
+      {canManage && (
+        <button
+          onClick={e => { e.stopPropagation(); onDelete(goal.id) }}
+          style={{
+            width: '34px', height: '34px', borderRadius: '10px',
+            border: '1px solid #F3D6D6', background: '#FFF7F7',
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', flexShrink: 0,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M6 7H18M9 7V5H15V7M8 7L9 19H15L16 7" stroke="#D85050" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
+    </div>
   )
 }
 
 function RoutineCard({
   routine,
   canManage,
+  onView,
   onEdit,
   onDelete,
 }: {
   routine: Routine
   canManage: boolean
+  onView: () => void
   onEdit: () => void
   onDelete: () => void
 }) {
@@ -290,7 +307,7 @@ function RoutineCard({
       style={{
         background: '#FFFFFF',
         borderRadius: '18px',
-        padding: '16px',
+        padding: '12px 16px',
         border: '1px solid #EEF2F8',
         boxShadow: '0 10px 24px rgba(34, 43, 69, 0.08)',
       }}
@@ -299,89 +316,105 @@ function RoutineCard({
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           gap: '12px',
         }}
       >
-        <div style={{ minWidth: 0 }}>
-          <div
-            style={{
-              fontFamily,
-              fontSize: '15px',
-              fontWeight: 700,
-              color: textPrimary,
-              marginBottom: routine.notes ? '8px' : 0,
-            }}
-          >
-            {routine.title}
-          </div>
-
-          {routine.notes ? (
+        <div style={{ minWidth: 0, flex: 1, cursor: 'pointer' }} onClick={onView}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div
               style={{
                 fontFamily,
-                fontSize: '12px',
-                lineHeight: 1.5,
-                color: textSecondary,
+                fontSize: '15px',
+                fontWeight: 400,
+                color: textPrimary,
               }}
             >
-              {routine.notes}
+              {routine.title}
             </div>
-          ) : null}
+            {routine.isFullOut && (
+              <div style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: accentDark,
+                flexShrink: 0,
+              }} title="Full Out" />
+            )}
+          </div>
+
         </div>
 
-        {canManage ? (
-          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-            <button
-              onClick={onEdit}
-              style={{
-                width: '34px',
-                height: '34px',
-                borderRadius: '10px',
-                border: '1px solid #E8ECF6',
-                background: '#FFFFFF',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M4 20H8L18.5 9.5C19.3 8.7 19.3 7.3 18.5 6.5L17.5 5.5C16.7 4.7 15.3 4.7 14.5 5.5L4 16V20Z"
-                  stroke="#6166DB"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+          {canManage && (
+            <>
+              <button
+                onClick={e => { e.stopPropagation(); onEdit() }}
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  border: '1px solid #E8ECF6',
+                  background: '#FFFFFF',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M4 20H8L18.5 9.5C19.3 8.7 19.3 7.3 18.5 6.5L17.5 5.5C16.7 4.7 15.3 4.7 14.5 5.5L4 16V20Z"
+                    stroke="#6166DB"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
 
-            <button
-              onClick={onDelete}
-              style={{
-                width: '34px',
-                height: '34px',
-                borderRadius: '10px',
-                border: '1px solid #F3D6D6',
-                background: '#FFF7F7',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M6 7H18M9 7V5H15V7M8 7L9 19H15L16 7"
-                  stroke="#D85050"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-        ) : null}
+              <button
+                onClick={e => { e.stopPropagation(); onDelete() }}
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  border: '1px solid #F3D6D6',
+                  background: '#FFF7F7',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M6 7H18M9 7V5H15V7M8 7L9 19H15L16 7"
+                    stroke="#D85050"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </>
+          )}
+
+          <button
+            onClick={e => { e.stopPropagation(); onView() }}
+            style={{
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none">
+              <path d="M1 1L7 7L1 13" stroke="#222B45" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
       </div>
     </motion.div>
   )
@@ -442,11 +475,15 @@ function MiniCalendar({
           style={{
             border: 'none',
             background: 'transparent',
-            color: '#6A6FBF',
             cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '4px',
           }}
         >
-          ‹
+          <svg width="7" height="11" viewBox="0 0 7 11" fill="none">
+            <path d="M6 1L1 5.5L6 10" stroke="#222B45" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </motion.button>
 
         <span style={{ fontWeight: 700 }}>{formatMonth(viewDate)}</span>
@@ -462,11 +499,15 @@ function MiniCalendar({
           style={{
             border: 'none',
             background: 'transparent',
-            color: '#6A6FBF',
             cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '4px',
           }}
         >
-          ›
+          <svg width="7" height="11" viewBox="0 0 7 11" fill="none">
+            <path d="M1 1L6 5.5L1 10" stroke="#222B45" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </motion.button>
       </div>
 
@@ -510,7 +551,7 @@ function MiniCalendar({
               style={{
                 width: '26px',
                 height: '26px',
-                borderRadius: '50%',
+                borderRadius: '6px',
                 border: 'none',
                 background: isSelected ? '#6166DB' : 'transparent',
                 color: isSelected ? '#FFFFFF' : isCurrentMonth ? '#3E4272' : '#B6B7CB',
@@ -594,9 +635,9 @@ export default function ProgressScreen() {
   const [showRoutineModal, setShowRoutineModal] = useState(false)
   const [editingRoutineId, setEditingRoutineId] = useState<string | null>(null)
   const [routineTitle, setRoutineTitle] = useState('')
-  const [routineNotes, setRoutineNotes] = useState('')
-  const [routineDeductions, setRoutineDeductions] = useState<Deduction[]>([])
+  const [routineIsFullOut, setRoutineIsFullOut] = useState(false)
   const [savingRoutine, setSavingRoutine] = useState(false)
+  const [routineError, setRoutineError] = useState('')
 
   const canManageRoutines = role === 'COACH'
 
@@ -695,19 +736,29 @@ export default function ProgressScreen() {
     }
   }
 
+  const deleteGoal = async (goalId: string) => {
+    if (!token) return
+    const previous = goals
+    setGoals(prev => prev.filter(g => g.id !== goalId))
+    try {
+      await api(`/goals/${goalId}`, { method: 'DELETE', token })
+    } catch (error) {
+      setGoals(previous)
+      alert(error instanceof Error ? error.message : 'Failed to delete goal')
+    }
+  }
+
   const openNewRoutine = () => {
     setEditingRoutineId(null)
     setRoutineTitle('')
-    setRoutineNotes('')
-    setRoutineDeductions([])
+    setRoutineIsFullOut(false)
     setShowRoutineModal(true)
   }
 
   const openEditRoutine = (routine: Routine) => {
     setEditingRoutineId(routine.id)
     setRoutineTitle(routine.title)
-    setRoutineNotes(routine.notes ?? '')
-    setRoutineDeductions(routine.deductions.map(d => ({ ...d })))
+    setRoutineIsFullOut(routine.isFullOut)
     setShowRoutineModal(true)
   }
 
@@ -715,46 +766,20 @@ export default function ProgressScreen() {
     setShowRoutineModal(false)
     setEditingRoutineId(null)
     setRoutineTitle('')
-    setRoutineNotes('')
-    setRoutineDeductions([])
-  }
-
-  const addDeductionRow = () => {
-    setRoutineDeductions(prev => [...prev, { category: '', value: 0, notes: '' }])
-  }
-
-  const updateDeductionRow = (index: number, patch: Partial<Deduction>) => {
-    setRoutineDeductions(prev =>
-      prev.map((row, i) => (i === index ? { ...row, ...patch } : row))
-    )
-  }
-
-  const removeDeductionRow = (index: number) => {
-    setRoutineDeductions(prev => prev.filter((_, i) => i !== index))
+    setRoutineIsFullOut(false)
+    setRoutineError('')
   }
 
   const saveRoutine = async () => {
     const trimmedTitle = routineTitle.trim()
     if (!trimmedTitle || !currentModuleId || !token) return
 
-    const cleanedDeductions = routineDeductions
-      .map(d => ({
-        category: d.category.trim(),
-        value: Number(d.value) || 0,
-        notes: d.notes?.toString().trim() || undefined,
-      }))
-      .filter(d => d.category.length > 0)
-
     setSavingRoutine(true)
     try {
       if (editingRoutineId !== null) {
         const res = await api<{ routine: Routine }>(`/routines/${editingRoutineId}`, {
           method: 'PATCH',
-          body: {
-            title: trimmedTitle,
-            notes: routineNotes.trim() || null,
-            deductions: cleanedDeductions,
-          },
+          body: { title: trimmedTitle, isFullOut: routineIsFullOut },
           token,
         })
         setRoutines(prev => prev.map(r => (r.id === res.routine.id ? res.routine : r)))
@@ -767,8 +792,7 @@ export default function ProgressScreen() {
               title: trimmedTitle,
               date: selectedRoutineDate,
               athleteId: parseUserId(token),
-              notes: routineNotes.trim() || undefined,
-              deductions: cleanedDeductions,
+              isFullOut: routineIsFullOut,
             },
             token,
           }
@@ -777,7 +801,7 @@ export default function ProgressScreen() {
       }
       closeRoutineModal()
     } catch (error) {
-      console.error('Failed to save routine', error)
+      setRoutineError(error instanceof Error ? error.message : 'Failed to save')
     } finally {
       setSavingRoutine(false)
     }
@@ -791,8 +815,8 @@ export default function ProgressScreen() {
     try {
       await api(`/routines/${routineId}`, { method: 'DELETE', token })
     } catch (error) {
-      console.error('Failed to delete routine', error)
       setRoutines(previous)
+      alert(error instanceof Error ? error.message : 'Failed to delete routine')
     }
   }
 
@@ -846,7 +870,7 @@ export default function ProgressScreen() {
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            zIndex: 4,
+            zIndex: 6,
           }}
         >
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
@@ -890,7 +914,7 @@ export default function ProgressScreen() {
             top: '104px',
             left: '24px',
             right: '24px',
-            bottom: '112px',
+            bottom: activeTab === 'routines' ? '162px' : '112px',
             overflowY: 'auto',
             paddingRight: '4px',
           }}
@@ -958,7 +982,7 @@ export default function ProgressScreen() {
                     style={{
                       fontFamily,
                       fontSize: '13px',
-                      fontWeight: 700,
+                      fontWeight: 400,
                       color: '#FFFFFF',
                       letterSpacing: '0.02em',
                     }}
@@ -1067,7 +1091,7 @@ export default function ProgressScreen() {
                   <span
                     style={{
                       fontSize: '13px',
-                      fontWeight: 700,
+                      fontWeight: 400,
                       color: '#FFFFFF',
                       letterSpacing: '0.02em',
                     }}
@@ -1094,7 +1118,7 @@ export default function ProgressScreen() {
                 >
                   {goals.length > 0 ? (
                     goals.map(goal => (
-                      <GoalRow key={goal.id} goal={goal} onToggle={toggleGoal} />
+                      <GoalRow key={goal.id} goal={goal} onToggle={toggleGoal} onDelete={deleteGoal} canManage={canManageRoutines} />
                     ))
                   ) : (
                     <div
@@ -1115,259 +1139,156 @@ export default function ProgressScreen() {
                 </div>
 
                 {canManageRoutines ? (
-                <div style={{ marginTop: '16px' }}>
-                  <AnimatePresence mode="wait">
-                    {!showAddGoal ? (
-                      <motion.button
-                        key="collapsed-add-goal"
+                <div style={{ marginTop: '10px', display: 'grid', gap: '10px' }}>
+                  <AnimatePresence>
+                    {showAddGoal && (
+                      <motion.div
+                        key="add-goal-bubble"
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
                         transition={{ duration: 0.18 }}
-                        onClick={() => setShowAddGoal(true)}
                         style={{
-                          width: '100%',
-                          height: '46px',
+                          width: '100%', minHeight: '48px',
                           borderRadius: '999px',
-                          border: '1px solid #E8ECF5',
-                          background: '#FFFFFF',
-                          boxShadow: '0 12px 24px rgba(34, 43, 69, 0.07)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
+                          border: '1px solid #EEF2F8', background: '#FFFFFF',
+                          boxShadow: '0 8px 22px rgba(34, 43, 69, 0.08)',
+                          display: 'flex', alignItems: 'center', padding: '0 8px', gap: '8px',
                         }}
                       >
-                        <div
-                          style={{
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '50%',
-                            background: green,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#FFFFFF',
-                            fontSize: '18px',
-                            fontWeight: 700,
-                            lineHeight: 1,
-                            boxShadow: '0 10px 18px rgba(183, 222, 88, 0.3)',
+                        <input
+                          value={goalInput}
+                          onChange={e => setGoalInput(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') addGoal()
+                            if (e.key === 'Escape') { setShowAddGoal(false); setGoalInput('') }
                           }}
-                        >
-                          +
-                        </div>
-                      </motion.button>
-                    ) : (
-                      <motion.div
-                        key="expanded-add-goal"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                        }}
-                      >
-                        <div
+                          placeholder="New Goal"
+                          autoFocus
                           style={{
-                            flex: 1,
-                            minHeight: '50px',
-                            borderRadius: '18px',
-                            background: '#FFFFFF',
-                            border: '1px solid #EEF1F8',
-                            boxShadow: '0 12px 24px rgba(34, 43, 69, 0.08)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '0 14px',
-                            gap: '10px',
+                            flex: 1, border: 'none', outline: 'none',
+                            background: 'transparent', fontFamily,
+                            fontSize: '14px', fontWeight: 400, color: textPrimary,
+                            paddingLeft: '6px',
                           }}
-                        >
-                          <div
+                        />
+
+                        <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                          <button
+                            onClick={() => { setShowAddGoal(false); setGoalInput('') }}
                             style={{
-                              color: green,
-                              fontSize: '18px',
-                              lineHeight: 1,
+                              width: '28px', height: '28px', borderRadius: '50%',
+                              border: 'none', background: '#D94C4C',
+                              cursor: 'pointer', display: 'flex', alignItems: 'center',
+                              justifyContent: 'center', flexShrink: 0,
                             }}
                           >
-                            ✦
-                          </div>
-
-                          <input
-                            value={goalInput}
-                            onChange={e => setGoalInput(e.target.value)}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') addGoal()
-                              if (e.key === 'Escape') {
-                                setShowAddGoal(false)
-                                setGoalInput('')
-                              }
-                            }}
-                            placeholder="Title"
-                            autoFocus
-                            style={{
-                              flex: 1,
-                              border: 'none',
-                              outline: 'none',
-                              background: 'transparent',
-                              fontFamily,
-                              fontSize: '14px',
-                              fontWeight: 600,
-                              color: textPrimary,
-                            }}
-                          />
+                            <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                              <path d="M1 1L7 7M7 1L1 7" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
+                          </button>
 
                           <button
-                            onClick={() => {
-                              setShowAddGoal(false)
-                              setGoalInput('')
-                            }}
+                            onClick={addGoal}
                             style={{
-                              width: '22px',
-                              height: '22px',
-                              borderRadius: '50%',
-                              border: 'none',
-                              background: '#D94C4C',
-                              color: '#FFFFFF',
-                              fontSize: '14px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              lineHeight: 1,
-                              flexShrink: 0,
+                              width: '28px', height: '28px', borderRadius: '50%',
+                              border: 'none', background: green,
+                              cursor: 'pointer', display: 'flex', alignItems: 'center',
+                              justifyContent: 'center', flexShrink: 0,
+                              boxShadow: '0 4px 10px rgba(183,222,88,0.35)',
                             }}
                           >
-                            ×
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                              <path d="M5 1V9M1 5H9" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
                           </button>
                         </div>
-
-                        <motion.button
-                          whileTap={{ scale: 0.95 }}
-                          onClick={addGoal}
-                          style={{
-                            width: '52px',
-                            height: '52px',
-                            borderRadius: '50%',
-                            border: 'none',
-                            background: green,
-                            color: '#FFFFFF',
-                            fontSize: '30px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            boxShadow: '0 14px 24px rgba(183, 222, 88, 0.34)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            lineHeight: 1,
-                            flexShrink: 0,
-                          }}
-                        >
-                          +
-                        </motion.button>
                       </motion.div>
                     )}
                   </AnimatePresence>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <motion.button
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.94 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      onClick={() => setShowAddGoal(true)}
+                      style={{
+                        width: '44px', height: '44px', borderRadius: '50%',
+                        border: 'none', background: green,
+                        boxShadow: '0 10px 20px rgba(183, 222, 88, 0.35)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M9 3V15M3 9H15" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
+                      </svg>
+                    </motion.button>
+                  </div>
                 </div>
                 ) : null}
               </motion.div>
             </>
           ) : (
             <>
-              <motion.div
-                whileHover={{ y: -1 }}
-                transition={{ type: 'spring', stiffness: 240, damping: 22 }}
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: '26px',
-                  padding: '18px',
-                  boxShadow: cardShadow,
-                  border: `1px solid ${cardBorder}`,
-                  marginBottom: '18px',
-                }}
-              >
+              <div style={{ position: 'relative', marginBottom: '14px' }}>
                 <div
                   style={{
-                    fontFamily,
-                    fontSize: '18px',
-                    fontWeight: 700,
-                    color: textPrimary,
-                    marginBottom: '6px',
+                    width: '100%',
+                    minHeight: '44px',
+                    background: '#FFFFFF',
+                    border: '1px solid #C7C8E7',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    padding: '0 14px',
+                    fontFamily: 'Amiko',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#4A4E7A',
+                    boxSizing: 'border-box',
+                    boxShadow: cardShadow,
                   }}
                 >
-                  Routine Schedule
-                </div>
+                  <span>{formatPrettyDate(selectedRoutineDate)}</span>
 
-                <div
-                  style={{
-                    fontFamily,
-                    fontSize: '12px',
-                    lineHeight: 1.5,
-                    color: textSecondary,
-                    marginBottom: '16px',
-                  }}
-                >
-                  Select a practice date to view or build that day&apos;s routine.
-                </div>
-
-                <div style={{ position: 'relative' }}>
-                  <div
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={hoverTransition}
+                    onClick={() => setCalendarOpen(prev => !prev)}
                     style={{
-                      width: '100%',
-                      minHeight: '40px',
-                      background: '#FFFFFF',
-                      border: '1px solid #C7C8E7',
-                      borderRadius: '4px',
+                      width: '28px',
+                      height: '28px',
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '8px',
-                      padding: '8px 10px',
-                      fontFamily: 'Amiko',
-                      fontSize: '12px',
-                      color: '#4A4E7A',
-                      boxSizing: 'border-box',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      padding: 0,
                     }}
                   >
-                    <span>{formatPrettyDate(selectedRoutineDate)}</span>
-
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.08 }}
-                      whileTap={{ scale: 0.96 }}
-                      transition={hoverTransition}
-                      onClick={() => setCalendarOpen(prev => !prev)}
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        padding: 0,
-                      }}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <rect x="5" y="6" width="14" height="13" rx="2" stroke="#6166DB" strokeWidth="2" />
-                        <path d="M8 4V8M16 4V8M5 10H19" stroke="#6166DB" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                    </motion.button>
-                  </div>
-
-                  {calendarOpen && (
-                    <MiniCalendar
-                      selectedDate={selectedRoutineDate}
-                      onSelect={setSelectedRoutineDate}
-                      onClose={() => setCalendarOpen(false)}
-                    />
-                  )}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <rect x="5" y="6" width="14" height="13" rx="2" stroke="#6166DB" strokeWidth="2" />
+                      <path d="M8 4V8M16 4V8M5 10H19" stroke="#6166DB" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </motion.button>
                 </div>
-              </motion.div>
+
+                {calendarOpen && (
+                  <MiniCalendar
+                    selectedDate={selectedRoutineDate}
+                    onSelect={setSelectedRoutineDate}
+                    onClose={() => setCalendarOpen(false)}
+                  />
+                )}
+              </div>
 
               <motion.div
                 whileHover={{ y: -1 }}
@@ -1397,12 +1318,12 @@ export default function ProgressScreen() {
                   <span
                     style={{
                       fontSize: '13px',
-                      fontWeight: 700,
+                      fontWeight: 400,
                       color: '#FFFFFF',
                       letterSpacing: '0.02em',
                     }}
                   >
-                    Routines for {formatPrettyDate(selectedRoutineDate)}
+                    Routines &amp; Sections for {formatPrettyDate(selectedRoutineDate)}
                   </span>
 
                   <span
@@ -1423,6 +1344,7 @@ export default function ProgressScreen() {
                         key={routine.id}
                         routine={routine}
                         canManage={canManageRoutines}
+                        onView={() => navigate(`/modules/${currentModuleId}/routines/${routine.id}`)}
                         onEdit={() => openEditRoutine(routine)}
                         onDelete={() => deleteRoutine(routine.id)}
                       />
@@ -1447,7 +1369,7 @@ export default function ProgressScreen() {
                         marginBottom: '6px',
                       }}
                     >
-                      {routinesLoading ? 'Loading routines…' : 'No routines for this date yet'}
+                      {routinesLoading ? 'Loading…' : 'Nothing logged for this date yet'}
                     </div>
 
                     <div
@@ -1459,58 +1381,69 @@ export default function ProgressScreen() {
                       }}
                     >
                       {canManageRoutines
-                        ? 'Create the first routine for this practice day.'
-                        : 'Your coach has not added routines for this date yet.'}
+                        ? 'Add to this practice day.'
+                        : 'Your coach has not added anything for this date yet.'}
                     </div>
                   </div>
                 )}
 
                 {canManageRoutines ? (
-                  <motion.button
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={openNewRoutine}
-                    style={{
-                      width: '100%',
-                      height: '48px',
-                      marginTop: '16px',
-                      borderRadius: '16px',
-                      border: '1px solid #E7EBF5',
-                      background: '#FFFFFF',
-                      boxShadow: '0 10px 24px rgba(34, 43, 69, 0.07)',
-                      fontFamily,
-                      fontSize: '14px',
-                      fontWeight: 700,
-                      color: textPrimary,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    + Add Routine
-                  </motion.button>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+                    <motion.button
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.94 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      onClick={openNewRoutine}
+                      style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '50%',
+                        border: 'none',
+                        background: green,
+                        boxShadow: '0 10px 20px rgba(183, 222, 88, 0.35)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M9 3V15M3 9H15" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
+                      </svg>
+                    </motion.button>
+                  </div>
                 ) : null}
               </motion.div>
 
-              <button
-                style={{
-                  width: '100%',
-                  height: '46px',
-                  border: 'none',
-                  borderRadius: '999px',
-                  background: `linear-gradient(90deg, ${accentDark} 0%, #6A419F 100%)`,
-                  boxShadow: '0 10px 20px rgba(97, 59, 151, 0.18)',
-                  color: '#FFFFFF',
-                  fontFamily,
-                  fontSize: '14px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  marginBottom: '28px',
-                }}
-              >
-                See Comprehensive Stats
-              </button>
             </>
           )}
         </motion.div>
+
+        {activeTab === 'routines' && (
+          <button
+            onClick={() => navigate(`/modules/${currentModuleId}/progress/stats`)}
+            style={{
+              position: 'absolute',
+              bottom: '120px',
+              left: '24px',
+              right: '24px',
+              height: '34px',
+              border: 'none',
+              borderRadius: '999px',
+              background: accent,
+              boxShadow: '0 6px 14px rgba(98, 103, 227, 0.2)',
+              color: '#fff',
+              fontFamily,
+              fontSize: '12px',
+              fontWeight: 400,
+              cursor: 'pointer',
+              letterSpacing: '0.02em',
+              zIndex: 5,
+            }}
+          >
+            See Comprehensive Stats
+          </button>
+        )}
 
         <AnimatePresence>
           {showRoutineModal ? (
@@ -1550,37 +1483,25 @@ export default function ProgressScreen() {
                     fontSize: '20px',
                     fontWeight: 700,
                     color: textPrimary,
-                    marginBottom: '8px',
-                  }}
-                >
-                  {editingRoutineId !== null ? 'Edit Routine' : 'Add Routine'}
-                </div>
-
-                <div
-                  style={{
-                    fontFamily,
-                    fontSize: '12px',
-                    color: textSecondary,
-                    lineHeight: 1.5,
                     marginBottom: '18px',
                   }}
                 >
-                  Build the routine for {formatPrettyDate(selectedRoutineDate)}.
+                  {editingRoutineId !== null ? 'Edit Routine or Section' : 'Add Routine or Section'}
                 </div>
 
-                <div style={{ marginBottom: '14px' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontFamily,
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      color: textSecondary,
-                      marginBottom: '8px',
-                    }}
-                  >
-                    Routine Title
-                  </label>
+                <div style={{ marginBottom: '18px' }}>
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    height: '30px',
+                    borderRadius: '999px',
+                    background: accent,
+                    padding: '0 14px',
+                    marginBottom: '10px',
+                    boxShadow: '0 6px 14px rgba(98, 103, 227, 0.18)',
+                  }}>
+                    <span style={{ fontFamily, fontSize: '12px', fontWeight: 400, color: '#fff' }}>Title</span>
+                  </div>
 
                   <input
                     value={routineTitle}
@@ -1603,187 +1524,67 @@ export default function ProgressScreen() {
                   />
                 </div>
 
-                <div style={{ marginBottom: '18px' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontFamily,
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      color: textSecondary,
-                      marginBottom: '8px',
-                    }}
-                  >
-                    Notes
-                  </label>
-
-                  <textarea
-                    value={routineNotes}
-                    onChange={e => setRoutineNotes(e.target.value)}
-                    placeholder="Optional details for athletes and parents"
-                    rows={4}
+                <div style={{ marginBottom: '22px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setRoutineIsFullOut(prev => !prev)}
                     style={{
                       width: '100%',
+                      height: '48px',
                       borderRadius: '14px',
-                      border: '1px solid #DFE5F0',
-                      padding: '12px 14px',
-                      fontFamily,
-                      fontSize: '14px',
-                      color: textPrimary,
-                      background: '#FBFCFF',
-                      outline: 'none',
-                      resize: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: '18px' }}>
-                  <div
-                    style={{
+                      border: `1.5px solid ${routineIsFullOut ? '#8BBE2A' : '#DFE5F0'}`,
+                      background: routineIsFullOut ? '#F4FBDF' : '#FBFCFF',
                       display: 'flex',
-                      justifyContent: 'space-between',
                       alignItems: 'center',
-                      marginBottom: '8px',
+                      gap: '12px',
+                      padding: '0 14px',
+                      cursor: 'pointer',
+                      fontFamily,
+                      transition: 'all 0.18s ease',
                     }}
                   >
-                    <label
-                      style={{
-                        fontFamily,
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: textSecondary,
-                      }}
-                    >
-                      Deductions
-                    </label>
-                    <button
-                      type="button"
-                      onClick={addDeductionRow}
-                      style={{
-                        height: '28px',
-                        padding: '0 12px',
-                        borderRadius: '999px',
-                        border: '1px solid #DFE5F0',
-                        background: '#FFFFFF',
-                        fontFamily,
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: accent,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      + Add
-                    </button>
-                  </div>
-
-                  {routineDeductions.length === 0 ? (
-                    <div
-                      style={{
-                        borderRadius: '12px',
-                        border: '1px dashed #DFE5F0',
-                        padding: '10px 12px',
-                        fontFamily,
-                        fontSize: '12px',
-                        color: textSecondary,
-                      }}
-                    >
-                      No deductions recorded yet.
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '6px',
+                      border: `2px solid ${routineIsFullOut ? '#8BBE2A' : '#C4C9D8'}`,
+                      background: routineIsFullOut ? green : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      transition: 'all 0.18s ease',
+                    }}>
+                      {routineIsFullOut && (
+                        <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+                          <path d="M1 4L4 7L10 1" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
                     </div>
-                  ) : (
-                    <div style={{ display: 'grid', gap: '8px' }}>
-                      {routineDeductions.map((row, i) => (
-                        <div
-                          key={row.id ?? `new-${i}`}
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 72px 28px',
-                            gap: '8px',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <input
-                            value={row.category}
-                            onChange={e =>
-                              updateDeductionRow(i, { category: e.target.value })
-                            }
-                            placeholder="Category (e.g. Tumbling)"
-                            style={{
-                              height: '38px',
-                              borderRadius: '10px',
-                              border: '1px solid #DFE5F0',
-                              padding: '0 10px',
-                              fontFamily,
-                              fontSize: '13px',
-                              color: textPrimary,
-                              background: '#FBFCFF',
-                              outline: 'none',
-                              boxSizing: 'border-box',
-                            }}
-                          />
-                          <input
-                            type="number"
-                            step="0.05"
-                            value={row.value}
-                            onChange={e =>
-                              updateDeductionRow(i, { value: Number(e.target.value) })
-                            }
-                            placeholder="0.0"
-                            style={{
-                              height: '38px',
-                              borderRadius: '10px',
-                              border: '1px solid #DFE5F0',
-                              padding: '0 10px',
-                              fontFamily,
-                              fontSize: '13px',
-                              color: textPrimary,
-                              background: '#FBFCFF',
-                              outline: 'none',
-                              boxSizing: 'border-box',
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeDeductionRow(i)}
-                            style={{
-                              width: '28px',
-                              height: '28px',
-                              borderRadius: '50%',
-                              border: 'none',
-                              background: '#D94C4C',
-                              color: '#FFFFFF',
-                              fontSize: '14px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              lineHeight: 1,
-                            }}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    <span style={{ fontSize: '13px', fontWeight: 400, color: routineIsFullOut ? '#4A7000' : textSecondary }}>
+                      This is a Full Out
+                    </span>
+                  </button>
                 </div>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    gap: '10px',
-                  }}
-                >
+                {routineError ? (
+                  <div style={{ fontFamily, fontSize: '12px', color: '#D94C4C', marginBottom: '12px', textAlign: 'center' }}>
+                    {routineError}
+                  </div>
+                ) : null}
+
+                <div style={{ display: 'flex', gap: '10px' }}>
                   <button
                     onClick={closeRoutineModal}
                     style={{
+                      flex: 1,
                       height: '42px',
-                      padding: '0 16px',
-                      borderRadius: '12px',
+                      borderRadius: '999px',
                       border: '1px solid #DFE5F0',
                       background: '#FFFFFF',
                       fontFamily,
                       fontSize: '13px',
-                      fontWeight: 700,
+                      fontWeight: 400,
                       color: textPrimary,
                       cursor: 'pointer',
                     }}
@@ -1795,25 +1596,21 @@ export default function ProgressScreen() {
                     onClick={saveRoutine}
                     disabled={savingRoutine}
                     style={{
+                      flex: 1,
                       height: '42px',
-                      padding: '0 18px',
-                      borderRadius: '12px',
+                      borderRadius: '999px',
                       border: 'none',
-                      background: accent,
+                      background: green,
+                      boxShadow: '0 8px 18px rgba(183, 222, 88, 0.28)',
                       fontFamily,
                       fontSize: '13px',
-                      fontWeight: 700,
-                      color: '#FFFFFF',
+                      fontWeight: 400,
+                      color: '#3A5C00',
                       cursor: savingRoutine ? 'not-allowed' : 'pointer',
                       opacity: savingRoutine ? 0.7 : 1,
-                      boxShadow: '0 10px 20px rgba(98, 103, 227, 0.24)',
                     }}
                   >
-                    {savingRoutine
-                      ? 'Saving…'
-                      : editingRoutineId !== null
-                        ? 'Save Changes'
-                        : 'Add Routine'}
+                    {savingRoutine ? 'Saving…' : editingRoutineId !== null ? 'Save Changes' : 'Add'}
                   </button>
                 </div>
               </motion.div>

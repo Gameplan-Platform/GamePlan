@@ -11,7 +11,6 @@ const createRoutineSchema = z.object({
   date: z.string().min(1, "Date is required"),
   athleteId: z.string().min(1, "Athlete ID is required"),
   notes: z.string().optional(),
-  isFullOut: z.boolean().optional(),
   deductions: z.array(deductionInputSchema).optional(),
 });
 
@@ -20,7 +19,6 @@ const updateRoutineSchema = z
     title: z.string().min(1, "Title cannot be empty").optional(),
     date: z.string().min(1, "Date cannot be empty").optional(),
     notes: z.string().nullable().optional(),
-    isFullOut: z.boolean().optional(),
     deductions: z.array(deductionInputSchema).optional(),
   })
   .refine(
@@ -28,7 +26,6 @@ const updateRoutineSchema = z
       data.title !== undefined ||
       data.date !== undefined ||
       data.notes !== undefined ||
-      data.isFullOut !== undefined ||
       data.deductions !== undefined,
     { message: "At least one field must be provided" }
   );

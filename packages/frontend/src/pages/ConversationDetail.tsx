@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 import BottomNav from '../components/BottomNav'
@@ -121,10 +122,23 @@ export default function ConversationDetail() {
 
         {/* Header */}
         <div className="relative flex items-center justify-center px-6 pt-16 pb-6 border-b border-gray-100 flex-shrink-0">
-          <button
-            className="absolute left-6 w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center text-lg text-[#222b45]"
+          <motion.button
+            initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.22 }}
             onClick={() => navigate(`/modules/${moduleId}/messaging`)}
-          >‹</button>
+            style={{
+              position: 'absolute', left: '24px',
+              width: '42px', height: '42px', borderRadius: '14px',
+              border: '1px solid #D9DEEA', background: '#F5F6FA',
+              boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+              <path d="M8.5 1L1.5 8L8.5 15" stroke="#222B45" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </motion.button>
           <h1 className="text-2xl font-bold text-[#222b45]">{conversationName}</h1>
         </div>
 

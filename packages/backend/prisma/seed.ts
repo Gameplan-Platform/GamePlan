@@ -155,6 +155,7 @@ async function main() {
     },
   ];
 
+  await prisma.event.deleteMany({ where: { moduleId: gymModule.id } });
   for (const ev of eventData) {
     await prisma.event.create({
       data: {
@@ -163,6 +164,153 @@ async function main() {
         createdById: coach.id,
       },
     });
+  }
+
+  // Seed October 2025 full outs on custom module for stats demo
+  const oct2025FullOuts = [
+    {
+      title: "Full Out 1",
+      date: new Date("2025-10-02"),
+      deductions: [
+        { category: "AF",    value: 2 },
+        { category: "BB",    value: 1 },
+        { category: "OOB",   value: 3 },
+      ],
+    },
+    {
+      title: "Full Out 2",
+      date: new Date("2025-10-05"),
+      deductions: [
+        { category: "AF",    value: 3 },
+        { category: "BF",    value: 1 },
+        { category: "OOL-T", value: 2 },
+        { category: "TLV",   value: 1 },
+      ],
+    },
+    {
+      title: "Full Out 3",
+      date: new Date("2025-10-08"),
+      deductions: [
+        { category: "MAF",   value: 2 },
+        { category: "BB",    value: 3 },
+        { category: "OOB",   value: 2 },
+        { category: "APS",   value: 1 },
+      ],
+    },
+    {
+      title: "Full Out 4",
+      date: new Date("2025-10-11"),
+      deductions: [
+        { category: "AF",    value: 4 },
+        { category: "MBF",   value: 1 },
+        { category: "OOL-B", value: 2 },
+        { category: "SRD",   value: 1 },
+      ],
+    },
+    {
+      title: "Full Out 5",
+      date: new Date("2025-10-14"),
+      deductions: [
+        { category: "AF",    value: 1 },
+        { category: "BB",    value: 2 },
+        { category: "BF",    value: 1 },
+        { category: "UNI",   value: 3 },
+      ],
+    },
+    {
+      title: "Full Out 6",
+      date: new Date("2025-10-17"),
+      deductions: [
+        { category: "AF",    value: 5 },
+        { category: "MAF",   value: 1 },
+        { category: "OOB",   value: 4 },
+        { category: "TLV",   value: 2 },
+      ],
+    },
+    {
+      title: "Full Out 7",
+      date: new Date("2025-10-20"),
+      deductions: [
+        { category: "BB",    value: 4 },
+        { category: "BF",    value: 2 },
+        { category: "OOL-T", value: 3 },
+        { category: "APS",   value: 2 },
+      ],
+    },
+    {
+      title: "Full Out 8",
+      date: new Date("2025-10-23"),
+      deductions: [
+        { category: "AF",    value: 2 },
+        { category: "MBF",   value: 2 },
+        { category: "OOL-B", value: 1 },
+        { category: "OOB",   value: 3 },
+      ],
+    },
+    {
+      title: "Full Out 9",
+      date: new Date("2025-10-26"),
+      deductions: [
+        { category: "AF",    value: 3 },
+        { category: "BB",    value: 1 },
+        { category: "SRD",   value: 2 },
+        { category: "TLV",   value: 1 },
+      ],
+    },
+    {
+      title: "Full Out 10",
+      date: new Date("2025-10-29"),
+      deductions: [
+        { category: "AF",    value: 1 },
+        { category: "BF",    value: 1 },
+        { category: "OOB",   value: 2 },
+        { category: "MAF",   value: 3 },
+        { category: "APS",   value: 1 },
+      ],
+    },
+  ]
+
+  // Seed role-based group chats for custom module (mirrors what createRoleBasedGroupChats does)
+  await prisma.conversation.deleteMany({ where: { moduleId: customModule.id } })
+  const chatNames = ['Athlete Chat', 'Parent Chat', 'Coach Chat', 'Module Chat']
+  for (const name of chatNames) {
+    await prisma.conversation.create({
+      data: { name, isGroup: true, moduleId: customModule.id },
+    })
+  }
+
+  // Add users to Module Chat + their role chat (mirrors addUserToModuleChat / addUserToRoleGroupChat)
+  const chatsByName = await prisma.conversation.findMany({
+    where: { moduleId: customModule.id, isGroup: true },
+  })
+  const byName = (name: string) => chatsByName.find(c => c.name === name)!
+
+  for (const { userId, roleName } of [
+    { userId: coach.id,   roleName: 'Coach Chat'   },
+    { userId: athlete.id, roleName: 'Athlete Chat' },
+  ]) {
+    for (const convo of [byName('Module Chat'), byName(roleName)]) {
+      await prisma.conversationMember.upsert({
+        where: { conversationId_userId: { conversationId: convo.id, userId } },
+        update: {},
+        create: { conversationId: convo.id, userId },
+      })
+    }
+  }
+
+  await prisma.routine.deleteMany({ where: { moduleId: customModule.id } });
+  for (const fo of oct2025FullOuts) {
+    await prisma.routine.create({
+      data: {
+        title: fo.title,
+        date: fo.date,
+        isFullOut: true,
+        moduleId: customModule.id,
+        athleteId: coach.id,
+        createdById: coach.id,
+        deductions: { create: fo.deductions },
+      },
+    })
   }
 
   console.log("Seed complete!");

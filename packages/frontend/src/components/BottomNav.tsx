@@ -1,13 +1,14 @@
 import { motion } from 'framer-motion'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useModule } from '../context/ModuleContext'
 
 type FrontendTab = 'dashboard' | 'calendar' | 'progress' | 'roster' | 'messaging'
 
 function getActiveTab(pathname: string): FrontendTab {
   if (pathname.includes('/calendar')) return 'calendar'
-  if (pathname.includes('/progress')) return 'progress'
+  if (pathname.includes('/progress') || pathname.includes('/routines')) return 'progress'
   if (pathname.includes('/roster')) return 'roster'
-  if (pathname.includes('/messaging')) return 'messaging'
+  if (pathname.includes('/messaging') || pathname.includes('/messages')) return 'messaging'
   return 'dashboard'
 }
 
@@ -171,9 +172,19 @@ export default function BottomNav() {
   const params = useParams()
 
   const moduleId = params.id ?? params.moduleId
+  const { systemKey } = useModule()
   if (!moduleId) return null
 
   const activeTab = getActiveTab(location.pathname)
+
+  const allowedTabs: FrontendTab[] =
+    systemKey === 'gym'
+      ? ['dashboard', 'calendar']
+      : systemKey === 'staff'
+      ? ['dashboard', 'calendar', 'roster', 'messaging']
+      : ['dashboard', 'calendar', 'progress', 'roster', 'messaging']
+
+  const visibleTabs = tabs.filter(t => allowedTabs.includes(t.key))
 
   return (
     <div
@@ -203,7 +214,7 @@ export default function BottomNav() {
           padding: '0 10px',
         }}
       >
-        {tabs.map((tab) => {
+        {visibleTabs.map((tab) => {
           const isActive = activeTab === tab.key
 
           return (
