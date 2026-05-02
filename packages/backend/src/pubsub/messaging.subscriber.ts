@@ -11,6 +11,16 @@ export async function subscribeToMessagingEvents() {
     await subscriber.subscribe("messaging", (message) => {
         try {
             const event = JSON.parse(message) as PubSubEvent;
+
+            console.log(
+
+                "Pub/Sub event received:",
+
+                event.type,
+
+                event.conversationId
+
+            );
             const io = getIO();
             io.to(`conversation:${event.conversationId}`).emit(event.type, event.payload);
         } catch (error) {
