@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma";
+import { publisher } from "../lib/redis";
 
 export async function createGroupConversation(moduleId: string, name: string, memberIds: string[]) {
     return prisma.conversation.create({
@@ -124,12 +125,7 @@ export async function getMessages(conversationId: string, userId: string) {
     }));
 }
 
-export async function sendMessage
-    (
-        conversationId: string,
-        senderId: string,
-        content: string) {
-
+export async function sendMessage(conversationId: string, senderId: string, content: string) {
     const membership = await prisma.conversationMember.findFirst({
         where: {
             conversationId,
@@ -146,6 +142,18 @@ export async function sendMessage
             conversationId,
             senderId,
             content,
+        },
+        include: {
+            sender: {
+                select: {
+                    id: true,
+                    username: true,
+                    firstName: true,
+                    lastName: true,
+                    role: true,
+                    profilePicture: true,
+                }
+            }
         }
     });
 
@@ -158,6 +166,31 @@ export async function sendMessage
         },
     });
 
+    await publisher.publish(
+        "messaging",
+        JSON.stringify({
+            type: "message.created",
+            conversationId,
+            payload: {
+                conversationId,
+                message,
+            },
+        })
+    );
+
+    await publisher.publish(
+        "messaging",
+        JSON.stringify({
+            type: "conversation.updated",
+            conversationId,
+            payload: {
+                conversationId,
+                latestMessage: message.content,
+                latestMessageTime: message.createdAt,
+                senderId,
+            },
+        })
+    );
     return message;
 }
 
@@ -194,13 +227,32 @@ export async function markMessageAsRead(conversationId: string, userId: string) 
         return { count: 0 };
     }
 
+    const readAt = new Date();
+
     await prisma.messageRead.createMany({
         data: unreadMessages.map((message) => ({
             messageId: message.id,
             userId,
+            readAt,
         })),
         skipDuplicates: true,
     });
+
+    const messageIds = unreadMessages.map((message) => message.id);
+
+    await publisher.publish(
+        "messaging",
+        JSON.stringify({
+            type: "message.read",
+            conversationId,
+            payload: {
+                conversationId,
+                userId,
+                messageIds,
+                readAt,
+            },
+        })
+    );
 
     return { count: unreadMessages.length };
 }
