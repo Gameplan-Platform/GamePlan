@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 import BottomNav from '../components/BottomNav'
+import { getSocket } from '../utils/socket';
 
 interface Conversation {
   id: string
@@ -15,23 +16,89 @@ interface Conversation {
   hasUnread: boolean
   profilePicture?: string | null
   members: { id: string; firstName: string; lastName: string }[]
+
 }
+
+type ConversationUpdatedPayload = {
+  conversationId: string;
+  latestMessage: string;
+  latestMessageTime: string;
+  senderId: string;
+};
+
+type MessageReadPayload = {
+  conversationId: string;
+  userId: string;
+};
 
 export default function Messaging() {
   const { id: moduleId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { token } = useAuth()
-
+  
   const [conversations, setConversations] = useState<Conversation[]>([])
+
+  const currentUserId = token
+  ? JSON.parse(atob(token.split('.')[1])).userId
+  : null
 
   useEffect(() => {
     if (!token) return
     api<{ previews: Conversation[] }>(`/conversations?moduleId=${moduleId}`, { token })
       .then(data => {
-        console.log('conversations:', data.previews)
         setConversations(data.previews)})
       .catch(() => {})
   }, [token, moduleId])
+
+  useEffect(() => {
+  if (!token || !currentUserId || conversations.length === 0) return
+
+  const socket = getSocket(token)
+
+  conversations.forEach((conv) => {
+    socket.emit("conversation.join", conv.id)
+  })
+
+  const handleConversationUpdated = (payload: ConversationUpdatedPayload) => {
+    setConversations((prev) =>
+      prev.map((conv) =>
+        conv.id === payload.conversationId
+          ? {
+              ...conv,
+              latestMessage: payload.latestMessage,
+              latestMessageTime: payload.latestMessageTime,
+              hasUnread:
+              payload.senderId !== currentUserId ? true : conv.hasUnread,
+            }
+          : conv
+      )
+    )
+  }
+
+  const handleMessageRead = (payload: MessageReadPayload) => {
+    if (payload.userId !== currentUserId) return
+
+    setConversations((prev) =>
+      prev.map((conv) =>
+        conv.id === payload.conversationId
+          ? { ...conv, hasUnread: false }
+          : conv
+      )
+    )
+  }
+
+  socket.on("conversation.updated", handleConversationUpdated)
+  socket.on("message.read", handleMessageRead)
+
+  return () => {
+    conversations.forEach((conv) => {
+      socket.emit("conversation.leave", conv.id)
+    })
+
+    socket.off("conversation.updated", handleConversationUpdated)
+    socket.off("message.read", handleMessageRead)
+  }
+}, [token, currentUserId, conversations])
 
   const formatMessageTime = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -56,9 +123,6 @@ export default function Messaging() {
     return new Date(b.latestMessageTime).getTime() - new Date(a.latestMessageTime).getTime()
   })
 
-  const currentUserId = token
-  ? JSON.parse(atob(token.split('.')[1])).userId
-  : null
 
   const getConversationName = (conv: Conversation) => {
   if (conv.name) return conv.name

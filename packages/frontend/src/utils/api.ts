@@ -24,7 +24,6 @@ export async function api<T>(endpoint: string, options: ApiOptions = {}): Promis
   })
 
   const text = await res.text()
-  console.log(`[api] ${method} ${endpoint} → ${res.status}`, text)
   let data: Record<string, unknown> = {}
   if (text) {
     try {
