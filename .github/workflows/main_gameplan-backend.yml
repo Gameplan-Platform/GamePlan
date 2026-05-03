@@ -25,7 +25,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-        working-directory: .
 
       - name: Generate Prisma Client
         run: pnpm --filter @gameplan/backend exec prisma generate
@@ -35,26 +34,23 @@ jobs:
 
       - name: Build backend
         run: pnpm --filter @gameplan/backend build
-      
-      - name: Copy shared dist to backend node_modules
+
+      - name: Prepare deployment package
         run: |
-          mkdir -p packages/backend/node_modules/@gameplan/shared
-          cp -r packages/shared/dist packages/backend/node_modules/@gameplan/shared/
-          cp packages/shared/package.json packages/backend/node_modules/@gameplan/shared/
+          mkdir -p deploy
+          cp -r packages/backend/dist deploy/dist
+          cp packages/backend/package.json deploy/package.json
+          cp -r packages/backend/prisma deploy/prisma
+          cp -r packages/backend/node_modules deploy/node_modules
+          mkdir -p deploy/node_modules/@gameplan/shared
+          cp -r packages/shared/dist deploy/node_modules/@gameplan/shared/dist
+          cp packages/shared/package.json deploy/node_modules/@gameplan/shared/package.json
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: |
-            packages/backend/dist
-            packages/backend/package.json
-            packages/backend/prisma
-            node_modules
-            packages/backend/node_modules
-            package.json
-            pnpm-workspace.yaml
-            pnpm-lock.yaml
+          path: deploy
 
   deploy:
     runs-on: ubuntu-latest
