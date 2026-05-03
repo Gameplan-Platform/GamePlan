@@ -47,6 +47,7 @@ jobs:
           mkdir -p deploy/node_modules/@gameplan/shared
           cp -r packages/shared/dist deploy/node_modules/@gameplan/shared/dist
           cp packages/shared/package.json deploy/node_modules/@gameplan/shared/package.json
+          printf '[config]\nSCM_DO_BUILD_DURING_DEPLOYMENT=false' > deploy/.deployment
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
