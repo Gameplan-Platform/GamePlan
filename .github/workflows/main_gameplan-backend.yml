@@ -35,6 +35,12 @@ jobs:
 
       - name: Build backend
         run: pnpm --filter @gameplan/backend build
+      
+      - name: Copy shared dist to backend node_modules
+        run: |
+          mkdir -p packages/backend/node_modules/@gameplan/shared
+          cp -r packages/shared/dist packages/backend/node_modules/@gameplan/shared/
+          cp packages/shared/package.json packages/backend/node_modules/@gameplan/shared/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -45,6 +51,7 @@ jobs:
             packages/backend/package.json
             packages/backend/prisma
             node_modules
+            packages/backend/node_modules
             package.json
             pnpm-workspace.yaml
             pnpm-lock.yaml
