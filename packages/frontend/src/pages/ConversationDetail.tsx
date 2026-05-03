@@ -135,23 +135,28 @@ useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  async function handleSend() {
-    if (!content.trim() || sending) return
-    setSending(true)
-    try {
-      const data = await api<{ data: Message }>(`/conversations/${conversationId}/message`, {
-        method: 'POST',
+async function handleSend() {
+  if (!content.trim() || sending) return;
+
+  setSending(true);
+
+  try {
+    await api<{ data: Message }>(
+      `/conversations/${conversationId}/message`,
+      {
+        method: "POST",
         token: token ?? undefined,
         body: { content },
-      })
-      //setMessages(prev => [...prev, data.data])
-      setContent('')
-    } catch {
-      // handle error silently
-    } finally {
-      setSending(false)
-    }
+      }
+    );
+
+    setContent("");
+  } catch {
+    // handle error silently
+  } finally {
+    setSending(false);
   }
+}
 
   const formatTime = (dateStr: string) =>
     new Date(dateStr).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
