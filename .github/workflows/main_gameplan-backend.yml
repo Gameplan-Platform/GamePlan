@@ -41,7 +41,9 @@ jobs:
           cp -r packages/backend/dist deploy/dist
           cp packages/backend/package.json deploy/package.json
           cp -r packages/backend/prisma deploy/prisma
-          cp -r packages/backend/node_modules deploy/node_modules
+          mkdir -p deploy/node_modules
+          cp -r node_modules/. deploy/node_modules/
+          cp -r packages/backend/node_modules/. deploy/node_modules/
           mkdir -p deploy/node_modules/@gameplan/shared
           cp -r packages/shared/dist deploy/node_modules/@gameplan/shared/dist
           cp packages/shared/package.json deploy/node_modules/@gameplan/shared/package.json
