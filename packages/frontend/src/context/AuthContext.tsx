@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { disconnectSocket } from "../utils/socket";
 
 interface AuthState {
   token: string | null;
@@ -44,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(parseRole(newToken));
   };
   const logout = () => {
+    disconnectSocket();
     setToken(null);
     setRole(null);
   };

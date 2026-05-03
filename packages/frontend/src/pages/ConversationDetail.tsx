@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
 import BottomNav from '../components/BottomNav'
+import { getSocket } from '../utils/socket';
 
 interface Message {
   id: string
@@ -12,6 +13,7 @@ interface Message {
   content: string
   isRead: boolean
   createdAt: string
+  readAt?: string | null
   sender: {
     id: string
     username: string
@@ -66,39 +68,95 @@ export default function ConversationDetail() {
       .finally(() => setLoading(false))
   }, [token, conversationId])
 
-  // Poll for new messages every 3 seconds
-  useEffect(() => {
-    if (!token || !conversationId) return
-    const interval = setInterval(() => {
-      api<{ messages: Message[] }>(`/conversations/${conversationId}/messages`, { token })
-        .then(data => setMessages(data.messages))
-        .catch(() => {})
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [token, conversationId])
+// Connect to socket room & listen for live messages and read updates
+useEffect(() => {
+  if (!token || !conversationId || !currentUserId) return;
+
+  const socket = getSocket(token);
+
+  const joinRoom = () => {
+    socket.emit("conversation.join", conversationId);
+  };
+
+  if (socket.connected) {
+    joinRoom();
+  } else {
+    socket.on("connect", joinRoom);
+  }
+
+  socket.on("connect_error", (err) => {
+    console.error("Socket connection error:", err.message);
+  });
+
+  const handleMessageCreated = (payload: {
+    conversationId: string;
+    message: Message;
+  }) => {
+    if (payload.conversationId !== conversationId) return;
+
+    setMessages((prev) => {
+      const alreadyExists = prev.some((msg) => msg.id === payload.message.id);
+      if (alreadyExists) return prev;
+      return [...prev, payload.message];
+    });
+  };
+
+  const handleMessageRead = (payload: {
+    conversationId: string;
+    userId: string;
+    messageIds: string[];
+    readAt: string;
+  }) => {
+    if (payload.conversationId !== conversationId) return;
+
+    setMessages((prev) =>
+      prev.map((msg) =>
+        payload.messageIds.includes(msg.id)
+          ? { ...msg, isRead: true, readAt: payload.readAt }
+          : msg
+      )
+    );
+  };
+
+  socket.on("message.created", handleMessageCreated);
+  socket.on("message.read", handleMessageRead);
+
+  return () => {
+    socket.emit("conversation.leave", conversationId);
+
+    socket.off("connect", joinRoom);
+    socket.off("message.created", handleMessageCreated);
+    socket.off("message.read", handleMessageRead);
+  };
+}, [token, conversationId, currentUserId]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  async function handleSend() {
-    if (!content.trim() || sending) return
-    setSending(true)
-    try {
-      const data = await api<{ data: Message }>(`/conversations/${conversationId}/message`, {
-        method: 'POST',
+async function handleSend() {
+  if (!content.trim() || sending) return;
+
+  setSending(true);
+
+  try {
+    await api<{ data: Message }>(
+      `/conversations/${conversationId}/message`,
+      {
+        method: "POST",
         token: token ?? undefined,
         body: { content },
-      })
-      setMessages(prev => [...prev, data.data])
-      setContent('')
-    } catch {
-      // handle error silently
-    } finally {
-      setSending(false)
-    }
+      }
+    );
+
+    setContent("");
+  } catch {
+    // handle error silently
+  } finally {
+    setSending(false);
   }
+}
 
   const formatTime = (dateStr: string) =>
     new Date(dateStr).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
