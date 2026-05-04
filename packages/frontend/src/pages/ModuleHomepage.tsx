@@ -102,7 +102,7 @@ export default function ModuleHomepage() {
         <motion.p
           initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0 }}
-          style={{ position: 'absolute', left: '134px', top: '83px', fontFamily: 'Amiko', fontWeight: 700, fontSize: '40px', lineHeight: '53px', color: '#000000', margin: 0 }}>
+          style={{ position: 'absolute', left: '134px', top: '83px', fontFamily: 'Amiko', fontWeight: 400, fontSize: '40px', lineHeight: '53px', color: '#000000', margin: 0 }}>
           Modules
         </motion.p>
 
@@ -277,14 +277,13 @@ export default function ModuleHomepage() {
               top: '777px',
               width: '109px',
               height: '41px',
-              background: '#B8E466',
-              boxShadow: '0px 8px 20px rgba(0,0,0,0.1)',
-              borderRadius: '40px',
-              border: 'none',
+              background: '#FFFFFF',
+              border: '1px solid #DFE5F0',
+              borderRadius: '999px',
               fontFamily: 'Amiko',
-              fontWeight: 600,
-              fontSize: '24px',
-              color: '#FFFFFF',
+              fontWeight: 400,
+              fontSize: '14px',
+              color: '#222B45',
               cursor: 'pointer',
               zIndex: 20,
             }}

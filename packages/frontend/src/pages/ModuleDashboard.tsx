@@ -5,9 +5,10 @@ import { api } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { useModule } from '../context/ModuleContext'
 import BottomNav from '../components/BottomNav'
-import React from 'react'
 
 const spring = { type: 'spring' as const, stiffness: 100, damping: 14 }
+const accent = '#6166DB'
+const fontFamily = 'Amiko, sans-serif'
 
 interface ModuleInfo {
   id: string
@@ -39,6 +40,34 @@ interface AgendaItem {
   author: { firstName: string; lastName: string }
 }
 
+function TopTab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        height: '44px',
+        flex: 1,
+        padding: '0 20px',
+        borderRadius: '999px',
+        border: active ? 'none' : '1px solid #E2E6F0',
+        background: active ? accent : '#FFFFFF',
+        color: active ? '#FFFFFF' : '#2B3140',
+        fontFamily,
+        fontSize: '13px',
+        fontWeight: 400,
+        cursor: 'pointer',
+        boxShadow: active
+          ? '0 10px 24px rgba(97, 102, 219, 0.22)'
+          : '0 6px 16px rgba(34, 43, 69, 0.05)',
+        transition: 'all 0.2s ease',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {label}
+    </button>
+  )
+}
+
 export default function ModuleDashboard() {
   const { id: moduleId } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -51,6 +80,7 @@ export default function ModuleDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showJoinCode, setShowJoinCode] = useState(false)
+  const [activeTab, setActiveTab] = useState<'announcements' | 'agenda'>('announcements')
 
   const isAdmin = moduleInfo?.memberRole === 'MODULE_ADMIN'
 
@@ -76,7 +106,7 @@ export default function ModuleDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="relative bg-white" style={{ width: '440px', height: '956px', borderRadius: '55px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={{ fontFamily: 'Amiko', fontSize: '16px', color: '#BEBEBE' }}>Loading...</p>
+          <p style={{ fontFamily, fontSize: '16px', color: '#BEBEBE' }}>Loading...</p>
         </div>
       </div>
     )
@@ -86,7 +116,7 @@ export default function ModuleDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="relative bg-white" style={{ width: '440px', height: '956px', borderRadius: '55px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <p style={{ fontFamily: 'Amiko', fontSize: '16px', color: '#FF6B6B' }}>{error}</p>
+          <p style={{ fontFamily, fontSize: '16px', color: '#FF6B6B' }}>{error}</p>
         </div>
       </div>
     )
@@ -106,11 +136,11 @@ export default function ModuleDashboard() {
           onClick={(e) => { e.stopPropagation(); navigate('/module-homepage') }}
           style={{
             position: 'absolute', left: '28px', top: '74px',
-            width: '38px', height: '42px',
-            background: 'transparent', border: '1px solid #CED3DE',
-            borderRadius: '12px', cursor: 'pointer',
+            width: '42px', height: '42px',
+            background: '#F5F6FA', border: '1px solid #D9DEEA',
+            borderRadius: '14px', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            opacity: 0.5,
+            boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
           }}
         >
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
@@ -124,7 +154,7 @@ export default function ModuleDashboard() {
           transition={{ ...spring, delay: 0.05 }}
           style={{
             position: 'absolute', left: 0, right: 0, top: '69px',
-            fontFamily: 'Amiko', fontWeight: 400, fontSize: '40px',
+            fontFamily, fontWeight: 400, fontSize: '40px',
             lineHeight: '53px', color: '#000000', margin: 0,
             textAlign: 'center', pointerEvents: 'none',
           }}
@@ -160,7 +190,7 @@ export default function ModuleDashboard() {
               background: '#FFFFFF', borderRadius: '12px',
               padding: '10px 16px',
               boxShadow: '0px 4px 16px rgba(0,0,0,0.15)',
-              fontFamily: 'Amiko', fontSize: '14px', fontWeight: 400,
+              fontFamily, fontSize: '14px', fontWeight: 400,
               color: '#000000', zIndex: 10,
               border: '2px solid #707070',
             }}
@@ -174,104 +204,96 @@ export default function ModuleDashboard() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.1 }}
           style={{
-           position: 'absolute', top: '155px', left: '20px', right: '20px',
-           bottom: '110px', overflowY: 'auto', padding: '0 10px 20px',
+            position: 'absolute', top: '145px', left: '20px', right: '20px',
+            bottom: '110px', overflowY: 'auto', padding: '0 10px 20px',
           }}
         >
-          {/* Announcements section */}
-          <Section
-            title="Announcements"
-            isAdmin={isAdmin}
-            onAdd={() => navigate(`/modules/${moduleId}/announcements/create`)}
+          {/* Tab row — sticky */}
+          <div
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 3,
+              background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.96) 80%, rgba(255,255,255,0) 100%)',
+              paddingBottom: '14px',
+              marginBottom: '14px',
+            }}
           >
-            {announcements.length === 0 ? (
-              <EmptyState text="No announcements yet." />
-            ) : (
-              announcements.map(a => (
-                <AnnouncementCard
-                  key={a.id}
-                  announcement={a}
-                  onClick={() => navigate(`/modules/${moduleId}/announcements/${a.id}`)}
-                />
-              ))
-            )}
-          </Section>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', paddingTop: '4px' }}>
+              <TopTab
+                label="Announcements"
+                active={activeTab === 'announcements'}
+                onClick={() => setActiveTab('announcements')}
+              />
+              <TopTab
+                label="Agenda"
+                active={activeTab === 'agenda'}
+                onClick={() => setActiveTab('agenda')}
+              />
+            </div>
+          </div>
 
-          {/* Agenda section */}
-          <Section
-            title="Agenda"
-            isAdmin={isAdmin}
-            onAdd={() => navigate(`/modules/${moduleId}/agendas/create`)}
-          >
-            {agendas.length === 0 ? (
-              <EmptyState text="No agenda items yet." />
-            ) : (
-              agendas.map(a => (
-                <AgendaCard
-                  key={a.id}
-                  agenda={a}
-                  onClick={() => navigate(`/modules/${moduleId}/agendas/${a.id}`)}
-                />
-              ))
-            )}
-          </Section>
+          {/* Tab content */}
+          {activeTab === 'announcements' ? (
+            <>
+              {announcements.length === 0 ? (
+                <EmptyState text="No announcements yet." />
+              ) : (
+                announcements.map(a => (
+                  <AnnouncementCard
+                    key={a.id}
+                    announcement={a}
+                    onClick={() => navigate(`/modules/${moduleId}/announcements/${a.id}`)}
+                  />
+                ))
+              )}
+              {isAdmin && (
+                <AddButton onClick={() => navigate(`/modules/${moduleId}/announcements/create`)} />
+              )}
+            </>
+          ) : (
+            <>
+              {agendas.length === 0 ? (
+                <EmptyState text="No agenda items yet." />
+              ) : (
+                agendas.map(a => (
+                  <AgendaCard
+                    key={a.id}
+                    agenda={a}
+                    onClick={() => navigate(`/modules/${moduleId}/agendas/${a.id}`)}
+                  />
+                ))
+              )}
+              {isAdmin && (
+                <AddButton onClick={() => navigate(`/modules/${moduleId}/agendas/create`)} />
+              )}
+            </>
+          )}
         </motion.div>
+
         <BottomNav />
       </div>
     </div>
   )
 }
 
-function Section({ title, isAdmin, onAdd, children }: {
-  title: string
-  isAdmin: boolean
-  onAdd: () => void
-  children: React.ReactNode
-}) {
+function AddButton({ onClick }: { onClick: () => void }) {
   return (
-    <div style={{ marginBottom: '32px' }}>
-      {/* Header bar */}
-      <div style={{
-        background: '#6166DB',
-        boxShadow: '0px 4px 4px rgba(0,0,0,0.25)',
-        borderRadius: '20px',
-        height: '47px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 20px',
-        marginBottom: '18px',
-      }}>
-        <span style={{ fontFamily: 'Amiko', fontWeight: 400, fontSize: '20px', color: '#FFFFFF' }}>
-          {title}
-        </span>
-      </div>
-
-      {/* Cards — scrollable window ~3 tall */}
-      <div className="section-scroll" style={{
-        maxHeight: '220px', overflowY: 'scroll',
-        paddingLeft: '4px', paddingRight: '20px',
-      }}>
-        {children}
-      </div>
-
-      {/* + button (admin only) */}
-      {isAdmin && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-          <button
-            onClick={onAdd}
-            style={{
-              width: '54px', height: '54px', borderRadius: '50%',
-              background: '#B8E466', border: 'none', cursor: 'pointer',
-              boxShadow: '0px 4px 4px rgba(0,0,0,0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
-          >
-            <div style={{ position: 'relative', width: '23px', height: '23px' }}>
-              <div style={{ position: 'absolute', left: '10px', top: 0, width: '3px', height: '23px', background: '#FFFFFF' }} />
-              <div style={{ position: 'absolute', top: '10px', left: 0, width: '23px', height: '3px', background: '#FFFFFF' }} />
-            </div>
-          </button>
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+      <button
+        onClick={onClick}
+        style={{
+          width: '54px', height: '54px', borderRadius: '50%',
+          background: '#B8E466', border: 'none', cursor: 'pointer',
+          boxShadow: '0px 4px 4px rgba(0,0,0,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >
+        <div style={{ position: 'relative', width: '23px', height: '23px' }}>
+          <div style={{ position: 'absolute', left: '10px', top: 0, width: '3px', height: '23px', background: '#FFFFFF' }} />
+          <div style={{ position: 'absolute', top: '10px', left: 0, width: '23px', height: '3px', background: '#FFFFFF' }} />
         </div>
-      )}
+      </button>
     </div>
   )
 }
@@ -287,7 +309,6 @@ function AnnouncementCard({ announcement: a, onClick }: { announcement: Announce
         marginBottom: '10px', cursor: 'pointer',
       }}
     >
-      {/* Avatar */}
       <div style={{
         width: '45px', height: '45px', borderRadius: '100px', flexShrink: 0,
         background: 'rgba(97,102,219,0.2)',
@@ -299,37 +320,32 @@ function AnnouncementCard({ announcement: a, onClick }: { announcement: Announce
         </svg>
       </div>
 
-      {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Purple bubble — capped width so it doesn't stretch full row */}
         <div style={{
           background: '#55337B', borderRadius: '20px',
-          padding: '4px 14px', marginBottom: '4px',
+          padding: '4px 14px', marginBottom: '10px',
           display: 'block', overflow: 'hidden', marginRight: '8px',
         }}>
           <span style={{
-            fontFamily: 'Amiko', fontWeight: 700, fontSize: '12px', color: '#FFFFFF',
+            fontFamily, fontWeight: 700, fontSize: '12px', color: '#FFFFFF',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             display: 'block',
           }}>
             {a.title}
           </span>
         </div>
-        {/* Body */}
         <p style={{
-          fontFamily: 'Amiko', fontSize: '11px', color: '#000000',
+          fontFamily, fontSize: '11px', color: '#000000',
           margin: '0 0 2px 4px', lineHeight: '15px',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {a.body}
         </p>
-        {/* Date + author */}
-        <span style={{ fontFamily: 'Amiko', fontSize: '10px', color: '#000000', paddingLeft: '4px' }}>
+        <span style={{ fontFamily, fontSize: '10px', color: '#000000', paddingLeft: '4px' }}>
           {date} · {a.author.firstName} {a.author.lastName}
         </span>
       </div>
 
-      {/* Big black right arrow */}
       <svg width="16" height="28" viewBox="0 0 16 28" fill="none" style={{ flexShrink: 0 }}>
         <path d="M2 2L13 14L2 26" stroke="#222B45" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
@@ -348,7 +364,6 @@ function AgendaCard({ agenda: a, onClick }: { agenda: AgendaItem; onClick: () =>
         marginBottom: '10px', cursor: 'pointer',
       }}
     >
-      {/* Avatar */}
       <div style={{
         width: '45px', height: '45px', borderRadius: '100px', flexShrink: 0,
         background: 'rgba(97,102,219,0.2)',
@@ -360,15 +375,14 @@ function AgendaCard({ agenda: a, onClick }: { agenda: AgendaItem; onClick: () =>
         </svg>
       </div>
 
-      {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           background: '#55337B', borderRadius: '20px',
-          padding: '4px 14px', marginBottom: '4px',
+          padding: '4px 14px', marginBottom: '10px',
           display: 'block', overflow: 'hidden', marginRight: '8px',
         }}>
           <span style={{
-            fontFamily: 'Amiko', fontWeight: 700, fontSize: '12px', color: '#FFFFFF',
+            fontFamily, fontWeight: 700, fontSize: '12px', color: '#FFFFFF',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             display: 'block',
           }}>
@@ -376,29 +390,27 @@ function AgendaCard({ agenda: a, onClick }: { agenda: AgendaItem; onClick: () =>
           </span>
         </div>
         <p style={{
-          fontFamily: 'Amiko', fontSize: '11px', color: '#000000',
+          fontFamily, fontSize: '11px', color: '#000000',
           margin: '0 0 2px 4px', lineHeight: '15px',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {a.description ?? ''}
         </p>
-        <span style={{ fontFamily: 'Amiko', fontSize: '10px', color: '#000000', paddingLeft: '4px' }}>
+        <span style={{ fontFamily, fontSize: '10px', color: '#000000', paddingLeft: '4px' }}>
           {date} · {a.author.firstName} {a.author.lastName}
         </span>
       </div>
 
-      {/* Big black right arrow */}
       <svg width="16" height="28" viewBox="0 0 16 28" fill="none" style={{ flexShrink: 0 }}>
         <path d="M2 2L13 14L2 26" stroke="#222B45" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
     </div>
-    
   )
 }
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <p style={{ fontFamily: 'Amiko', fontSize: '13px', color: '#BEBEBE', textAlign: 'center', margin: '12px 0' }}>
+    <p style={{ fontFamily, fontSize: '13px', color: '#BEBEBE', textAlign: 'center', margin: '24px 0' }}>
       {text}
     </p>
   )

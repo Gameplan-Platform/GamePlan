@@ -151,7 +151,7 @@ export default function CalendarScreenCoach() {
             <path d="M8.5 1L1.5 8L8.5 15" stroke="#222B45" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </motion.button>
-        <h1 className="text-4xl font-bold text-[#222b45]">Calendar</h1>
+        <h1 className="text-4xl font-normal text-[#222b45]">Calendar</h1>
       </div>
 
       {/* Month Navigation */}
@@ -226,7 +226,7 @@ export default function CalendarScreenCoach() {
                 <span className="text-[#735bf2] text-[10px] mt-1">●</span>
                 <div>
                   <div className="text-xs text-[#8f9bb3] mb-0.5 tracking-wide">{ev.startTime}-{ev.endTime}</div>
-                  <div className="text-[#222b45] font-semibold text-base tracking-wide">{ev.title}</div>
+                  <div className="text-[#222b45] text-base tracking-wide">{ev.title}</div>
                 </div>
               </div>
               <button 
@@ -242,9 +242,18 @@ export default function CalendarScreenCoach() {
         <div className="w-full max-w-[440px] mx-auto relative">
           <button
             onClick={() => navigate(`/modules/${moduleId}/calendar/add-event`)}
-            className="absolute bottom-28 right-6 w-14 h-14 bg-[#b8e366] rounded-full text-white text-3xl shadow-lg flex items-center justify-center"
+            style={{
+              position: 'absolute', bottom: '112px', right: '24px',
+              width: '54px', height: '54px', borderRadius: '50%',
+              background: '#B8E466', border: 'none', cursor: 'pointer',
+              boxShadow: '0px 4px 4px rgba(0,0,0,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
           >
-            +
+            <div style={{ position: 'relative', width: '16px', height: '16px' }}>
+              <div style={{ position: 'absolute', left: '7px', top: 0, width: '2px', height: '16px', background: '#FFFFFF' }} />
+              <div style={{ position: 'absolute', top: '7px', left: 0, width: '16px', height: '2px', background: '#FFFFFF' }} />
+            </div>
           </button>
         </div>
       )}

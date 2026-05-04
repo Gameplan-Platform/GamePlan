@@ -149,7 +149,7 @@ export default function CalendarScreenUser() {
             <path d="M8.5 1L1.5 8L8.5 15" stroke="#222B45" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </motion.button>
-        <h1 className="text-4xl font-bold text-[#222b45]">Calendar</h1>
+        <h1 className="text-4xl font-normal text-[#222b45]">Calendar</h1>
       </div>
 
       {/* Month Navigation */}
@@ -226,7 +226,7 @@ export default function CalendarScreenUser() {
                   <div className="text-xs text-[#8f9bb3] mb-0.5 tracking-wide">
                     {ev.allDay ? "All Day" : `${ev.startTime ?? ""} - ${ev.endTime ?? ""}`}
                   </div>
-                  <div className="text-[#222b45] font-semibold text-base tracking-wide">{ev.title}</div>
+                  <div className="text-[#222b45] text-base tracking-wide">{ev.title}</div>
                 </div>
               </div>
               <div className="flex gap-0.5">

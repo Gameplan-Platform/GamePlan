@@ -51,10 +51,21 @@ export default function ViewEvent() {
       {/* Header */}
       <div className="relative flex items-center justify-center px-6 pt-8 pb-4">
         <button
-          className="absolute left-6 w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center text-lg text-[#222b45]"
           onClick={() => navigate(`/modules/${moduleId}/calendar`)}
-        >‹</button>
-        <h1 className="text-4xl font-bold text-[#222b45]">Event</h1>
+          style={{
+            position: 'absolute', left: '24px',
+            width: '42px', height: '42px',
+            background: '#F5F6FA', border: '1px solid #D9DEEA',
+            borderRadius: '14px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
+          }}
+        >
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+            <path d="M8.5 1L1.5 8L8.5 15" stroke="#222B45" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <h1 className="text-4xl font-normal text-[#222b45]">Event</h1>
       </div>
 
       {loading ? (
@@ -68,7 +79,7 @@ export default function ViewEvent() {
           <div className="flex flex-col gap-2">
             <span className="bg-[#6166db] text-white text-xs px-4 py-1 rounded-xl inline-flex w-fit">Title</span>
             <div className="bg-white rounded-2xl shadow px-4 py-4">
-              <p className="text-[#222b45] font-semibold text-base tracking-wide">{event.title}</p>
+              <p className="text-[#222b45] text-base tracking-wide">{event.title}</p>
             </div>
           </div>
 
@@ -112,13 +123,14 @@ export default function ViewEvent() {
             <div className="flex justify-center gap-4 pt-2 pb-8">
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="w-[116px] h-[45px] bg-red-400 rounded-[20px] flex items-center justify-center text-white text-xl"
+                className="w-[116px] h-[45px] bg-red-400 rounded-[999px] flex items-center justify-center text-white text-sm"
               >
                 Delete
               </button>
               <button
                 onClick={() => navigate(`/modules/${moduleId}/calendar/${eventId}/edit`)}
-                className="w-[116px] h-[45px] bg-white rounded-[20px] shadow flex items-center justify-center text-[#222b45] text-xl"
+                className="w-[116px] h-[45px] bg-[#B8E466] rounded-[999px] flex items-center justify-center text-white text-sm"
+                style={{ boxShadow: '0 6px 14px rgba(183,222,88,0.28)' }}
               >
                 Edit
               </button>
@@ -136,13 +148,14 @@ export default function ViewEvent() {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="w-[110px] h-[40px] bg-gray-100 rounded-[20px] text-[#222b45] font-semibold"
+                className="w-[110px] h-[40px] rounded-[999px] text-[#222b45] text-sm"
+                style={{ background: '#FFFFFF', border: '1px solid #DFE5F0' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
-                className="w-[110px] h-[40px] bg-red-400 rounded-[20px] text-white font-semibold"
+                className="w-[110px] h-[40px] bg-red-400 rounded-[999px] text-white text-sm"
               >
                 Delete
               </button>

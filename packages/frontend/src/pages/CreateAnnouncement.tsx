@@ -42,11 +42,11 @@ export default function CreateAnnouncement() {
           onClick={() => navigate(`/modules/${moduleId}`)}
           style={{
             position: 'absolute', left: '28px', top: '74px',
-            width: '38px', height: '42px',
-            background: 'transparent', border: '1px solid #CED3DE',
-            borderRadius: '12px', cursor: 'pointer',
+            width: '42px', height: '42px',
+            background: '#F5F6FA', border: '1px solid #D9DEEA',
+            borderRadius: '14px', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            opacity: 0.5,
+            boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
           }}
         >
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
@@ -139,9 +139,9 @@ export default function CreateAnnouncement() {
             position: 'absolute', left: '156px', top: '788px',
             width: '116px', height: '45px',
             background: '#FFFFFF',
-            boxShadow: '0px 1px 4px rgba(0,0,0,0.25)',
-            borderRadius: '20px', border: 'none', cursor: 'pointer',
-            fontFamily: 'Amiko', fontSize: '20px', color: '#222B45',
+            border: '1px solid #DFE5F0',
+            borderRadius: '999px', cursor: 'pointer',
+            fontFamily: 'Amiko', fontSize: '14px', color: '#222B45',
           }}
         >
           Cancel
@@ -155,8 +155,9 @@ export default function CreateAnnouncement() {
             position: 'absolute', left: '284px', top: '789px',
             width: '116px', height: '45px',
             background: '#B8E466',
-            borderRadius: '20px', border: 'none', cursor: 'pointer',
-            fontFamily: 'Amiko', fontSize: '20px', color: '#FFFFFF',
+            borderRadius: '999px', border: 'none', cursor: 'pointer',
+            fontFamily: 'Amiko', fontSize: '14px', color: '#FFFFFF',
+            boxShadow: '0 6px 14px rgba(183,222,88,0.28)',
             opacity: submitting || !title.trim() || !body.trim() ? 0.5 : 1,
           }}
         >

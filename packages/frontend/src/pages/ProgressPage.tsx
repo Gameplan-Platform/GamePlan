@@ -182,11 +182,11 @@ export default function ProgressPage() {
           onClick={() => navigate(`/modules/${moduleId}`)}
           style={{
             position: 'absolute', left: '28px', top: '74px',
-            width: '38px', height: '42px',
-            background: 'transparent', border: '1px solid #CED3DE',
-            borderRadius: '12px', cursor: 'pointer',
+            width: '42px', height: '42px',
+            background: '#F5F6FA', border: '1px solid #D9DEEA',
+            borderRadius: '14px', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            opacity: 0.5,
+            boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
           }}
         >
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">

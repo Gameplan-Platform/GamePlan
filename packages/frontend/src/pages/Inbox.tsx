@@ -176,7 +176,7 @@ export default function Messaging() {
           <button
             onClick={() => navigate(`/modules/${moduleId}/messages/new`)}
             style={{
-                width: '36px', height: '36px', borderRadius: '50%',
+                width: '54px', height: '54px', borderRadius: '50%',
                 background: '#B8E466', border: 'none', cursor: 'pointer',
                 boxShadow: '0px 4px 4px rgba(0,0,0,0.25)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -226,7 +226,7 @@ export default function Messaging() {
               {/* Content */}
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-bold text-[#222b45]">
+                  <span className="text-base text-[#222b45]">
                     {getConversationName(conv)}
                   </span>
                   {conv.latestMessageTime && (
