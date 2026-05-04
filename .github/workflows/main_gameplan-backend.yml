@@ -81,3 +81,9 @@ jobs:
           app-name: 'gameplan-backend'
           slot-name: 'Production'
           package: .
+      - name: Run database migrations
+        run: |
+          npm install -g prisma@7.4.1
+          prisma migrate deploy --schema=packages/backend/prisma/schema.prisma
+        env:
+            DATABASE_URL: ${{ secrets.DATABASE_URL }}
