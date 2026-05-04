@@ -36,13 +36,13 @@ jobs:
       - name: Build backend
         run: pnpm --filter @gameplan/backend build
 
+      - name: Deploy backend package
+        run: pnpm --filter @gameplan/backend deploy --prod --legacy /tmp/backend-deploy
+
       - name: Prepare deployment package
         run: |
           mkdir -p deploy
-          cp -r packages/backend/dist deploy/dist
-          cp packages/backend/package.json deploy/package.json
-          cp -r packages/backend/prisma deploy/prisma
-          printf '[config]\nSCM_DO_BUILD_DURING_DEPLOYMENT=true' > deploy/.deployment
+          cp -r /tmp/backend-deploy/. deploy/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
