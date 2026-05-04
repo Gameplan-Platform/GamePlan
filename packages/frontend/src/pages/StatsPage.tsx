@@ -18,19 +18,13 @@ const cardBorder = '#EAEFF8'
 const cardShadow = '0 18px 36px rgba(34, 43, 69, 0.08)'
 
 const DEDUCTION_CATEGORIES = [
-  { key: 'AF',    label: 'Athlete Fall',                  pointsEach: 0.15 },
-  { key: 'MAF',   label: 'Major Athlete Fall',            pointsEach: 0.25 },
-  { key: 'BB',    label: 'Building Bobble',               pointsEach: 0.25 },
-  { key: 'BF',    label: 'Building Fall',                 pointsEach: 0.75 },
-  { key: 'MBF',   label: 'Major Building Fall',           pointsEach: 1.25 },
-  { key: 'OOB',   label: 'Boundary Violation',            pointsEach: 0.05 },
-  { key: 'TLV',   label: 'Time Limit Violation',          pointsEach: 0.05 },
-  { key: 'DV',    label: 'Division Violation',            pointsEach: 5.00 },
-  { key: 'UNI',   label: 'Uniform Violation',             pointsEach: 0.01 },
-  { key: 'APS',   label: 'APS / Excessive Celebration',  pointsEach: 0.25 },
-  { key: 'OOL-T', label: 'Out of Level Tumbling',        pointsEach: 0.05 },
-  { key: 'OOL-B', label: 'Building Out of Level',        pointsEach: 0.10 },
-  { key: 'SRD',   label: 'Skill Restriction / Division', pointsEach: 0.50 },
+  { key: 'AF',    label: 'Athlete Fall',        pointsEach: 0.15 },
+  { key: 'MAF',   label: 'Major Athlete Fall',  pointsEach: 0.25 },
+  { key: 'BB',    label: 'Building Bobble',     pointsEach: 0.25 },
+  { key: 'BF',    label: 'Building Fall',       pointsEach: 0.75 },
+  { key: 'MBF',   label: 'Major Building Fall', pointsEach: 1.25 },
+  { key: 'OOB',   label: 'Boundary Violation',  pointsEach: 0.05 },
+  { key: 'ILL',   label: 'Illegality',          pointsEach: 2.00 },
 ] as const
 
 interface Deduction {

@@ -134,23 +134,11 @@ function StatusButton({
   active: boolean
   onClick: () => void
 }) {
-  const bg =
-    kind === 'present'
-      ? active
-        ? '#B8E466'
-        : '#EEF6DB'
-      : active
-        ? '#FF6B6B'
-        : '#FFE8E8'
+  const bg = active
+    ? kind === 'present' ? '#B8E466' : '#FF6B6B'
+    : '#E2E2E2'
 
-  const color =
-    kind === 'present'
-      ? active
-        ? '#FFFFFF'
-        : '#82AD35'
-      : active
-        ? '#FFFFFF'
-        : '#E05252'
+  const color = active ? '#FFFFFF' : '#AAAAAA'
 
   return (
     <motion.button
@@ -368,7 +356,7 @@ export default function ModuleAttendanceScreen() {
   const [selectedDate, setSelectedDate] = useState(ymd(new Date()))
   const [attendanceMembers, setAttendanceMembers] = useState<AttendanceMember[]>([])
   const [attendanceLoading, setAttendanceLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [savingMemberId, setSavingMemberId] = useState<string | null>(null)
   const [calendarOpen, setCalendarOpen] = useState(false)
 
   const [selectedHistoryMemberId, setSelectedHistoryMemberId] = useState<string | null>(null)
@@ -376,7 +364,6 @@ export default function ModuleAttendanceScreen() {
   const [historyLoadingMemberId, setHistoryLoadingMemberId] = useState<string | null>(null)
 
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   useEffect(() => {
     if (!moduleId || !token) return
@@ -468,45 +455,32 @@ export default function ModuleAttendanceScreen() {
     await loadMemberHistory(memberId)
   }
 
-  function setStatus(memberId: string, status: AttendanceStatus) {
+  async function autoSaveStatus(memberId: string, status: AttendanceStatus) {
     setAttendanceMembers((prev) =>
       prev.map((member) =>
         member.memberId === memberId ? { ...member, status } : member
       )
     )
-    setSuccess(null)
-  }
+    if (!status || !moduleId || !token) return
 
-  async function saveAttendance() {
-    if (!moduleId || !token) return
-
+    setSavingMemberId(memberId)
+    setError(null)
     try {
-      setSaving(true)
-      setError(null)
-      setSuccess(null)
-
-      const records = attendanceMembers
-        .filter((member) => member.status === 'PRESENT' || member.status === 'ABSENT')
-        .map((member) => ({
-          memberId: member.memberId,
-          status: member.status as 'PRESENT' | 'ABSENT',
-        }))
-
       await api(`/modules/${moduleId}/attendance`, {
         method: 'PUT',
         token: token ?? undefined,
-        body: {
-          date: selectedDate,
-          records,
-        },
+        body: { date: selectedDate, records: [{ memberId, status }] },
       })
-
-      setSuccess('Attendance saved.')
       setMemberHistoryMap({})
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save attendance')
+      setAttendanceMembers((prev) =>
+        prev.map((member) =>
+          member.memberId === memberId ? { ...member, status: null } : member
+        )
+      )
+      setError(err instanceof Error ? err.message : 'Failed to save')
     } finally {
-      setSaving(false)
+      setSavingMemberId(null)
     }
   }
 
@@ -576,7 +550,7 @@ export default function ModuleAttendanceScreen() {
             color: '#000000',
           }}
         >
-          {view === 'roster' ? 'Roster' : 'Attendance'}
+          Attendance
         </p>
 
         <div
@@ -592,56 +566,63 @@ export default function ModuleAttendanceScreen() {
         >
           <div
             style={{
-              width: '220px',
-              height: '38px',
-              background: '#F3F1FB',
-              borderRadius: '999px',
-              padding: '4px',
-              display: 'grid',
-              gridTemplateColumns: canManageAttendance ? '1fr 1fr' : '1fr',
-              gap: '4px',
-              margin: '0 auto 16px',
+              position: 'sticky',
+              top: 0,
+              zIndex: 3,
+              background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.96) 80%, rgba(255,255,255,0) 100%)',
+              paddingBottom: '14px',
+              marginBottom: '14px',
             }}
           >
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={hoverTransition}
-              onClick={() => setView('roster')}
-              style={{
-                border: 'none',
-                borderRadius: '999px',
-                background: view === 'roster' ? '#6166DB' : 'transparent',
-                color: view === 'roster' ? '#FFFFFF' : '#6F73B7',
-                fontFamily: 'Amiko',
-                fontSize: '11px',
-                cursor: 'pointer',
-              }}
-            >
-              Roster
-            </motion.button>
-
-            {canManageAttendance && (
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={hoverTransition}
-                onClick={() => setView('attendance')}
+            <div style={{ display: 'flex', gap: '12px', paddingTop: '4px' }}>
+              <button
+                onClick={() => setView('roster')}
                 style={{
-                  border: 'none',
+                  flex: 1,
+                  height: '44px',
+                  padding: '0 20px',
                   borderRadius: '999px',
-                  background: view === 'attendance' ? '#6166DB' : 'transparent',
-                  color: view === 'attendance' ? '#FFFFFF' : '#6F73B7',
+                  border: view === 'roster' ? 'none' : '1px solid #E2E6F0',
+                  background: view === 'roster' ? '#6166DB' : '#FFFFFF',
+                  color: view === 'roster' ? '#FFFFFF' : '#2B3140',
                   fontFamily: 'Amiko',
-                  fontSize: '11px',
+                  fontSize: '13px',
+                  fontWeight: 400,
                   cursor: 'pointer',
+                  boxShadow: view === 'roster'
+                    ? '0 10px 24px rgba(97, 102, 219, 0.22)'
+                    : '0 6px 16px rgba(34, 43, 69, 0.05)',
+                  transition: 'all 0.2s ease',
                 }}
               >
-                Attendance
-              </motion.button>
-            )}
+                Roster
+              </button>
+
+              {canManageAttendance && (
+                <button
+                  onClick={() => setView('attendance')}
+                  style={{
+                    flex: 1,
+                    height: '44px',
+                    padding: '0 20px',
+                    borderRadius: '999px',
+                    border: view === 'attendance' ? 'none' : '1px solid #E2E6F0',
+                    background: view === 'attendance' ? '#6166DB' : '#FFFFFF',
+                    color: view === 'attendance' ? '#FFFFFF' : '#2B3140',
+                    fontFamily: 'Amiko',
+                    fontSize: '13px',
+                    fontWeight: 400,
+                    cursor: 'pointer',
+                    boxShadow: view === 'attendance'
+                      ? '0 10px 24px rgba(97, 102, 219, 0.22)'
+                      : '0 6px 16px rgba(34, 43, 69, 0.05)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  Attendance
+                </button>
+              )}
+            </div>
           </div>
 
           {error && (
@@ -660,23 +641,7 @@ export default function ModuleAttendanceScreen() {
             </div>
           )}
 
-          {success && (
-            <div
-              style={{
-                marginBottom: '12px',
-                background: '#EEF7DB',
-                color: '#719B2D',
-                borderRadius: '14px',
-                padding: '10px 12px',
-                fontFamily: 'Amiko',
-                fontSize: '12px',
-              }}
-            >
-              {success}
-            </div>
-          )}
-
-          {view === 'roster' && (
+{view === 'roster' && (
             <>
               {rosterLoading ? (
                 <p style={{ textAlign: 'center', color: '#A1A3BC', fontFamily: 'Amiko' }}>Loading...</p>
@@ -711,16 +676,17 @@ export default function ModuleAttendanceScreen() {
                         }}
                         style={{
                           width: '100%',
-                          border: 'none',
-                          background: '#F6F5FB',
+                          border: '1px solid #EAECF4',
+                          background: '#FFFFFF',
                           borderRadius: '18px',
-                          minHeight: '42px',
+                          minHeight: '48px',
                           padding: '10px 14px',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '10px',
                           cursor: isCoachRow ? 'default' : 'pointer',
                           opacity: isCoachRow ? 0.92 : 1,
+                          boxShadow: '0 4px 12px rgba(34, 43, 69, 0.07)',
                         }}
                       >
                         <div
@@ -1025,31 +991,6 @@ export default function ModuleAttendanceScreen() {
                 )}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  transition={hoverTransition}
-                  onClick={saveAttendance}
-                  disabled={saving}
-                  style={{
-                    border: 'none',
-                    background: '#B8E466',
-                    color: '#FFFFFF',
-                    borderRadius: '999px',
-                    height: '38px',
-                    padding: '0 18px',
-                    fontFamily: 'Amiko',
-                    fontSize: '12px',
-                    cursor: saving ? 'default' : 'pointer',
-                    opacity: saving ? 0.7 : 1,
-                  }}
-                >
-                  {saving ? 'Saving...' : 'Save'}
-                </motion.button>
-              </div>
-
               {attendanceLoading ? (
                 <p style={{ textAlign: 'center', color: '#A1A3BC', fontFamily: 'Amiko' }}>Loading...</p>
               ) : attendanceMembers.length === 0 ? (
@@ -1066,20 +1007,22 @@ export default function ModuleAttendanceScreen() {
                         whileHover={{ y: -2, boxShadow: '0 8px 18px rgba(56, 60, 109, 0.10)' }}
                         transition={hoverTransition}
                         style={{
-                          background: '#F6F5FB',
+                          background: '#FFFFFF',
+                          border: '1px solid #EAECF4',
                           borderRadius: '18px',
-                          minHeight: '42px',
+                          minHeight: '48px',
                           padding: '10px 12px',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
+                          boxShadow: '0 4px 12px rgba(34, 43, 69, 0.07)',
                         }}
                       >
                         <StatusButton
                           kind="present"
                           active={member.status === 'PRESENT'}
                           onClick={() =>
-                            setStatus(
+                            autoSaveStatus(
                               member.memberId,
                               member.status === 'PRESENT' ? null : 'PRESENT'
                             )
@@ -1090,7 +1033,7 @@ export default function ModuleAttendanceScreen() {
                           kind="absent"
                           active={member.status === 'ABSENT'}
                           onClick={() =>
-                            setStatus(
+                            autoSaveStatus(
                               member.memberId,
                               member.status === 'ABSENT' ? null : 'ABSENT'
                             )
@@ -1218,6 +1161,7 @@ export default function ModuleAttendanceScreen() {
                   )
                 })
               )}
+
             </>
           )}
         </div>

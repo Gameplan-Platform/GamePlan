@@ -205,9 +205,20 @@ export default function AddEvent() {
       {/* Header */}
       <div className="relative flex items-center justify-center px-6 pt-8 pb-4">
         <button
-          className="absolute left-6 w-9 h-9 bg-white rounded-xl shadow flex items-center justify-center text-lg text-[#222b45]"
           onClick={() => navigate(`/modules/${moduleId}/calendar`)}
-        >‹</button>
+          style={{
+            position: 'absolute', left: '24px',
+            width: '42px', height: '42px',
+            background: '#F5F6FA', border: '1px solid #D9DEEA',
+            borderRadius: '14px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
+          }}
+        >
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+            <path d="M8.5 1L1.5 8L8.5 15" stroke="#222B45" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
         <h1 className="text-4xl font-normal text-black">Add Event</h1>
       </div>
 
@@ -410,7 +421,8 @@ export default function AddEvent() {
         <div className="flex justify-center gap-4 pt-2 pb-8">
           <button
             onClick={() => navigate(`/modules/${moduleId}/calendar`)}
-            className="w-[116px] h-[45px] bg-white rounded-[20px] shadow flex items-center justify-center text-[#222b45] text-xl"
+            className="w-[116px] h-[45px] bg-white rounded-[999px] flex items-center justify-center text-[#222b45] text-sm"
+            style={{ border: '1px solid #DFE5F0' }}
           >
             Cancel
           </button>
@@ -418,7 +430,7 @@ export default function AddEvent() {
             onClick={() => {
               if (!validateDate(date)) return;
               if (!allDay && !validateTime(startHours, startMinutes, startAmpm, endHours, endMinutes, endAmpm)) return;
-              
+
               api('/events', {
                 method: 'POST',
                 token: token ?? undefined,
@@ -435,7 +447,8 @@ export default function AddEvent() {
               .then(() => navigate(`/modules/${moduleId}/calendar`))
               .catch(() => {});
             }}
-            className="w-[116px] h-[45px] bg-[#b8e366] rounded-[20px] flex items-center justify-center text-white text-xl"
+            className="w-[116px] h-[45px] bg-[#B8E466] rounded-[999px] flex items-center justify-center text-white text-sm"
+            style={{ boxShadow: '0 6px 14px rgba(183,222,88,0.28)' }}
           >
             Post
           </button>

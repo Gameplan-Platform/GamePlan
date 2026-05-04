@@ -72,12 +72,12 @@ export default function CreateModule() {
           transition={{ ...spring, delay: 0 }}
           onClick={() => navigate('/module-homepage')}
           style={{
-            position: 'absolute', left: '38px', top: '71px',
-            width: '38px', height: '42px',
-            background: 'white', border: '1px solid #CED3DE',
-            borderRadius: '10px', cursor: 'pointer',
+            position: 'absolute', left: '28px', top: '74px',
+            width: '42px', height: '42px',
+            background: '#F5F6FA', border: '1px solid #D9DEEA',
+            borderRadius: '14px', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            opacity: 0.8,
+            boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
           }}>
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
             <path d="M9 2L4 7.5L9 13" stroke="#222B45" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -88,7 +88,7 @@ export default function CreateModule() {
         <motion.p
           initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.05 }}
-          style={{ position: 'absolute', left: '72px', top: '119px', fontFamily: 'Amiko', fontWeight: 700, fontSize: '40px', lineHeight: '53px', color: '#000000', margin: 0 }}>
+          style={{ position: 'absolute', left: '72px', top: '119px', fontFamily: 'Amiko', fontWeight: 400, fontSize: '40px', lineHeight: '53px', color: '#000000', margin: 0 }}>
           Create Module
         </motion.p>
 
@@ -166,38 +166,40 @@ export default function CreateModule() {
             </p>
           )}
 
+          {/* Cancel button */}
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ ...spring, delay: 0.2 }}
+            onClick={() => navigate('/module-homepage')}
+            style={{
+              position: 'absolute', left: '60px', top: '760px',
+              width: '150px', height: '52px',
+              background: '#FF6B6B', border: 'none',
+              borderRadius: '999px', cursor: 'pointer',
+              fontFamily: 'Amiko', fontWeight: 400, fontSize: '16px',
+              color: '#FFFFFF',
+              boxShadow: '0 6px 14px rgba(255,107,107,0.28)',
+            }}>
+            Cancel
+          </motion.button>
+
           {/* Create button */}
           <motion.button
             type="submit"
             disabled={loading}
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ ...spring, delay: 0.2 }}
+            transition={{ ...spring, delay: 0.25 }}
             style={{
-              position: 'absolute', left: '56px', top: '740px',
-              width: '317px', height: '41px',
-              background: '#B8E466', boxShadow: '0px 8px 20px rgba(0,0,0,0.1)',
-              borderRadius: '40px', border: 'none',
-              fontFamily: 'Amiko', fontWeight: 600, fontSize: '24px',
-              color: '#FFFFFF', cursor: 'pointer',
+              position: 'absolute', left: '230px', top: '760px',
+              width: '150px', height: '52px',
+              background: '#B8E466', border: 'none',
+              borderRadius: '999px', cursor: 'pointer',
+              fontFamily: 'Amiko', fontWeight: 400, fontSize: '16px',
+              color: '#FFFFFF',
+              boxShadow: '0 6px 14px rgba(183,222,88,0.28)',
             }}>
             {loading ? 'Creating...' : 'Create'}
-          </motion.button>
-
-          {/* Cancel button */}
-          <motion.button
-            type="button"
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ ...spring, delay: 0.25 }}
-            onClick={() => navigate('/module-homepage')}
-            style={{
-              position: 'absolute', left: '63px', top: '795px',
-              width: '304px', height: '41px',
-              background: '#FFFFFF', boxShadow: '0px 8px 20px rgba(0,0,0,0.1)',
-              borderRadius: '40px', border: 'none',
-              fontFamily: 'Amiko', fontWeight: 600, fontSize: '24px',
-              color: '#C8C8C8', cursor: 'pointer',
-            }}>
-            Cancel
           </motion.button>
 
         </form>

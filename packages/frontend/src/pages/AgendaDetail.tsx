@@ -103,11 +103,11 @@ export default function AgendaDetail() {
           onClick={() => navigate(`/modules/${moduleId}`)}
           style={{
             position: 'absolute', left: '28px', top: '74px',
-            width: '38px', height: '42px',
-            background: 'transparent', border: '1px solid #CED3DE',
-            borderRadius: '12px', cursor: 'pointer',
+            width: '42px', height: '42px',
+            background: '#F5F6FA', border: '1px solid #D9DEEA',
+            borderRadius: '14px', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            opacity: 0.5,
+            boxShadow: '0 6px 16px rgba(34, 43, 69, 0.05)',
           }}
         >
           <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
@@ -174,7 +174,7 @@ export default function AgendaDetail() {
                 <button
                   onClick={() => navigate(`/modules/${moduleId}/agendas/${agendaId}/edit`)}
                   style={{
-                    height: '36px', padding: '0 18px', borderRadius: '20px',
+                    height: '36px', padding: '0 18px', borderRadius: '999px',
                     background: '#B8E466', border: 'none', cursor: 'pointer',
                     fontFamily: 'Amiko', fontSize: '14px', color: '#FFFFFF',
                     boxShadow: '0px 2px 4px rgba(0,0,0,0.15)',
@@ -186,7 +186,7 @@ export default function AgendaDetail() {
                   onClick={handleDelete}
                   disabled={deleting}
                   style={{
-                    height: '36px', padding: '0 18px', borderRadius: '20px',
+                    height: '36px', padding: '0 18px', borderRadius: '999px',
                     background: '#E53935', border: 'none', cursor: 'pointer',
                     fontFamily: 'Amiko', fontSize: '14px', color: '#FFFFFF',
                     boxShadow: '0px 2px 4px rgba(0,0,0,0.15)',
