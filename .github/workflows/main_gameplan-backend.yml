@@ -45,6 +45,7 @@ jobs:
           cp -r packages/backend/dist deploy/dist
           cp packages/backend/package.json deploy/package.json
           cp -r packages/backend/prisma deploy/prisma
+          cp packages/backend/prisma.config.ts deploy/prisma.config.ts
           PRISMA_PATH=$(find node_modules/.pnpm -name ".prisma" -type d | head -1)
           cp -r $PRISMA_PATH /tmp/backend-deploy/node_modules/.prisma
           cd /tmp/backend-deploy/node_modules && tar -czf /home/runner/work/GamePlan/GamePlan/deploy/node_modules.tar.gz .
@@ -63,10 +64,25 @@ jobs:
       contents: read
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies for migrations
+        run: pnpm install
+        working-directory: packages/backend
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          path: artifact
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -80,14 +96,9 @@ jobs:
         with:
           app-name: 'gameplan-backend'
           slot-name: 'Production'
-          package: .
-
-      - name: Check files
-        run: ls -la && ls prisma 2>/dev/null || echo "no prisma folder"
+          package: artifact
 
       - name: Run database migrations
-        run: |
-          npm install -g prisma@7.4.1
-          prisma migrate deploy --schema=./prisma/schema.prisma
+        run: pnpm --filter @gameplan/backend exec prisma migrate deploy
         env:
-            DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
