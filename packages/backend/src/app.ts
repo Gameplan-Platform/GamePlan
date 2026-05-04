@@ -25,8 +25,8 @@ app.use(express.json());
 
 /* Mount Api Routes */
 app.use("/api", healthRoutes);
-app.use("/auth", authRoutes);
-app.use("/teams", teamsRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/teams", teamsRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/modules", modulesRoutes);
 app.use("/api/modules", attendanceRoutes);
