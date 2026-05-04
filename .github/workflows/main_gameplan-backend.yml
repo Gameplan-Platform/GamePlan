@@ -36,6 +36,9 @@ jobs:
       - name: Build backend
         run: pnpm --filter @gameplan/backend build
 
+      - name: Check dist
+        run: grep -r "cors" packages/backend/dist/app.js || echo "CORS NOT FOUND IN DIST"    
+
       - name: Deploy backend package
         run: pnpm --filter @gameplan/backend deploy --prod --legacy /tmp/backend-deploy
 
