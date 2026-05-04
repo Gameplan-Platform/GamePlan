@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - gp-37-patch-messaging
+      - gp-37-workflow-fix
   workflow_dispatch:
 
 jobs:
@@ -42,7 +43,10 @@ jobs:
       - name: Prepare deployment package
         run: |
           mkdir -p deploy
-          cp -r /tmp/backend-deploy/. deploy/
+          cp -r packages/backend/dist deploy/dist
+          cp packages/backend/package.json deploy/package.json
+          cp -r packages/backend/prisma deploy/prisma
+          cd /tmp/backend-deploy/node_modules && tar -czf /home/runner/work/GamePlan/GamePlan/deploy/node_modules.tar.gz .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
