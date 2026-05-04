@@ -45,7 +45,8 @@ jobs:
           cp -r packages/backend/dist deploy/dist
           cp packages/backend/package.json deploy/package.json
           cp -r packages/backend/prisma deploy/prisma
-          cp -r packages/backend/node_modules/.prisma /tmp/backend-deploy/node_modules/.prisma 2>/dev/null || true
+          PRISMA_PATH=$(find node_modules/.pnpm -name ".prisma" -type d | head -1)
+          cp -r $PRISMA_PATH /tmp/backend-deploy/node_modules/.prisma
           cd /tmp/backend-deploy/node_modules && tar -czf /home/runner/work/GamePlan/GamePlan/deploy/node_modules.tar.gz .
 
       - name: Upload artifact
