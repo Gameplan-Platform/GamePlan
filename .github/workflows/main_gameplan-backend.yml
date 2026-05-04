@@ -53,6 +53,9 @@ jobs:
           cp -r $PRISMA_PATH /tmp/backend-deploy/node_modules/.prisma
           cd /tmp/backend-deploy/node_modules && tar -czf /home/runner/work/GamePlan/GamePlan/deploy/node_modules.tar.gz .
 
+      - name: Check deploy dist
+        run: grep -r "cors" deploy/dist/app.js || echo "CORS NOT FOUND IN DEPLOY"      
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
