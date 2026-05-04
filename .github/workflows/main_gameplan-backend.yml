@@ -37,7 +37,7 @@ jobs:
         run: pnpm --filter @gameplan/backend build
 
       - name: Deploy backend package
-        run: pnpm --filter @gameplan/backend deploy --prod /tmp/backend-deploy
+        run: pnpm --filter @gameplan/backend deploy --prod --legacy /tmp/backend-deploy
 
       - name: Prepare deployment package
         run: |
