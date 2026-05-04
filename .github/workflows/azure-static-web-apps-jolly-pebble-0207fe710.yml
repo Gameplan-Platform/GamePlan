@@ -53,3 +53,5 @@ jobs:
           ###### End of Repository/Build Configurations ######
         env:
           VITE_API_URL: https://gameplan-backend-gehdabcedagzeta3.centralus-01.azurewebsites.net
+          VITE_SOCKET_URL: https://gameplan-backend-gehdabcedagzeta3.centralus-01.azurewebsites.net
+
