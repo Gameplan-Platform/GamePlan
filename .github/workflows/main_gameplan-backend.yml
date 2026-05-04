@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-      - gp-37-patch-messaging
-      - gp-37-workflow-fix
+      - gp-37-backend-deployment
   workflow_dispatch:
 
 jobs:
