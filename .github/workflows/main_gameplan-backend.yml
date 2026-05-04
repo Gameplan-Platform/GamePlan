@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - gp-37-backend-deployment
+      - workflow-migration
   workflow_dispatch:
 
 jobs:
@@ -81,7 +81,7 @@ jobs:
           app-name: 'gameplan-backend'
           slot-name: 'Production'
           package: .
-          
+
       - name: Check files
         run: ls -la && ls prisma 2>/dev/null || echo "no prisma folder"
 
