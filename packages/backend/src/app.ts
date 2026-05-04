@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import healthRoutes from "./routes/health.routes";
 import userRoutes from "./routes/users.routes";
 import authRoutes from "./routes/auth.routes";
@@ -15,6 +16,10 @@ import scoresRoutes from "./routes/scores.routes";
 
 /* Express App */
 const app = express();
+
+app.use(cors({
+    origin: "*"
+  }));
 
 app.use(express.json());
 
