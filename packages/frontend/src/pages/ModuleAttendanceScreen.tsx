@@ -477,7 +477,6 @@ export default function ModuleAttendanceScreen() {
         )
       )
       setError(err instanceof Error ? err.message : 'Failed to save')
-    } finally {
     }
   }
 
