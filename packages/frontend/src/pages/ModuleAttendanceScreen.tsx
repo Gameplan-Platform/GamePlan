@@ -356,7 +356,6 @@ export default function ModuleAttendanceScreen() {
   const [selectedDate, setSelectedDate] = useState(ymd(new Date()))
   const [attendanceMembers, setAttendanceMembers] = useState<AttendanceMember[]>([])
   const [attendanceLoading, setAttendanceLoading] = useState(false)
-  const [savingMemberId, setSavingMemberId] = useState<string | null>(null)
   const [calendarOpen, setCalendarOpen] = useState(false)
 
   const [selectedHistoryMemberId, setSelectedHistoryMemberId] = useState<string | null>(null)
@@ -463,7 +462,6 @@ export default function ModuleAttendanceScreen() {
     )
     if (!status || !moduleId || !token) return
 
-    setSavingMemberId(memberId)
     setError(null)
     try {
       await api(`/modules/${moduleId}/attendance`, {
@@ -480,7 +478,6 @@ export default function ModuleAttendanceScreen() {
       )
       setError(err instanceof Error ? err.message : 'Failed to save')
     } finally {
-      setSavingMemberId(null)
     }
   }
 
