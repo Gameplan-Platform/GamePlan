@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - gp-37-patch-messaging
   workflow_dispatch:
 
 jobs:
@@ -41,13 +42,7 @@ jobs:
           cp -r packages/backend/dist deploy/dist
           cp packages/backend/package.json deploy/package.json
           cp -r packages/backend/prisma deploy/prisma
-          mkdir -p deploy/node_modules
-          cp -r node_modules/. deploy/node_modules/
-          cp -r packages/backend/node_modules/. deploy/node_modules/
-          mkdir -p deploy/node_modules/@gameplan/shared
-          cp -r packages/shared/dist deploy/node_modules/@gameplan/shared/dist
-          cp packages/shared/package.json deploy/node_modules/@gameplan/shared/package.json
-          printf '[config]\nSCM_DO_BUILD_DURING_DEPLOYMENT=false' > deploy/.deployment
+          printf '[config]\nSCM_DO_BUILD_DURING_DEPLOYMENT=true' > deploy/.deployment
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
