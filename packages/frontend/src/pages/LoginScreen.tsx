@@ -86,7 +86,7 @@ export default function LoginScreen() {
     if (validationError) { setError(validationError); return }
     setLoading(true)
     try {
-      const data = await api<LoginResponse>('/auth/login', {
+      const data = await api<LoginResponse>('/api/auth/login', {
         method: 'POST',
         body: { identifier: identifier.trim(), password },
       })

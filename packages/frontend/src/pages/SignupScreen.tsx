@@ -106,7 +106,7 @@ export default function SignupScreen() {
   const handleBypass = async () => {
     setBypassing(true)
     try {
-      const { token } = await api<{ token: string }>('/auth/bypass-verify', {
+      const { token } = await api<{ token: string }>('/api/auth/bypass-verify', {
         method: 'POST',
         body: { email: form.email.trim() },
       })
@@ -144,7 +144,7 @@ export default function SignupScreen() {
     if (Object.keys(validationErrors).length > 0) { setErrors(validationErrors); return }
     setLoading(true)
     try {
-      await api<SignupResponse>('/auth/signup', {
+      await api<SignupResponse>('/api/auth/signup', {
         method: 'POST',
         body: {
           email: form.email.trim(), username: form.username.trim(),
@@ -163,7 +163,7 @@ export default function SignupScreen() {
   const handleResend = async () => {
     setResendStatus('sending')
     try {
-      await api<ResendResponse>('/auth/resend-verification', {
+      await api<ResendResponse>('/api/auth/resend-verification', {
         method: 'POST',
         body: { email: form.email.trim() },
       })
